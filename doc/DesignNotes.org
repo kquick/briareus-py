@@ -1,0 +1,142 @@
+* Iterative approach
+ * Build results can be fed back in as new facts
+ * Initial build_configurations can be a minimal/trial set
+ * Build results can drive new build configurations that needed initial validation
+ * Build results drive recommendations/notifications/pr submissions/etc.
+ * Needs to supplement a previous build_configuration determination
+   * Just save "facts", then re-check with supplemental facts
+   * DB or just files?  Aging?
+ * Correlation of build results with configurations?
+   * Keep track of builds and for new builds look at the inputs to see
+     if it matches the configuration??
+   * Assign configurations a unique ID (needs DB?)
+* Logic Programming packages
+** Public candidates
+*** pyswip
+  * Uses swig to talk to SWI Prolog (?)
+  * Advantage is writing true prolog and invoking from Python
+  - Runs prolog as a subprocess
+    - Significant code dedicated to finding prolog with various system assumptions
+    - Significant code dedicated to type/value conversion between
+      prolog and python for all operations and generic support.
+*** logicpy
+  Someone's experiment, last changed 2 years ago, 17 commits, unused?
+*** pyke
+  * Lots of docs
+  * 2008 PyCon paper
+  * Last release 2010
+  * Uses external files for knowledge, etc.  But these are not prolog syntax?
+*** pyDatalog
+  * Last release Jan 2016
+  * Actually seems to have almost the best integration of Prolog-type statements into Python native syntax.
+*** logpy (aka "kanren")
+  * Reasonably well implemented, last changes 5 months ago with 439 commits and 10 contributors
+  * Last release Dec 2016
+  * Non-intuitive kanren syntax
+*** yield prolog
+  Less prolog, more python, less intuitive?
+** Current selection
+  The desire is to write and maintain native Prolog as the simplest
+  and most direct specification of the necessary logic statements.
+
+  This logic can be output in relatively simple terms that don't
+  require extensive support of Prolog terms, so something like pyswip
+  is probably overkill.
+
+  For the initial approach, simply directly invoke the swipl
+  executable, provide the Briareus input as simple facts written to
+  the swipl input and then perform some simple parsing of the swipl
+  output (which can be controlled to make this more easy... possibly
+  even a simple Python eval() of the output will suffice.
+* Concurrency
+  Concurrency is implemented using Thespian as a high-level
+  actor-based concurrency model.  Concurrency is used when performing
+  I/O-related operations to enable parallelism; the core logic remains
+  as a tightly-coupled imperative implementation.
+
+  The Thespian ActorSystem model allows the establishment of a global
+  ActorSystem and therefore does not need the actor system to be
+  threaded through the various components (e.g as an initialization
+  argument to the Briareus.BCGen.Generator.Generator.  However, this
+  argument is optionally supported since this allows tests to pass in
+  a transientUnique actor system for isolation of tests.
+* Github access limits
+  Github implements access limits for the github API
+  (https://developer.github.com/v3).  These limits can prevent the
+  fetching of github information.
+
+  Limits can be raised when using authentication to query the github
+  API; this is a viable alternative but hopefully avoided due to the
+  significant increase in complexity.
+
+  Limits can also be avoided by using the ETag/Last-Modified and
+  querying relative to those values.  If there is no change, a 304 is
+  returned to indicate that the previous data is valid, and the
+  request is not deducted from the current rate count.
+
+  Briareus will primarily use change-relative queries to obtain
+  information.  The persistent information about the previous response
+  is maintained in memory, rather than using a local disk database.
+  This simplifies the Briareus implementation, with a small overhead
+  of running processes (Briareus will use named Thespian Actors to
+  interact with the Github API, one actor per repository).
+
+  This also means that periodically (and especially on initial
+  startup) the rate limits may be exceeded.  From the overall
+  perspective, Briareus should be running with some interval period to
+  refresh information, so the resource limit error returns should be a
+  transient issue that should be resolved within a couple of hours
+  (depending on the number of repositories being queried), at which
+  point most responses are expected to not change within the
+  unauthenticated resource limits.
+
+  This does mean that either authentication will be needed for rapidly
+  changing repositories or that Briareus will be lagging significantly
+  for those repositories.
+* Github request idempotency
+
+  The use of Thespian Actors to maintain information also allows the
+  cached information to be used to answer duplicate requests.  This
+  facilitates the gathering of information without attempting to
+  remove duplicates.
+* Functional Domain
+
+  All Hydra operations are divided into three portions:
+
+    1. Fetching inputs
+    2. Running evaluations of jobsets
+    3. Performing builds identified by evaluations
+
+  For the above, both #2 and #3 run in restrictued/pure mode and
+  therefore cannot access anything not already in the nix store.  Step
+  1 is responsible for updating the nix store with needed information,
+  but the input for Step 1 must already be known.
+
+  In order to dynamically query the remote repositories, Briarerus
+  must run independently so that it can use unfettered network access
+  to gather the information to prepare for Hydra step #1.  The
+  Briareus tool itself does not have this long-running periodicity
+  built in: it is easy to perform this periodic invocation using any
+  of a number of tools designed more for this purpose, such as ~cron~,
+  ~systemd~, Scheduled tasks, etc.
+
+* Pull Request information
+  For Github pull requests, these are obtained by communicating with the Github API.
+
+  The pull request is an object which exists on the target repo (which
+  should be in the RL), and references a source repo and a branch in
+  that source repo.  The branch does *not* exist in the target repo
+  (yet).  There may be an identically named branch in the target repo,
+  but these are distinct (via pullreqs and the git refs heirarchy).
+
+  For Briareus, pull requests are prioritized over branches.
+
+* Build Result Correlation
+  At the present time, build result correlation for Hydra will be
+  achieved by using the jobname as the identifier.  The latest build
+  for that jobname will be the current status (or if there is no job
+  started yet, the status will be "pending").
+
+  Jobnames are potentially not required to be unique, but for
+  retrieval it is expected that they are unique for the "jobset" URL.
+* Potential Issues

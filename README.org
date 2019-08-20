@@ -1,0 +1,463 @@
+#+TITLE+: Briareus
+
+* Briareus
+
+The Briareus project is a build configuration manager for a CI/CD system.
+
+Contemporary CI systems (e.g. Travis, Jenkins) are analogous to the
+older RCS and SCCS revision control systems: they concern themselves
+with a single build only.  A new generation of CI tools is needed that
+attends to the various interactions between build components instead
+of just focusing on a single build component, much as modern revision
+control systems like git attend to the relationships between the files
+that make up a project.
+
+There are submodules-based builds and Jenkins pipelines, but these are
+relatively manual/static and only show a single snapshot instead of
+the results of various build combinations.  When a build output is
+comprised of the builds of several components, each of which may be
+individually being updated and evolved, it becomes more important to
+examine results from the perspective of a "build configuration", which
+is an explicitly determined set of component versions along with the
+meaning of that configuration.
+
+A conventional build system will typically start with a single build
+configuration, dedicated to building the "production" version of a
+product.  If there are multiple components to the project, they will
+be built together or in a pipeline from the "production" branch for
+those repositories.  There may be a couple of other build
+configurations (e.g. develop, stage) present, but these are usually
+manually configured and statically managed.
+
+Some other conventional build systems are capable of building
+candidates (like Github Pull Requests), but typically do not
+coordinate these with upstream or downstream dependencies: if a Pull
+Request to repo "A" would require changes to downstream repo "B", this
+may be flagged, but creation of a corresponding pull request in repo
+"B" is not usually managed.
+
+Briareus is not a build system itself, but is a build configuration
+determination system: it is intended to identify various build
+configurations that should be built by the core build system, and then
+interpret and report the results in a useful manner.
+
+* Functional Description
+
+#+BEGIN_EXAMPLE
+
+                                    v-----------Build results------------+
+                              +----------+                               |
+                              |          |    +---------+    +---------+ |
+User specification ---------->| Briareus |--->| Build   |--->| Builder |-+
+  * Main repositories         |          |    | Config- |    +---------+
+  * Branches of interest      +----------+    | urations|
+  * Variations                   ^   \        +---------+
+                                /     \
+                               /       \
+      R6       }      VCS (github)      \
+      |        }      info               \----------> Reports
+      R1       }      /                               Email Notifications
+     / \\      }     /                                Chat Notifications
+     |  |\     }    /
+    R2  | R7   }   /
+    | \ |      }--/
+     \ `R3     }
+      \ |      }
+       `R4     }
+        |      }
+        R5     }
+#+END_EXAMPLE
+
+Briareus can support 
+  * multiple VCS types (currently github, gitlab),
+  * multiple Builders (currently Hydra, with [[https://github.com/kquick/devnix][devnix]]-based configurations
+  * email notifications
+  * mattermost notifications
+
+Briareus is developed under Linux, but it should be system independent
+and useable on MacOS/X Darwin or Windows systems as well.
+
+** Primary Example
+
+Given:
+  RL: list of repo URIs for related repos
+  BL: list of interesting branches
+  VARS: list of variable names and value lists for build configurations
+
+Return the following:
+
+  BCD: dictionary of build configurations, indexed by BL-based name (BL name, BL"-latest" name)
+
+  where a build configuration is the RL, enhanced by submodules,
+  with revisions and sha hashes for each revision.
+
+For example, given:
+   * R1, R2, R3, R4, R5, R6, and R7 are repositories
+   * RL = [ R1, R2, R3, R5 ]
+   * R1 is marked as a "Project" repo
+   * R4 and R7 are repositories *not* listed in RL (i.e. discovered via submodules)
+   * BL = [ "master", "dev", "feat1" ]
+   * "bugfix9" is a pull request on R4 and R2 (and just a branch elsewhere)
+   * R2 also has a branch on "bugfix9" [a pull request references a
+     branch in a *remote* repository, distinct from the target
+     repository].
+   * "blah" is a pull request on R1 (and just a branch elsewhere)
+   * VARS is { "ghcver": ["ghc844", "ghc865"], "c_compiler": ["gnucc", "clang"] }
+
+arranged as shown below:
+
+#+BEGIN_EXAMPLE
+      R6        master feat1
+      |
+      R1        master  submodules: [R2=master,R3=master^3,R4=master^1]
+     /  \       feat1   submodules: [R2=master^1,R3=master,R4=feat1^2]
+     |   |\     PR#1(remote_R1_b):blah submodules: [R2=master,R3=master,R7=master^4]
+     |   | \
+     |   |  R7  master
+     |   |
+    R2   |      master PR#23(remote_R2_a):bugfix9 branch:bugfix9
+    | \  |
+     \ `R3      master blah
+      \  |
+       `R4      master feat1 PR#8192(remote_R4_y):bugfix9
+         |
+        R5      master bugfix9 blah dev
+#+END_EXAMPLE
+
+and where R1 is a Project repo.  The Project repo (there can be only
+one) is the "main" repository for the project:
+  * It can specify submodules revisions for the other repos (e.g. gitmodules)
+  * It is the "end product" build, which can trigger special notifications or reports.
+
+In this example, R1 has a git submodules (.gitmodules) configuration
+where the submodules versions are described above as well.
+
+The following BCD is generated:
+
+  #+BEGIN_EXAMPLE
+  { "master.submodules":     [R1.master, R2.master,   R3.master^3, R4.master^1, R5.master,  R6.master] * VSETS
+  , "master.HEADs":          [R1.master, R2.master,   R3.master,   R4.master,   R5.master,  R6.master] * VSETS
+  , "feat1.submodules":      [R1.feat1,  R2.master^1, R3.master,   R4.feat1^2,  R5.master,  R6.feat1] * VSETS
+  , "feat1.HEADs":           [R1.feat1,  R2.master,   R3.master,   R4.feat1,    R5.master,  R6.feat1] * VSETS
+  , "dev.submodules":        [R1.master, R2.master,   R3.master^3, R4.master^1, R5.dev,     R6.master] * VSETS
+  , "dev.HEADs":             [R1.master, R2.master,   R3.master,   R4.master,   R5.dev,     R6.master] * VSETS
+  , "PR-blah.submodules":    [R1.blah,   R2.master,   R3.master,                R5.blah,    R6.master, R7=master^4] * VSETS
+  , "PR-blah.HEADs":         [R1.blah,   R2.master,   R3.blah,                  R5.blah,    R6.master, R7=master] * VSETS
+  , "PR-bugfix9.submodules": [R1.master, R2.bugfix9,  R3.master^3, R4.bugfix9,  R5.bugfix9, R6.master] * VSETS
+  , "PR-bugfix9.HEADs":      [R1.master, R2.bugfix9,  R3.master,   R4.bugfix9,  R5.bugfix9, R6.master] * VSETS
+  , "PRonly-bugfix9":        [R1.master, R2.master,   R3.master^3, R4.bugfix9,  R5.bugfix9, R6.master]
+  }
+  #+END_EXAMPLE
+
+In the above, VSETS is the set of combinations of the two variables.
+For the example data, there are 4 different combinations:
+
+  #+BEGIN_EXAMPLE
+  [ { "c_compiler": "gnucc",  "ghcver": "ghc844" },
+    { "c_compiler": "gnucc",  "ghcver": "ghc865" },
+    { "c_compiler": "clang",  "ghcver": "ghc844" },
+    { "c_compiler": "clang",  "ghcver": "ghc865" },
+  #+END_EXAMPLE
+
+and therefore each BCD line occurs 4 different times (once for each entry in the VSET).
+
+
+This BCD represents the different jobsets that will be built for the project:
+
+  * master.submodules :: This is the build of the HEAD from master on
+       R1, with the git submodules checked out at the versions
+       specified in the submodules.
+
+       Note that R4 did not appear in the RL, but because it was in
+       the submodules of the Project R1 repository, it is implicitly
+       added to the RL for all jobsets.
+
+       Any .gitmodules submodules in any of the dependent repositories
+       are ignored: only the top-level .gitmodules is used.
+
+       Repos downstream from a project repo (e.g. R6) are not affected
+       by submodules.
+
+  * master.HEADs :: because the submodules has some of the submodules
+                    at a version less than their master.HEAD revision,
+                    this ignores the submodules and builds against
+                    their master.HEAD.  The intent of this build is to
+                    show that it is safe to upgrade the submodules
+                    revisions.
+
+                    This jobset is still emitted even if the
+                    submodules are set to the head of all of the
+                    associated repositories: this provides
+                    confirmation for the user that the HEADS is still
+                    valid without requiring additional knowledge of
+                    this matching level.
+
+  * feat1.HEADs :: The "feat1" branch is listed in the BL, meaning
+                   it's a branch of interest, so a jobset is
+                   constructed using this branch in any of the
+                   repositories where it appears.  Any repository that
+                   has this branch will build using the HEAD version
+                   of that branch; otherwise the HEAD of master will
+                   be used.
+
+                   A failure of this jobset could indicate that:
+                   * a similarly named branch should be created in a repo
+                   * the similarly named branch in a repo may contain
+                     changes that impact other repositories
+                     (especially if the feat1.submodules branch builds
+                     successfully).
+
+  * feat1.submodules :: Created because the "feat1" branch is listed
+       in the BL and the Project repo R1 has a feat1 branch whose
+       submodules may not point to the heads of branches.  This jobset
+       is not created unless the named branch is present in a Project
+       repo.  Note that the submodules determines revisions to use: if
+       a repository is named in the submodules and also has the named
+       branch, but the submodules does *not* refer to that branch, the
+       branch will be ignored and the submodules specification will
+       act as an override.
+
+       A failure of this jobset compared to a success of the
+       feat1.HEADs indicates that the submodules for the feat1 branch
+       requires updates.
+
+  * dev.submodules :: Created because the "dev" branch is listed in
+                      the BL.  The dev branch only exists for the R5
+                      repo; all other repositories use the version
+                      specified for the submodules.
+
+                      Note the behavioral difference relative to
+                      feat1: since the feat1 branch *was* present at
+                      the top-level repo, the submodules from that
+                      branch was used directly under the assumption
+                      that it is explicitly curated, whereas for the
+                      "dev" branch there is no updates to the
+                      submodules so any repository with this branch
+                      can override the "default" submodules from
+                      master.
+
+                      This build configuration will help indicate
+                      whether the dev branch is compatible with the
+                      expected primary configuration.
+
+  * dev.HEADs :: Similar to dev.submodules, except the submodules file
+                 in the R1 Project repository is ignored and all
+                 repositories are built from either the HEAD of the
+                 dev branch or the HEAD of master if there is no dev
+                 branch.
+
+                 This build configuration will help indicate whether
+                 the dev branch is compatible with the latest
+                 available code in all repositories.
+
+  * PR-blah.submodules :: Because there is a PR for this (even though
+       it wasn't listed in the BL), a build will be generated for this
+       PR, using the versions locked in the PR.  This is a
+       verification of whether the PR can be merged safely.
+
+       Note that R4 has been removed from the submodules for the blah
+       PR, so it is *not* involved in the build.  R5 is listed in the
+       main RL, so it is still built (and with the "blah" branch) but
+       this should not have any effect on the build since R5 is only
+       used by R4 which is not present in this build.
+
+       Also note that had blah been present in the BL, the existence
+       of a PR anywhere for blah is more significant than the
+       existence of the branch.
+
+       This is a submodules build because the PR exists for a Project
+       repo (R1), so the submodules settings in that repo control
+       which submodule versions are built.
+
+  * PR-blah.HEADs :: This is an alternate build for the PR that exists
+                     on a Project repo, but building against the head of
+                     all associated branches (the PR-named branch or
+                     master) of submodules instead of the specific
+                     versions identified in the submodules.
+
+                     Success of this build should be an indicator that
+                     the PR submodules could be updated to the HEAD
+                     versions successfully.
+
+  * PR-bugfix9.submodules :: This is a jobset created by observing
+       that R4 has a pull request for this branch (even though this
+       branch was not in the BL).
+
+       Any similarly-named branch in any of the other repositories
+       will be used in this build, even if they have not created a
+       pull request for that branch.
+
+       The PR/branch does not exist on a "Project" repository, but the
+       HEADs and submodules variations are still built, overriding any
+       submodules specifications with this PR branch where it exists.
+
+       The PR is assumed to be against the master branch for all
+       repositories that do not have a branch of this name.
+
+       This jobset can be used to track the viability of the
+       corresponding PR for this repository and all upstream and
+       downstream repositories to indicate that the changes associated
+       with this PR are fully supported throughout the build tree.
+
+  * PR-bugfix9.HEADs :: This is a jobset created by observing
+       that R4 has a pull request for this branch (even though this
+       branch was not in the BL).
+
+       This build is similar to the PR-bugfix9.submodules build except
+       that any non-PR-branch repos will be built from the head of
+       their repositories instead of the submodules-specified revisions.
+
+       This jobset can be used to track the viability of the
+       corresponding PR for this repository and all upstream and
+       downstream repositories to indicate that the changes associated
+       with this PR are fully supported throughout the build tree,
+       against the latest versions of all non-PR-tagged repositories.
+
+
+  * PRonly-bugfix9 :: This is a jobset similar to the "PR-bugfix9"
+                      jobset, but it builds against master for all
+                      repositories unless their corresponding branch
+                      has an opened PR for that branch.
+
+                      Build failures in this jobset can indicate that
+                      a repository with a correspondingly-named branch
+                      needs a pull-request and that all of the
+                      similarly-named pull requests must be merged at
+                      the same time because the pull-request changes
+                      are not compatible with master.
+
+* Main Functionality
+
+Briareus has two primary functional areas:
+  1. Determining build configurations based on available inputs
+  2. Analsys/reporting of results of the builds done for those build configurations.
+
+In the first functional area (BCGen), Briareus will use various
+user-supplied inputs, along with dynamically gathered information from
+the build components to generate a set of build configurations.  These
+build configurations are presented to a (conventional) build system to
+perform the actual builds.
+
+In the second functional area (AnaRep), Briareus will extract the
+results of the build configuration from the build system and analyze
+those results to generate various reports.  The report can identify
+the relationships between the different build configurations and the
+recommendations based on those build configurations.  Some reports may
+only be available upon active request by a user but others may be
+pushed via a notification system (e.g. email, chatbots, etc.).
+
+Briareus also incorporates a database to help track information
+persistently, an interface to Prolog along with various Prolog rules
+to determine build configurations and analyses thereof, and one or
+more front-end UI components (likely including a Web-based UI) for
+user interaction and reporting.
+
+#+BEGIN_EXAMPLE
+
+                       +----------+----------+
+                       | Briareus | Briareus |
+   +----------------+  | Web UI   | CLI UI   |
+   | Briareus       |  +----------+----------+
+   | Input          |   `+----------+/
+   | Specifications |--->| Briareus |---------> Build Configurations file
+   +----------------+   /| BCGen    |\
+                       / +----------+ -----\         \        v
+                      /  | Briareus | SWI   \         ----> Build System
+   -------------     /   | DB       | Prolog|                 :
+   | Repo info |----/    +----------+ ------/              results
+   -------------   /     | Briareus |/                        /
+                   |     | AnaRep   |<------------------------
+   -------------   |     +----------+
+   | Repo info |---|          \
+   -------------               \------> notifications
+
+        :
+#+END_EXAMPLE
+
+** Hydra backend
+
+At the present time, the NixOS Hydra build system is identified as the
+best-of-breed for the backend build system that Briareus will interact
+with; although Hydra will be the initial focus, dependencies on Hydra
+implementation will be abstracted and minimized to allow potential
+utilization of other build systems in the future.
+
+* Potential Functionality Items
+
+** Has its own triggers, or is invoked from existing build system
+
+** Concerned more with build configurations that the build process
+   * Generate build configurations
+   * Interpret results
+   * Runs as a front-end to a conventional build system (hydra, travis?, jenkins?)
+
+** Extensible via plugins?
+
+** Has its own DB, uses conventional build system's HTTP/REST api for interaction?
+
+** Has a DSL for prolog-style evaluation of results, including notification strategies, etc.
+
+* TBD issues
+
+** Q1: should there be a top-level repo, and is it the first repo?
+*** Discussion:
+
+ * Need something to anchor/limit the submodules determinations
+
+ * What about kyber and s2n which are downstreams for the saw-script "top-level"
+
+   * OK to do these are separate RL/BL, with possible blacklisting of uninteresting builds?
+
+ * Can be used to drive notifications as well
+
+ * Can top-level repo(s) be automatically determined by dependency analysis?
+   - Only by submodules or attempting builds, and neither is particularly reliable.
+
+ * Should it be more refined?  (e.g. Notify repos, gitmodule repos)
+
+** KWQ: compositional builds
+   General observation: contemporary CI systems are analogous to RCS:
+   they concern themselves with a single build only.  A new generation
+   of CI tools is needed that attends to the various interactions
+   between build components instead of just focusing on a single build
+   component.  There are submodules-based builds and Jenkins
+   pipelines, but these are relatively manual/static and only show a
+   single snapshot instead of the results of various build
+   combinations.
+
+** KWQ: multiple considerations
+   Contemporary build tools focus only on the output artifact, but
+   there are other considerations based on build metrics:
+     * timing
+     * coverage
+     * ??
+   These should factor into either the success/failure of the build
+   process and/or the recommendations (see below).
+
+   Arguably the build process itself could be constructed to perform
+   timing and coverage validation, but:
+
+     * this doesn't necessarily compose well for compositional builds
+     * not a good standard way of reporting/managing this
+     * harder to show trending if not collected as first-class metric
+       information by the build system.
+     * requires per-project support for a general/common functionality
+
+** Build result recommendations
+
+   The default recommendation for conventional build tools is "merge
+   it" or "deploy it", but this becomes much more nuanced in the
+   presence of compositional builds with multiple built components,
+   pull requests, etc.
+
+   There may be a Prolog-style set of recommendations based on the
+   resuilts of the builds in various combinations.
+
+** KWQ: non-repo dependency variations
+   e.g. cabal freeze file v.s. hackage latest, etc.
+
+** KWQ: what about releases and release branches?
+   If a build is associated with a release branch, should no longer try to build master-related builds?
+   * What about bugfix branches related to release branches?
+   * How to handle a release branch where the sub-repos are not
+     individually tagged but rely on the submodules tag in the parent?

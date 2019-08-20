@@ -1,0 +1,10 @@
+#! /usr/bin/env nix-shell
+# -*- mode: sh; -*-
+#! nix-shell -i "bash" -p git swiProlog "python37.withPackages(pp: with pp; [ thespian setproctitle pytest attrs requests ])"
+
+export PYTHONPATH=$(pwd):$PYTHONPATH
+
+pytest "${@}"
+
+
+
