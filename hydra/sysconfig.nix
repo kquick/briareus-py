@@ -84,7 +84,10 @@ rec {
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile project.name}
+             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile project.name}.new
+             if [ $? -eq 0 ] && !cmp -s ${briareus_outfile project.name} ${briareus_outfile project.name}.new ; then
+               cp ${briareus_outfile project.name}.new ${briareus_outfile project.name}
+             fi
              '';
 
 
