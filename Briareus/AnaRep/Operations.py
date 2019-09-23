@@ -22,10 +22,11 @@ class AnaRep(object):
         # input_desc is 'first' returned from input_desc_and_VCS_info
         # repo_info is 'second' returned from input_desc_and_VCS_info
         # build_cfgs is BCGen.Generator.GeneratedConfigs
-        print('AnaRep.report_on %d configs (%d subrepos, %d pullreqs): TBD'
-              % (len(build_cfgs.cfg_build_configs),
-                 len(build_cfgs.cfg_subrepos),
-                 len(build_cfgs.cfg_pullreqs)))
+        if self.verbose:
+            print('## AnaRep.report_on %d configs (%d subrepos, %d pullreqs)'
+                  % (len(build_cfgs.cfg_build_configs),
+                     len(build_cfgs.cfg_subrepos),
+                     len(build_cfgs.cfg_pullreqs)))
 
         build_results = self.get_build_results(build_cfgs)
 

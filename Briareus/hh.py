@@ -3,6 +3,7 @@
 #! nix-shell -i "python3.7 -u" -p git swiProlog "python37.withPackages(pp: with pp; [ thespian setproctitle attrs requests ])"
 
 import Briareus.AnaRep.Operations as AnaRep
+from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
 import Briareus.Input.Operations as BInput
 import Briareus.BuildSys.Hydra as BldSys
@@ -19,11 +20,15 @@ class Params(object):
     builder_conf = attr.ib(default=None)
     builder_url  = attr.ib(default=None)
     output = attr.ib(default=None)
+    reportfile = attr.ib(default=None)
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
     cachedir = attr.ib(default=None)
     repo_auth = attr.ib(default=None)
 
+def verbosely(params, *msgargs):
+    if params.verbose:
+        print(*msgargs)
 
 def run_hh_gen(params, inp):
     asys = ActorSystem('multiprocTCPBase')
@@ -45,62 +50,92 @@ def run_hh_gen(params, inp):
                         actor_system=asys)
     config_results = bcgen.generate(inp_desc, repo_info)
     if params.up_to and not params.up_to.enough('builder_configs'):
-        return config_results
+        return config_results, []
 
     builder_cfgs, build_cfgs = config_results
     # builder_cfgs : string to send to the builder
     # build_cfgs : Generator.GeneratedConfigs
     if params.up_to == 'builder_configs':
-        return builder_cfgs
+        return builder_cfgs, []
 
     anarep = AnaRep.AnaRep(builder,
                            verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=asys)
     report = anarep.report_on(inp_desc, repo_info, build_cfgs)
-    print(report[0])
-    if report[1]:
-        for each in report[1]:
-            print('  ' + repr(each))
-    else:
-        print('  <Nothing to report>')
 
-    return builder_cfgs
+    if params.up_to and not params.up_to.enough('report'):
+        return builder_cfgs, []
+
+    assert report[0] == 'report'
+    return builder_cfgs, report[1]
 
 
-def run_hh_on_inpfile(inp_fname, params):
+def run_hh_with_files(inp, outputf, reportf, params):
+    cfgs, report = run_hh_gen(params, inp)
+    if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
+        outputf.write(cfgs)
+    if reportf and (not params.up_to or params.up_to.enough('report')):
+        write_report_output(reportf, report)
+
+def run_hh_on_inpfile(reportf, inp_fname, params):
     inp_parts = os.path.split(inp_fname)
     outfname = params.output or os.path.join(os.getcwd(),
                                              os.path.splitext(inp_parts[-1])[0] + '.hhc')
     with open(inp_fname) as inpf:
         if not params.up_to or params.up_to.enough('builder_configs'):
-            with open(outfname, 'w') as outf:
-                if params.verbose: print('hh <',inp_fname,'>',outfname)
-                outf.write(run_hh_gen(params, inpf.read()))
+            verbosely(params, 'hh <',inp_fname,'>',outfname)
+            atomic_write_to(
+                outfname,
+                lambda outf: run_hh_with_files(inpf.read(), outf, reportf, params))
         else:
-            if params.verbose: print('hh partial run, no output')
-            run_hh_gen(params, inpf.read())
+            verbosely(params, 'hh partial run, no output')
+            run_hh_with_files(inpf.read(), None, reportf, params)
 
 
-def run_hh(input_src, params):
-    print('Running hh')
-    print('input from:',input_src)
+def run_hh_reporting_to(reportf, input_src, params):
     if not input_src:
         inp = input('Briareus input spec? ')
         if params.output:
             with open(params.output, 'w') as outf:
-                outf.write(run_hh_gen(params, inp=inp))
+                run_hh_with_files(inp, outf, reportf, params)
         else:
-            sys.stdout.write(run_hh_gen(params, inp=inp))
+            run_hh_with_files(inp, sys.stdout, reportf, params)
     else:
         if os.path.exists(input_src):
-            run_hh_on_inpfile(input_src, params)
+            run_hh_on_inpfile(reportf, input_src, params)
         elif os.path.exists(input_src + '.hhd'):
-            run_hh_on_inpfile(input_src + '.hhd', params)
+            run_hh_on_inpfile(reportf, input_src + '.hhd', params)
         else:
             raise RuntimeError('Input specification not found (in %s): %s' %
                                (os.getcwd(), input_src))
-    print('hh',('completed up to: ' + str(params.up_to)) if params.up_to else 'done')
+
+
+def atomic_write_to(outfname, gen_output):
+    tryout = os.path.join(os.path.dirname(outfname),
+                          '.' + os.path.basename(outfname) + '.new')
+    with open(tryout, 'w') as outf:
+        gen_output(outf)
+    os.rename(tryout, outfname)
+
+
+def run_hh(input_src, params):
+    verbosely(params, 'Running hh')
+    verbosely(params, 'input from:', input_src)
+    if params.reportfile and (not params.up_to or params.up_to.enough('report')):
+        if os.path.exists(params.reportfile):
+            verbosely(params, 'Reporting updates to', params.reportfile)
+            prior_report = get_prior_report(params.reportfile)
+        else:
+            verbosely(params, 'Reporting to', params.reportfile)
+            prior_report = None
+        atomic_write_to(
+            params.reportfile,
+            lambda rep_fd: run_hh_reporting_to(rep_fd, input_src, params))
+    else:
+        verbosely(params, 'No reporting')
+        run_hh_reporting_to(None, input_src, params)
+    verbosely(params,'hh',('completed up to: ' + str(params.up_to)) if params.up_to else 'done')
 
 
 class UpTo(object):
@@ -112,7 +147,7 @@ class UpTo(object):
 
     # In order:
     valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
-                    "build_results", "built_facts", "raw_built_analysis" ]
+                    "build_results", "built_facts", "raw_built_analysis", "report" ]
 
     @staticmethod
     def valid():
@@ -151,6 +186,11 @@ def main():
         '--output', '-o', default=None,
         help=('Output file for writing build configurations.'
               'The default is {inputfile}.hhc or stdout if no inputfile.'))
+    parser.add_argument(
+        '--report', '-r', default=None,
+        help=('Output file for writing build reports.  Also read as '
+              'input for generating a report relative to previous reporting. '
+              'The default is {inputfile}.hhr or stdout if no inputfile.'))
     parser.add_argument(
         '--cachedir', '-c', default=None,
         help='Git cache directory for cloning (default is $HOME/.gitscan-cache)')
@@ -191,6 +231,7 @@ def main():
                     builder_conf=args.builder_conf,
                     builder_url=args.builder_url,
                     output=args.output,
+                    reportfile=args.report,
                     verbose=args.verbose,
                     up_to=args.up_to,
                     cachedir=args.cachedir,
