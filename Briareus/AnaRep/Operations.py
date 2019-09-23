@@ -64,13 +64,18 @@ class AnaRep(object):
                  for v in result.bldconfig.bldvars ]
         return ('bldres({r.bldconfig.branchtype}'
                 ', "{r.bldconfig.branchname}"'
-                ', {r.bldconfig.strategy}'
+                ', {strategy}'
                 ', {vars}'
                 ', "{r.results.buildname}"'
                 ', {r.results.nrtotal}'
                 ', {r.results.nrsucceeded}'
                 ', {r.results.nrfailed}'
                 ', {r.results.nrscheduled}'
-                ', {r.results.cfgerror}'
+                ', {configStatus}'
                 ')'
-        ).format(r=result, vars='[ ' + ', '.join(vars) + ' ]')
+        ).format(r=result,
+                 vars='[ ' + ', '.join(vars) + ' ]',
+                 strategy=result.bldconfig.strategy.lower(),
+                 configStatus=('configError'
+                               if result.results.cfgerror else 'configValid')
+                 )
