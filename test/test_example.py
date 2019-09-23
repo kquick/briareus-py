@@ -26,7 +26,7 @@ input_spec = '''
 
 @pytest.fixture(scope="module")
 def example_internal_bldconfigs():
-    asys = ActorSystem('multiprocTCPBase', transientUnique=True)
+    asys = ActorSystem(transientUnique=True)
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
@@ -43,7 +43,7 @@ def example_internal_bldconfigs():
 
 @pytest.fixture(scope="module")
 def example_hydra_jobsets():
-    asys = ActorSystem('multiprocTCPBase', transientUnique=True)
+    asys = ActorSystem(transientUnique=True)
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
