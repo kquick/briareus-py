@@ -3,7 +3,7 @@
 # output reports.
 
 from Briareus.BCGen.BuildConfigs import BuildResult
-from Briareus.BCGen.Logic import DeclareFact, Fact, run_logic_analysis
+from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
 
 class AnaRep(object):
