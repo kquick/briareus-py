@@ -94,6 +94,26 @@ class HydraBuilder(BuilderBase.Builder):
                                    bldcfg.strategy])] +
                         varparts)
 
+    def _jobset_variant(self, bldcfg):
+        # Provides a string "variant" input to the jobset to allow the
+        # jobset to customize itself (e.g. selecting different
+        # dependencies for a branch v.s. the master).  Provide various
+        # jobset information in a regular fashion to allow easy
+        # interpretation by the nix jobset expression:
+        #
+        #   "|key=value|key=value..."
+        #
+        # Variables do not need to be part of the variant because they
+        # are already independently specified.
+        #
+        # Similarly, BldRepoRev translates into independent inputs.
+        return '|' + '|'.join(
+            filter(None,
+                   [ 'branch=' + bldcfg.branchname,
+                     'strategy=' + bldcfg.strategy,
+                     'PR' if bldcfg.branchtype == "pullreq" else None,
+                   ]))
+
     def _pullreq_for_bldcfg_and_brr(self, bldcfgs, bldcfg, brr):
         return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
                    if p.pr_target_repo == brr.reponame and p.pr_branch == bldcfg.branchname] + [None])[0]
@@ -116,21 +136,35 @@ class HydraBuilder(BuilderBase.Builder):
                 ))
 
     def _jobset_inputs(self, input_desc, bldcfgs, bldcfg):
-        repo_url_maybe_pullreq = lambda brr, mbpr: (mbpr.pr_srcrepo_url
-                                                    if mbpr else
-                                                    self._repo_url(input_desc, bldcfgs, brr))
-        repo_url = lambda brr: repo_url_maybe_pullreq(brr, self._pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr))
-        return dict( [ (each.reponame + "-src",
-                        {
-                            "emailresponsible": False,
-                            "type": "git",
-                            "value": ' '.join([repo_url(each), each.repover,])
-                        }) for each in bldcfg.blds ] +
-                     [ (v.varname, {
-                         "emailresponsible": False,
-                         "type": "string",
-                         "value": v.varvalue
-                     }) for v in bldcfg.bldvars ] )
+        repo_url_maybe_pullreq = lambda brr, mbpr: \
+            (mbpr.pr_srcrepo_url
+             if mbpr else
+             self._repo_url(input_desc, bldcfgs, brr))
+        repo_url = lambda brr: \
+            repo_url_maybe_pullreq(brr,
+                                   self._pullreq_for_bldcfg_and_brr(bldcfgs,
+                                                                    bldcfg,
+                                                                    brr))
+        return dict(
+            [ ('variant',
+               {
+                   'emailresponsible': False,
+                   'type': 'string',
+                   'value': self._jobset_variant(bldcfg)
+               }),
+            ] +
+            [ (each.reponame + "-src",
+               {
+                   "emailresponsible": False,
+                   "type": "git",
+                   "value": ' '.join([repo_url(each), each.repover,])
+               }) for each in bldcfg.blds ] +
+            [ (v.varname, {
+                "emailresponsible": False,
+                "type": "string",
+                "value": v.varvalue
+            }) for v in bldcfg.bldvars ]
+        )
 
     def _repo_url(self, input_desc, bldcfgs, bldreporev):
         for each in input_desc.RL:
