@@ -5,22 +5,17 @@ import Briareus.Input.Parser as Parser
 import Briareus.BCGen.Generator as Generator
 
 class BCGen(object):
-    def __init__(self, bldsys, actor_system=None,
-                 cachedir=None, verbose=False,
-                 up_to=None, repo_auth=None):
+    def __init__(self, bldsys, actor_system=None, verbose=False, up_to=None):
         self._bldsys = bldsys
         self._actor_system = actor_system
-        self._cachedir = cachedir
         self.verbose = verbose
-        self._repo_auth = repo_auth
         self._up_to = up_to  # None or UpTo
 
-    def generate(self, input_desc):
+    def generate(self, input_desc, repo_info):
         gen = Generator.Generator(actor_system=self._actor_system,
-                                  verbose=self.verbose,
-                                  cachedir=self._cachedir,
-                                  repo_auth=self._repo_auth)
-        (rtype, cfgs) = gen.generate_build_configs(input_desc, up_to=self._up_to)
+                                  verbose=self.verbose)
+        (rtype, cfgs) = gen.generate_build_configs(input_desc, repo_info,
+                                                   up_to=self._up_to)
         # cfgs : Generator.GeneratedConfigs
         if rtype != "build_configs":   # early up_to abort
             return None

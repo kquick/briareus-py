@@ -34,16 +34,16 @@ def run_hh_gen(params, inp):
         raise RuntimeError('Unknown builder (known: %s), specified: %s' %
                            (', '.join(['hydra']), params.builder))
 
-    inp_desc = BInput.get_input_descr_and_VCS_info(inp,
-                                                   cachedir=params.cachedir,
-                                                   verbose=params.verbose)
+    inp_desc, repo_info = BInput.input_desc_and_VCS_info(inp,
+                                                         cachedir=params.cachedir,
+                                                         verbose=params.verbose,
+                                                         repo_auth=params.repo_auth,
+                                                         actor_system=asys)
     bcgen = BCGen.BCGen(builder,
-                        cachedir=params.cachedir,
                         verbose=params.verbose,
                         up_to=params.up_to,
-                        actor_system=asys,
-                        repo_auth=params.repo_auth)
-    config_results = bcgen.generate(inp_desc)
+                        actor_system=asys)
+    config_results = bcgen.generate(inp_desc, repo_info)
     if params.up_to and not params.up_to.enough('builder_configs'):
         return config_results
 

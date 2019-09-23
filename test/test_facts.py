@@ -32,9 +32,11 @@ def test_example_facts():
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
         # Replication of BCGen.Operations.BCGengenerate()
-        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                        actor_system=asys,
+                                                        verbose=True)
         gen = Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, up_to="facts")
+        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
         assert rtype == "facts"
         assert expected_facts == sorted(map(str, facts))
     finally:

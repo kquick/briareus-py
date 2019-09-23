@@ -28,9 +28,11 @@ def example_internal_bldconfigs():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample2, globalName="GetGitInfo")
-        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                        actor_system=asys,
+                                                        verbose=True)
         gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(inp)
+        (_rtype, cfgs) = gen.generate_build_configs(inp, repo_info)
         yield cfgs
         asys.shutdown()
         asys = None
@@ -45,10 +47,12 @@ def example_hydra_jobsets():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample2, globalName="GetGitInfo")
-        inp_desc = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                             actor_system=asys,
+                                                             verbose=True)
         builder = BldSys.HydraBuilder(None)
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(inp_desc)
+        output = bcgen.generate(inp_desc, repo_info)
         yield output[0]
         asys.shutdown()
         asys = None
@@ -70,9 +74,10 @@ def test_example_facts():
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample2, globalName="GetGitInfo")
         # Replication of BCGen.Operations.BCGengenerate()
-        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec, verbose=True,
+                                                        actor_system=asys)
         gen = Generator.Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, up_to="facts")
+        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
         assert rtype == "facts"
         assert expected_facts == sorted(map(str, facts))
     finally:

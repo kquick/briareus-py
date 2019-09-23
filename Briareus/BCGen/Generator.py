@@ -1,6 +1,5 @@
 # Core BCGen functionality to process input specification into build configurations
 
-from Briareus.VCS.ManagedRepo import gather_repo_info
 from Briareus.BCGen.BuildConfigs import logic_result_expr
 from Briareus.BCGen.Logic import DeclareFact, Fact, run_logic_analysis
 import attr
@@ -14,13 +13,11 @@ class GeneratedConfigs(object):
 
 
 class Generator(object):
-    def __init__(self, actor_system=None, cachedir=None, verbose=False, repo_auth=None):
+    def __init__(self, actor_system=None, verbose=False):
         self._actor_system = actor_system
-        self._cachedir = cachedir
-        self._repoauth = repo_auth
         self.verbose = verbose
 
-    def generate_build_configs(self, input_descr, up_to=None):
+    def generate_build_configs(self, input_descr, repo_info, up_to=None):
         """The core process of generating build_config information from an
            input description.  The up_to argument can request early
            return with the information "up-to" a specific point; this
@@ -28,7 +25,8 @@ class Generator(object):
         """
         facts, subrepos, pullreqs = self.get_input_facts(input_descr.RL,
                                                          input_descr.BL,
-                                                         input_descr.VAR)
+                                                         input_descr.VAR,
+                                                         repo_info)
         if self.verbose or up_to == 'facts':
             print('## FACTS:')
             for f in facts:
@@ -51,16 +49,7 @@ class Generator(object):
                                  pullreqs))
 
 
-    def get_input_facts(self, RL, BL, VAR):
-
-        # Identify all of the repos by parsing the input
-        # specification, removing duplicates, and adding in any
-        # specified in the gitmodules of the project repo.
-
-        info = gather_repo_info(RL, BL,
-                                cachedir=self._cachedir,
-                                repo_auth=self._repoauth,
-                                actor_system=self._actor_system)
+    def get_input_facts(self, RL, BL, VAR, info):
 
         if not RL:
             return BuildConfigs.BldConfigSet()  # dummy run, build nothing

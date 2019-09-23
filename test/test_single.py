@@ -24,9 +24,11 @@ def test_single_facts():
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
         # Replication of BCGen.Operations.BCGengenerate()
-        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                        actor_system=asys,
+                                                        verbose=True)
         gen = Generator.Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, up_to="facts")
+        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
         assert rtype == "facts"
         assert expected_facts == sorted(map(str, facts))
     finally:
@@ -91,7 +93,9 @@ def skiptest_single_raw_build_config():
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
         gen = Generator.Generator(actor_system = asys)
         (rtype, cfgs) = gen.generate_build_configs(
-            BInput.get_input_descr_and_VCS_info(input_spec, verbose=True),
+            *BInput.input_desc_and_VCS_info(input_spec,
+                                            actor_system=asys,
+                                            verbose=True),
             up_to="raw_logic_output")
         # Note that this compares simple strings; the logic evaluation
         # is not stable for ordering and will cause false negatives
@@ -118,7 +122,9 @@ def single_internal_bldconfigs():
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
         gen = Generator.Generator(actor_system = asys, verbose=True)
         (_rtype, cfgs) = gen.generate_build_configs(
-            BInput.get_input_descr_and_VCS_info(input_spec, verbose=True))
+            *BInput.input_desc_and_VCS_info(input_spec,
+                                            actor_system=asys,
+                                            verbose=True))
         yield cfgs
         asys.shutdown()
         asys = None

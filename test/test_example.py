@@ -30,9 +30,10 @@ def example_internal_bldconfigs():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
-        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec, verbose=True,
+                                                        actor_system=asys)
         gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(inp)
+        (_rtype, cfgs) = gen.generate_build_configs(inp, repo_info)
         yield cfgs
         asys.shutdown()
         asys = None
@@ -47,10 +48,12 @@ def example_hydra_jobsets():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
-        input_desc = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
+        input_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                               verbose=True,
+                                                               actor_system=asys)
         builder = BldSys.HydraBuilder(None)
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(input_desc)
+        output = bcgen.generate(input_desc, repo_info)
         yield output[0]
         asys.shutdown()
         asys = None
