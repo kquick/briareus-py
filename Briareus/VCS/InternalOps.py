@@ -90,8 +90,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
         if self.top_requestor:
             self.send(self.top_requestor,
                       self.prepareReply(
-                          GatheredInfo(None, 'Invalid %s repo "%s", remote %s, local %s: %s' %
-                                       (msg.repo_type, msg.reponame, msg.repo_remote, msg.repo_localdir,
+                          GatheredInfo(None, 'Invalid %s repo "%s", remote %s: %s' %
+                                       (msg.repo_type,
+                                        msg.reponame,
+                                        msg.repo_remote,
                                         msg.errorstr))))
             self.top_requestor = None
 
