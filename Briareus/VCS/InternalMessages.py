@@ -87,6 +87,7 @@ class RepoDeclared(Repo__RspMsg):       # DeclareRepo -->
 class InvalidRepo(Repo__RspMsg):        # {ANY} -->
     repo_type = attr.ib()
     repo_remote = attr.ib()
+    repo_api_url = attr.ib()
     errorstr = attr.ib()
 
 

@@ -62,6 +62,7 @@ class GitRepoInfo(ActorTypeDispatcher):
             logging.critical('GetPullReqs err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
+                                  getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'GetPullReqs - ' + str(err)))
         else:
             self.send(msg.orig_sender, rsp)
@@ -74,6 +75,7 @@ class GitRepoInfo(ActorTypeDispatcher):
             logging.critical('HasBranch: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
+                                  getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'HasBranch - ' + str(err)))
         else:
             blist = [ b['name'] for b in rsp ]
@@ -90,6 +92,7 @@ class GitRepoInfo(ActorTypeDispatcher):
             logging.critical('GitmodulesData err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
+                                  getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'GitmodulesData - ' + str(err)))
         else:
             self.send(msg.orig_sender, rval)
