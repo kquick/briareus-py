@@ -1,7 +1,6 @@
 import attr
 from thespian.actors import *
-from Briareus.BCGen.TheRunCmd import Command, RunCommand, CommandResult
-# from thespian.runcommand import Command, RunCommand, CommandResult
+from thespian.runcommand import Command, RunCommand, CommandResult
 import Briareus.BCGen.Description as Local   # only for determining module path
 from datetime import timedelta
 import tempfile
