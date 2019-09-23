@@ -240,14 +240,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 self.get_info_for_a_repo(named_submod_repo)
             # Add the submodule specification for this submodule repo
             # and any other modules that share the same repo
+            nsr_url = to_http_url(named_submod_repo.repo_url, self.RX).apiloc
             for r in self.RL:
-                if r.repo_url == named_submod_repo.repo_url:
+                if r.repo_url == nsr_url:
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
                                                        sm_sub_name=r.repo_name,
                                                        sm_sub_vers=each.subrepo_vers) )
             for r in self.subrepos:
-                if r.repo_url == named_submod_repo.repo_url:
+                if r.repo_url == nsr_url:
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
                                                        sm_sub_name=r.repo_name,
