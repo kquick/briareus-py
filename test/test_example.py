@@ -280,6 +280,11 @@ def test_example_hydra_master_submodules(example_hydra_jobsets):
                     "type": "string",
                     "value": C
                 },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=master|strategy=submodules"
+                },
             },
             "keepnr": 3,
             "nixexprinput": "R1-src",
@@ -341,6 +346,11 @@ def test_example_hydra_master_heads(example_hydra_jobsets):
                      "emailresponsible": False,
                      "type": "string",
                      "value": C
+                 },
+                 "variant": {
+                     "emailresponsible": False,
+                     "type": "string",
+                     "value": "|branch=master|strategy=HEADs"
                  },
              },
              "keepnr": 3,
@@ -404,6 +414,11 @@ def test_example_hydra_feat1_submodules(example_hydra_jobsets):
                     "type": "string",
                     "value": C
                 },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=feat1|strategy=submodules"
+                },
             },
             "keepnr": 3,
             "nixexprinput": "R1-src",
@@ -465,6 +480,11 @@ def test_example_hydra_feat1_heads(example_hydra_jobsets):
                     "emailresponsible": False,
                     "type": "string",
                     "value": C
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=feat1|strategy=HEADs"
                 },
             },
             "keepnr": 3,
@@ -528,6 +548,11 @@ def test_example_hydra_dev_submodules(example_hydra_jobsets):
                     "type": "string",
                     "value": C
                 },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=dev|strategy=submodules"
+                },
             },
             "keepnr": 3,
             "nixexprinput": "R1-src",
@@ -590,6 +615,11 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
                     "type": "string",
                     "value": C
                 },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=dev|strategy=HEADs"
+                },
             },
             "keepnr": 3,
             "nixexprinput": "R1-src",
@@ -651,6 +681,11 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
                     "emailresponsible": False,
                     "type": "string",
                     "value": C
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=blah|strategy=submodules|PR"
                 },
             },
             "keepnr": 3,
@@ -715,6 +750,11 @@ def test_example_hydra_master_blah_heads(example_hydra_jobsets):
                      "type": "string",
                      "value": C
                  },
+                 "variant": {
+                     "emailresponsible": False,
+                     "type": "string",
+                     "value": "|branch=blah|strategy=HEADs|PR"
+                 },
              },
              "keepnr": 3,
              "nixexprinput": "R1-src",
@@ -777,6 +817,11 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
                     "type": "string",
                     "value": C
                 },
+                 "variant": {
+                     "emailresponsible": False,
+                     "type": "string",
+                     "value": "|branch=bugfix9|strategy=submodules|PR"
+                 },
             },
             "keepnr": 3,
             "nixexprinput": "R1-src",
@@ -838,6 +883,11 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
                      "emailresponsible": False,
                      "type": "string",
                      "value": C
+                 },
+                 "variant": {
+                     "emailresponsible": False,
+                     "type": "string",
+                     "value": "|branch=bugfix9|strategy=HEADs|PR"
                  },
              },
              "keepnr": 3,
