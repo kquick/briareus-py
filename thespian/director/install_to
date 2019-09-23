@@ -1,8 +1,8 @@
 #!/bin/sh
 
 mkdir -p ${1}
-for f in *; do
-    if [ $f != install_to -a ! -d $f ] ; then
+for f in $(dirname $0)/*; do
+    if [ $(basename $f) != install_to -a $(basename $f) != default.nix -a ! -d $f ] ; then
         cp $f ${1}/
     fi
 done
