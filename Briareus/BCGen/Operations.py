@@ -15,9 +15,7 @@ class BCGen(object):
         self._repo_auth = repo_auth
         self._up_to = up_to  # None or UpTo
 
-    def generate(self, input_spec):
-        parser = Parser.BISParser(verbose=self.verbose)
-        input_desc = parser.parse(input_spec)
+    def generate(self, input_desc):
         gen = Generator.Generator(actor_system=self._actor_system,
                                   verbose=self.verbose,
                                   cachedir=self._cachedir,

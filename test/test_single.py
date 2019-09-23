@@ -5,7 +5,7 @@ import json
 import pytest
 import Briareus.BCGen.Operations as BCGen
 import Briareus.BCGen.BuildConfigs as CFG
-import Briareus.Input.Parser as Parser
+import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
 from Briareus.VCS.InternalMessages import *
@@ -24,9 +24,8 @@ def test_single_facts():
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
         # Replication of BCGen.Operations.BCGengenerate()
-        parser = Parser.BISParser()
+        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
         gen = Generator.Generator(actor_system = asys)
-        inp = parser.parse(input_spec)
         (rtype, facts) = gen.generate_build_configs(inp, up_to="facts")
         assert rtype == "facts"
         assert expected_facts == sorted(map(str, facts))
@@ -90,10 +89,10 @@ def skiptest_single_raw_build_config():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
-        parser = Parser.BISParser()
         gen = Generator.Generator(actor_system = asys)
-        (rtype, cfgs) = gen.generate_build_configs(parser.parse(input_spec),
-                                                   up_to="raw_logic_output")
+        (rtype, cfgs) = gen.generate_build_configs(
+            BInput.get_input_descr_and_VCS_info(input_spec, verbose=True),
+            up_to="raw_logic_output")
         # Note that this compares simple strings; the logic evaluation
         # is not stable for ordering and will cause false negatives
         # here.
@@ -117,9 +116,9 @@ def single_internal_bldconfigs():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitTestSingle, globalName="GetGitInfo")
-        parser = Parser.BISParser(verbose=True)
         gen = Generator.Generator(actor_system = asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(parser.parse(input_spec))
+        (_rtype, cfgs) = gen.generate_build_configs(
+            BInput.get_input_descr_and_VCS_info(input_spec, verbose=True))
         yield cfgs
         asys.shutdown()
         asys = None

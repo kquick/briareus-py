@@ -1,6 +1,6 @@
 import Briareus.BCGen.Operations as BCGen
 import Briareus.BCGen.BuildConfigs as CFG
-import Briareus.Input.Parser as Parser
+import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
 from thespian.actors import *
@@ -30,9 +30,9 @@ def example_internal_bldconfigs():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
-        parser = Parser.BISParser(verbose=True)
+        inp = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
         gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(parser.parse(input_spec))
+        (_rtype, cfgs) = gen.generate_build_configs(inp)
         yield cfgs
         asys.shutdown()
         asys = None
@@ -47,9 +47,10 @@ def example_hydra_jobsets():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
+        input_desc = BInput.get_input_descr_and_VCS_info(input_spec, verbose=True)
         builder = BldSys.HydraBuilder(None)
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(input_spec)
+        output = bcgen.generate(input_desc)
         yield output[0]
         asys.shutdown()
         asys = None
