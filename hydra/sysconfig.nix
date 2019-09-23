@@ -107,9 +107,23 @@ rec {
           TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
         };
         script = run_script;
-        startAt = "*:0/30";  # every 30 minutes
+        startAt = "*:0/30";
+        # wants = [ "briareus.service" ];
+        # after = [ "briareus.service" ];
       };
     };
+
+  briareusServiceBase = {
+    systemd.services."briareus" = {
+      description = "Briareus central support";
+      after = [ "network-online.target" ];
+      serviceConfig = {
+        Type = "forking";
+        ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director start";
+        ExecStop="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director shutdown";
+      };
+    };
+  };
 
   mkProjectCfg =
     # mkProjectCfg generates the Hydra declarative project file.  This
