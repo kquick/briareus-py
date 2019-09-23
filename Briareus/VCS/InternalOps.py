@@ -40,19 +40,30 @@ class GatherRepoInfo(ActorTypeDispatcher):
         super(GatherRepoInfo, self).__init__(*args, **kw)
         self._get_git_info = None
         self.top_requestor = None
+        self._stats = {}
+
+    def receiveMsg_str(self, msg, sender):
+        if msg == "status":
+            self.send(sender, self._stats)
+
+    def _incr_stat(self, stat_name):
+        self._stats[stat_name] = self._stats.get(stat_name, 0) + 1
 
     def get_git_info(self, reqmsg):
         if not self._get_git_info:
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
             self.send(self._get_git_info, VCSConfig(self.cachedir, self.request_auth))
         self.responses_pending += 1
+        self._incr_stat("get_git")
         self.send(self._get_git_info, reqmsg)
 
 
-    def got_response(self, got_a_response=True):
+    def got_response(self, got_a_response=True, response_name='unk'):
+        self._incr_stat(response_name)
         if got_a_response and self.responses_pending:
             self.responses_pending -= 1
         if self.responses_pending == 0:
+            # Send results to requestor
             if self.top_requestor:
                 self.send(self.top_requestor,
                           GatheredInfo({ "pullreqs" : self.pullreqs,
@@ -61,6 +72,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                          "branches" : self.branches
                           }))
             self.top_requestor = None
+
 
     def receiveMsg_ChildActorExited(self, msg, sender):
         if msg.childAddress == self._get_git_info:
@@ -104,10 +116,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
         repo = self._pending_info.get(msg.reponame, None)
         if repo:
             del self._pending_info[msg.reponame]
-            self.get_git_info(GetPullReqs(repo.repo_name))
             for branch in self.BL:
                 self.get_git_info(HasBranch(repo.repo_name, branch.branch_name))
-        self.got_response()
+            self.get_git_info(GetPullReqs(repo.repo_name))
+        self.got_response(response_name='repo_declared')
 
     def receiveMsg_PullReqsData(self, msg, sender):
         # A pull request references a branch in a different repo
@@ -161,13 +173,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                          pr_ident=p.pullreq_number,
                                          pr_title=p.pullreq_title)
                                   for p in msg.pullreqs]))
-        self.got_response()
+        self.got_response(response_name='pull_reqs_data')
 
     def check_for_branch(self, repo_name, branch_name):
+        self._incr_stat('chk_for_branch')
         curbr = (repo_name, branch_name)
         for br in self.branches:
             if curbr == br:
                 return
+        self._incr_stat('chk_for_branch_missed')
         self.get_git_info(HasBranch(*curbr))
 
     def receiveMsg_BranchPresent(self, msg, sender):
@@ -192,7 +206,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 for each in self.subrepos:
                     if each.repo_url == main_r.repo_url:
                         self.branches.add( (each.repo_name, br) )
-        self.got_response()
+        self.got_response(response_name='branch_present')
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
         for each in msg.gitmodules_repovers:
@@ -225,7 +239,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # check to see if there is a corresponding branch in
                 # this subrepo
                 self.check_for_branch(msg.reponame, pr.pr_branch)
-        self.got_response()
+        self.got_response(response_name='gitmodules_repo_vers')
 
 
 @initializing_messages([('config', VCSConfig)])
