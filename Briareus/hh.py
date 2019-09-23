@@ -58,7 +58,12 @@ def run_hh_gen(params, inp):
                            up_to=params.up_to,
                            actor_system=asys)
     report = anarep.report_on(inp_desc, repo_info, build_cfgs)
-    print('%s: %s' % report)
+    print(report[0])
+    if report[1]:
+        for each in report[1]:
+            print('  ' + repr(each))
+    else:
+        print('  <Nothing to report>')
 
     return builder_cfgs
 

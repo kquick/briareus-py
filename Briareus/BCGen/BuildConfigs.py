@@ -44,6 +44,15 @@ class BuilderResult(object):
     cfgerror    = attr.ib()  # bool
 
 
+# ----------------------------------------------------------------------
+
+@attr.s(frozen=True)
+class StatusReport(object):
+    status    = attr.ib()  # string "success" or "failed"
+    project   = attr.ib()  # string name of project
+    projrepo  = attr.ib()  # string project repository reference
+    buildname = attr.ib()  # string name of build on builder
+    bldvars   = attr.ib()  # list of BldVariable
 
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
@@ -60,4 +69,9 @@ logic_result_expr = {
     "bld": lambda *args: BldRepoRev(*args),
     "brr": lambda n: n,
     "var": lambda *args: BldVariable(*args),
+
+    "status_report": StatusReport,
+    "success": "success",
+    "failed": "failed",
+    "project": lambda n: n,
 }

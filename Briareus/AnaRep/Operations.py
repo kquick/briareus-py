@@ -55,9 +55,10 @@ class AnaRep(object):
             print('## RAW BUILT ANALYSIS:')
             print(str(r))
         if self._up_to == 'raw_built_analysis':
-            return (up_to, r)
+            return (self._up_to, r)
 
-        return ("report", eval(r, globals(), logic_result_expr))
+        return ("report",
+                eval(r, globals(), logic_result_expr) if r else [])
 
 
     def get_build_results(self, build_cfgs):
