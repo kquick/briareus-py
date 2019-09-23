@@ -9,6 +9,13 @@
 
 let
 
+  # The briareus.pat file can contain a string specifying the Personal
+  # Access Tokens to be used for specifying the BRIAREUS_PAT
+  # environment variable in the system jobs.
+  briareus_pat = if builtins.fileExists briareus.pat
+                 then builtins.readFile briareus.pat
+                 else "";
+
   briareus = pkgs.callPackage briareusSrc {
   	       inherit thespian;
 	       inherit (pkgs."${pythonVer}Packages") setproctitle attrs requests;
@@ -147,6 +154,10 @@ let
           TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
         };
         script = run_script;
+        environment = {
+          THESPIAN_DIRECTOR_DIR=thespian_director_dir;
+          BRIAREUS_PAT=briareus_pat;
+        };
         startAt = "*:${builtins.toString startMin}/${builtins.toString briareusPeriod}";
       } //
       (if projnum == null then {} else {
@@ -185,7 +196,10 @@ rec {
     systemd.services."briareus" = {
       description = "Briareus central support";
       after = [ "network-online.target" ];
-      environment = { THESPIAN_DIRECTOR_DIR=thespian_director_dir; };
+      environment = {
+        THESPIAN_DIRECTOR_DIR=thespian_director_dir;
+        BRIAREUS_PAT=briareus_pat;
+      };
       path = [ pkgs.swiProlog ];
       serviceConfig = {
         Type = "forking";
