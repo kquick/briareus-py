@@ -39,10 +39,12 @@ class AnaRep(object):
                                       repo_info)
         built_facts = self.built_facts(build_results)
 
-        if self.verbose:
+        if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
             for each in input_facts + built_facts:
                 print(str(each))
+        if self._up_to == 'built_facts':
+            return
 
 
     def get_build_results(self, build_cfgs):

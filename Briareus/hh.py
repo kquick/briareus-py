@@ -105,7 +105,7 @@ class UpTo(object):
 
     # In order:
     valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
-                    "build_results" ]
+                    "build_results", "built_facts" ]
 
     @staticmethod
     def valid():
