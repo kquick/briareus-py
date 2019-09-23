@@ -57,7 +57,9 @@ class GitRepoInfo(ActorTypeDispatcher):
         else:
             blist = [ b['name'] for b in rsp ]
             chk = branch in blist
-            self.send(msg.orig_sender, BranchPresent(msg.reponame, branch, chk))
+            self.send(msg.orig_sender, BranchPresent(msg.reponame, branch, chk,
+                                                     known_branches=blist))
+
 
     def receiveMsg_GitmodulesData(self, msg, sender):
         branch = msg.branch_name

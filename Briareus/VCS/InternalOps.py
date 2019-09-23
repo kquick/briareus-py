@@ -149,12 +149,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 for repo in (list(self.RL) + list(self.subrepos)):
                     # don't bother to check the repo where the pullreq was found
                     if repo.repo_name != msg.reponame:
-                        curbr = (repo.repo_name, p.pullreq_branch)
-                        for br in self.branches:
-                            if curbr == br:
-                                break
-                        else:
-                            self.get_git_info(HasBranch(repo.repo_name, p.pullreq_branch))
+                        self.check_for_branch(repo.repo_name, p.pullreq_branch)
                     elif repo.project_repo:
                         self.get_git_info(GitmodulesData(repo.repo_name,
                                                          p.pullreq_branch,
@@ -168,6 +163,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                   for p in msg.pullreqs]))
         self.got_response()
 
+    def check_for_branch(self, repo_name, branch_name):
+        curbr = (repo_name, branch_name)
+        for br in self.branches:
+            if curbr == br:
+                return
+        self.get_git_info(HasBranch(*curbr))
+
     def receiveMsg_BranchPresent(self, msg, sender):
         if msg.branch_present:
             self.branches.add( (msg.reponame, msg.branch_name) )
@@ -177,6 +179,19 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # there is any submodule information on that
                     # branch.
                     self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name))
+        main_r = ([ r for r in self.RL if r.repo_name == msg.reponame ] +
+                  [ r for r in self.subrepos if r.repo_name == msg.reponame ] +
+                  [ None ])[0]
+        for br in msg.known_branches:
+            self.branches.add( (msg.reponame, br) )
+            if main_r:
+                # Set branches any other projects sharing this repo
+                for each in self.RL:
+                    if each.repo_url == main_r.repo_url:
+                        self.branches.add( (each.repo_name, br) )
+                for each in self.subrepos:
+                    if each.repo_url == main_r.repo_url:
+                        self.branches.add( (each.repo_name, br) )
         self.got_response()
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
@@ -209,12 +224,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # For any pull requests that have already been fetched:
                 # check to see if there is a corresponding branch in
                 # this subrepo
-                curbr = (msg.reponame, pr.pr_branch)
-                for br in self.branches:
-                    if curbr == br:
-                        break
-                else:
-                    self.get_git_info(HasBranch(msg.reponame, pr.pr_branch))
+                self.check_for_branch(msg.reponame, pr.pr_branch)
         self.got_response()
 
 

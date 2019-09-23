@@ -64,6 +64,7 @@ class HasBranch(Repo__ReqMsg):          #           --> BranchPresent
 class BranchPresent(Repo__RspMsg):      # HasBranch -->
     branch_name = attr.ib()
     branch_present = attr.ib(default=False)
+    known_branches = attr.ib(factory=list)
 
 @attr.s
 class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers
