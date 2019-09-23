@@ -16,4 +16,4 @@ python -m thespian.director gensrc \
 # Note: deps does not include "requests" and the associated
 # dependencies: urllib3 chardet OpenSSL certifi ... because some of
 # these have external library components, so "requests" should be part
-# of the enviroinment used to run the thespian.director start.
+# of the environment used to run the thespian.director start.
