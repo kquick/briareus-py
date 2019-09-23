@@ -6,24 +6,7 @@ from Briareus.BCGen.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
 import attr
-
-
-@attr.s(frozen=True)
-class PRInfo(object):
-    pr_target_repo = attr.ib()
-    pr_srcrepo_url = attr.ib()
-    pr_branch      = attr.ib()
-    pr_ident       = attr.ib()  # unique identifier, required
-    pr_title       = attr.ib()  # user-assistance, optional
-
-
-@attr.s(frozen=True)
-class SubModuleInfo(object):
-    sm_repo_name = attr.ib()
-    sm_branch    = attr.ib()
-    sm_sub_name  = attr.ib()
-    sm_sub_vers  = attr.ib()
-    sm_alt_repourl = attr.ib(default=None)  # set if this came from an alt repo (eg. PullReq src repo)
+import logging
 
 
 class GatherRepoInfo(ActorTypeDispatcher):
@@ -45,6 +28,26 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
             self.send(sender, self._stats)
+        elif msg == 'Deactivate' and self._get_git_info:
+            # From the Director via the TLI file; offer our cached
+            # information to our successor.
+            successor = self.createActor("Briareus.VCS.InternalOps.GatherRepoInfo", globalName='GatherRepoInfo')
+            self.send(successor, 'HaveCachedInfo')
+        elif msg == 'HaveCachedInfo' and sender != self.myAddress:
+            # Ask send for their cached info...
+            logging.critical('Get cached repo info from %s', sender)
+            pass
+        elif msg == 'Start':
+            # Sent by Thespian Director based on the TLI file; this is
+            # intended only to ensure this Actor is instantiated.
+            pass
+        else:
+            objmsg = fromJSON(msg)
+            if isinstance(objmsg, GatherInfo):
+                self._gatherInfo(objmsg, sender, jsonReply=True)
+            else:
+                logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
+
 
     def _incr_stat(self, stat_name):
         self._stats[stat_name] = self._stats.get(stat_name, 0) + 1
@@ -66,11 +69,12 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # Send results to requestor
             if self.top_requestor:
                 self.send(self.top_requestor,
-                          GatheredInfo({ "pullreqs" : self.pullreqs,
-                                         "submodules": self.submodules,
-                                         "subrepos" : self.subrepos,
-                                         "branches" : self.branches
-                          }))
+                          self.prepareReply(
+                              GatheredInfo({ "pullreqs" : self.pullreqs,
+                                             "submodules": self.submodules,
+                                             "subrepos" : self.subrepos,
+                                             "branches" : self.branches
+                              })))
             self.top_requestor = None
 
 
@@ -79,19 +83,24 @@ class GatherRepoInfo(ActorTypeDispatcher):
             self._get_git_info = None
             if self.top_requestor:
                 self.send(self.top_requestor,
-                          GatheredInfo(None, 'GitInfo actor exited'))
+                          self.prepareReply(GatheredInfo(None, 'GitInfo actor exited')))
                 self.top_requestor = None
 
     def receiveMsg_InvalidRepo(self, msg, sender):
         if self.top_requestor:
             self.send(self.top_requestor,
-                      GatheredInfo(None, 'Invalid %s repo "%s", remote %s, local %s: %s' %
-                                   (msg.repo_type, msg.reponame, msg.repo_remote, msg.repo_localdir,
-                                    msg.errorstr)))
+                      self.prepareReply(
+                          GatheredInfo(None, 'Invalid %s repo "%s", remote %s, local %s: %s' %
+                                       (msg.repo_type, msg.reponame, msg.repo_remote, msg.repo_localdir,
+                                        msg.errorstr))))
             self.top_requestor = None
 
     def receiveMsg_GatherInfo(self, msg, sender):
+        self._gatherInfo(msg, sender)
+
+    def _gatherInfo(self, msg, sender, jsonReply=False):
         self.top_requestor = sender
+        self.prepareReply = toJSON if jsonReply else (lambda x: x)
         self.responses_pending = 0
 
         self.pullreqs = set()

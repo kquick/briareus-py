@@ -1,6 +1,34 @@
 # Messages exchanged between VCS management actors
 
 import attr
+import json
+from Briareus.BCGen.Description import *
+
+def toJSON(obj):
+    class objToJSON(json.JSONEncoder):
+        def default(self, obj):
+            if obj.__class__.__name__ in [ 'dict', 'list', 'int', 'float',
+                                           'str', 'bool', 'NoneType' ]:
+                return obj
+            if obj.__class__.__name__ in ['set', 'tuple']:
+                return { '__type__': obj.__class__.__name__,
+                         '__value__': [self.default(e) for e in obj]
+                }
+            objdict = attr.asdict(obj, recurse=False)
+            objdict['__type__'] = obj.__class__.__name__
+            return objdict
+    return json.dumps(obj, cls=objToJSON)
+
+def fromJSON(jstr):
+    def objFromJSON(objdict):
+        if '__type__' in objdict:
+            objtype = objdict['__type__']
+            if '__value__' in objdict:
+                return eval(objtype)(objdict['__value__'])
+            del objdict['__type__']
+            return eval(objtype)(**objdict)
+        return objdict
+    return json.loads(jstr, object_hook=objFromJSON)
 
 
 @attr.s
@@ -87,3 +115,21 @@ class RepoRemoteSpec(object):
     repourl  = attr.ib()
     cachedir = attr.ib(default=None)
     request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
+
+
+@attr.s(frozen=True)
+class PRInfo(object):
+    pr_target_repo = attr.ib()
+    pr_srcrepo_url = attr.ib()
+    pr_branch      = attr.ib()
+    pr_ident       = attr.ib()  # unique identifier, required
+    pr_title       = attr.ib()  # user-assistance, optional
+
+
+@attr.s(frozen=True)
+class SubModuleInfo(object):
+    sm_repo_name = attr.ib()
+    sm_branch    = attr.ib()
+    sm_sub_name  = attr.ib()
+    sm_sub_vers  = attr.ib()
+    sm_alt_repourl = attr.ib(default=None)  # set if this came from an alt repo (eg. PullReq src repo)

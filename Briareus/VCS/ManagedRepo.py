@@ -2,7 +2,6 @@
 
 from thespian.actors import *
 from Briareus.VCS.InternalOps import *
-import Briareus.VCS.InternalOps
 from datetime import timedelta
 
 
@@ -14,14 +13,15 @@ def gather_repo_info(RL, BL, cachedir, repo_auth, actor_system = None):
         # Use a global name for this actor to re-connect to the existing "daemon"
         rsp = asys.ask(asys.createActor('Briareus.VCS.InternalOps.GatherRepoInfo',
                                         globalName='GatherRepoInfo'),
-                       GatherInfo(RL, BL, cachedir, repo_auth),
+                       toJSON(GatherInfo(RL, BL, cachedir, repo_auth)),
                        REPO_INFO_TIMEOUT)
         if rsp == None:
             raise RuntimeError('Timeout waiting for GatherInfo response')
-        if isinstance(rsp, GatheredInfo):
-            if rsp.error:
-                raise RuntimeError('GatherRepoInfo error: ' + str(rsp.error))
-            return rsp.info
+        rspobj = fromJSON(rsp)
+        if isinstance(rspobj, GatheredInfo):
+            if rspobj.error:
+                raise RuntimeError('GatherRepoInfo error: ' + str(rspobj.error))
+            return rspobj.info
         raise RuntimeError('Unexpected response to GatherInfo request: %s' % str(rsp))
     finally:
         if actor_system is None:
