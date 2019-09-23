@@ -12,3 +12,8 @@ python -m thespian.director gensrc \
     '../../Briareus/VCS/**/*.p[yl]' \
     ../../Briareus/BCGen/__init__.py \
     ../../Briareus/BCGen/Description.py
+
+# Note: deps does not include "requests" and the associated
+# dependencies: urllib3 chardet OpenSSL certifi ... because some of
+# these have external library components, so "requests" should be part
+# of the enviroinment used to run the thespian.director start.

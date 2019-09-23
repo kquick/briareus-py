@@ -178,9 +178,9 @@ rec {
       serviceConfig = {
         Type = "forking";
         ExecStartPre="${pkgs.bash}/bin/bash ${briareus_thespian_director}/install_to ${thespian_director_dir}";
-        ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director start";
+        ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle pp.requests ])}/bin/python -m thespian.director start";
         ExecStartPost="${pkgs.coreutils}/bin/sleep 10";
-        ExecStop="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director shutdown";
+        ExecStop="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle pp.requests ])}/bin/python -m thespian.director shutdown";
       };
     };
   };
