@@ -76,13 +76,13 @@ let
     # the persistent daemon and caching elements.
     projnum:  # null or this project's number
     project:  # attrset that describes the project
-    #  project.name  = name string, short, unique, embeddable
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
     #  project.hhd   = filename for Briareus input specification (in hhSrc)
     #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
 
     let inp_hhd = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhd;
         inp_hhb = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhb;
+	name = (builtins.fromJSON (builtins.readFile (builtins.fetchurl inp_hhb))).name;
 
         # This script is run periodically to fetch the input Briareus
         # files for this project (in case they have changed) and
@@ -112,13 +112,13 @@ let
                mv ${project.hhd}.new ${project.hhd}
                mv ${project.hhb}.new ${project.hhb}
                # Generate a new project config in case the input files would cause this to change
-               cp $(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}") ${briareus_rundir}/${project.name}-hydra-project-config.json
+               cp $(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}") ${briareus_rundir}/${name}-hydra-project-config.json
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile project.name}.new
-             if [ $? -eq 0 ] && ! ${pkgs.diffutils}/bin/cmp -s ${briareus_outfile project.name} ${briareus_outfile project.name}.new ; then
-               cp ${briareus_outfile project.name}.new ${briareus_outfile project.name}
+             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new
+             if [ $? -eq 0 ] && ! ${pkgs.diffutils}/bin/cmp -s ${briareus_outfile name} ${briareus_outfile name}.new ; then
+               cp ${briareus_outfile name}.new ${briareus_outfile name}
              fi
              '';
 
@@ -133,8 +133,8 @@ let
       # The associated mkProjectCfg will read these build
       # configurations to generate the project's .jobset
       # configuration.
-      systemd.services."briareus-${project.name}" = {
-        description = "Briareus build configuration generator for ${project.name}";
+      systemd.services."briareus-${name}" = {
+        description = "Briareus build configuration generator for ${name}";
         serviceConfig = {
           Type = "forking";
           TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
@@ -160,7 +160,6 @@ rec {
     # Called to generate the NixOS Briareus support components for a
     # project.
     project:  # attrset that describes the project
-    #  project.name  = name string, short, unique, embeddable
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
     #  project.hhd   = filename for Briareus input specification (in hhSrc)
     #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
