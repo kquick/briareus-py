@@ -23,7 +23,6 @@ class Params(object):
     reportfile = attr.ib(default=None)
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
-    cachedir = attr.ib(default=None)
     repo_auth = attr.ib(default=None)
 
 def verbosely(params, *msgargs):
@@ -40,7 +39,6 @@ def run_hh_gen(params, inp, prior_report):
                            (', '.join(['hydra']), params.builder))
 
     inp_desc, repo_info = BInput.input_desc_and_VCS_info(inp,
-                                                         cachedir=params.cachedir,
                                                          verbose=params.verbose,
                                                          repo_auth=params.repo_auth,
                                                          actor_system=asys)
@@ -199,9 +197,6 @@ def main():
               'input for generating a report relative to previous reporting. '
               'The default is {inputfile}.hhr or stdout if no inputfile.'))
     parser.add_argument(
-        '--cachedir', '-c', default=None,
-        help='Git cache directory for cloning (default is $HOME/.gitscan-cache)')
-    parser.add_argument(
         '--builder', '-b', default='hydra',
         help=('Backend builder to generate build configurations for.  Valid builders '
               'are: hydra.  The default is to use the hydra builder backend.'))
@@ -241,7 +236,6 @@ def main():
                     reportfile=args.report,
                     verbose=args.verbose,
                     up_to=args.up_to,
-                    cachedir=args.cachedir,
                     repo_auth=auth)
     try:
         run_hh(args.INPUT, params)

@@ -55,7 +55,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def get_git_info(self, reqmsg):
         if not self._get_git_info:
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
-            self.send(self._get_git_info, VCSConfig(self.cachedir, self.request_auth))
+            self.send(self._get_git_info, VCSConfig(self.request_auth))
         self.responses_pending += 1
         self._incr_stat("get_git")
         self.send(self._get_git_info, reqmsg)
@@ -112,7 +112,6 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
         self.RL = msg.repolist
         self.BL = msg.branchlist
-        self.cachedir = msg.cachedir
         self.request_auth = msg.request_auth
         for repo in self.RL:
             self.get_info_for_a_repo(repo)
@@ -280,7 +279,6 @@ class GetGitInfo(ActorTypeDispatcher):
             self.gitinfo_actors[reponame] = suba
             self.gitinfo_actors_by_url[repourl] = suba
             self.send(suba, RepoRemoteSpec(repourl,
-                                           cachedir=self.config.cachedir_root,
                                            request_auth=self.config.request_auth))
         return suba
 

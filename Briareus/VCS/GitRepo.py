@@ -23,10 +23,8 @@ class GitRepoInfo(ActorTypeDispatcher):
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo = None
         self.repospec = RepoRemoteSpec("no-url", None, None)
-        self.repo_cachedir = "no cachedir"
 
     def receiveMsg_RepoRemoteSpec(self, msg, sender):
-        self.repo_cachedir = "-<none>-"
         self._ghinfo = (GitHubInfo(self.repospec.repourl, request_auth=msg.request_auth)
                         if 'github' in self.repospec.repourl else
                         (GitLabInfo(self.repospec.repourl, request_auth=msg.request_auth)
@@ -42,7 +40,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('GetPullReqs err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
                                   'GetPullReqs - ' + str(err)))
         else:
             self.send(msg.orig_sender, rsp)
@@ -54,7 +52,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('HasBranch: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
                                   'HasBranch - ' + str(err)))
         else:
             blist = [ b['name'] for b in rsp ]
@@ -71,7 +69,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('GitmodulesData err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
                                   'GitmodulesData - ' + str(err)))
         else:
             self.send(msg.orig_sender, rval)

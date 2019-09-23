@@ -2,7 +2,8 @@ import Briareus.Input.Parser as Parser
 from Briareus.VCS.ManagedRepo import gather_repo_info
 
 
-def input_desc_and_VCS_info(input_spec, cachedir=None, repo_auth=None,
+def input_desc_and_VCS_info(input_spec,
+                            repo_auth=None,
                             verbose=False,
                             actor_system=None):
     """Called with the input_spec as a string and parses that
@@ -17,7 +18,6 @@ def input_desc_and_VCS_info(input_spec, cachedir=None, repo_auth=None,
     # gitmodules of the project repo.  Then actively gather
     # information from the repositories.
     repo_info = gather_repo_info(input_desc.RL, input_desc.BL,
-                                 cachedir=cachedir,
                                  repo_auth=repo_auth,
                                  actor_system=actor_system)
     return (input_desc, repo_info)

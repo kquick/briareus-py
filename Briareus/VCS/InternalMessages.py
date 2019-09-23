@@ -35,7 +35,6 @@ def fromJSON(jstr):
 class GatherInfo(object):             #            --> GatheredInfo
     repolist = attr.ib(factory=list)    # array of RepoDesc
     branchlist = attr.ib(factory=list)  # array of BranchDesc
-    cachedir = attr.ib(default=None)  # local directory root for caching repos
     request_auth = attr.ib(default=None)  # interpreted by VCS/GitRepo
 @attr.s
 class GatheredInfo(object):           # GatherInfo -->
@@ -44,7 +43,6 @@ class GatheredInfo(object):           # GatherInfo -->
 
 @attr.s
 class VCSConfig(object):
-    cachedir_root = attr.ib()
     request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 
@@ -113,7 +111,6 @@ class SubRepoVers(object):
 @attr.s
 class RepoRemoteSpec(object):
     repourl  = attr.ib()
-    cachedir = attr.ib(default=None)
     request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 
