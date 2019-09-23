@@ -22,7 +22,7 @@ class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo = None
-        self.repospec = RepoRemoteSpec("no-url", None, None)
+        self.repospec = RepoRemoteSpec("no-url", None)
 
     def receiveMsg_RepoRemoteSpec(self, msg, sender):
         self._ghinfo = (GitHubInfo(self.repospec.repourl, request_auth=msg.request_auth)
