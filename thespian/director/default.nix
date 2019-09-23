@@ -6,7 +6,10 @@ stdenv.mkDerivation {
   installPhase = ''
     echo :::::::::::::::::::: installing briareus_director in $(pwd) to $out
     ls -lh
-    cp * $out";
+    echo :::::::::::::::::::: src is $src
+    ls -lh $src
+    set -x
+    cp * $out;
     echo :::::::::::::::::::: installed  briareus_director
     '';
 }
