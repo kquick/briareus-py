@@ -72,7 +72,7 @@ def mk_prior_facts(prior_report):
     return (
         [ DeclareFact('prior_status/5'),
         ] +
-        [ prior_fact(p) for p in prior_report ])
+        [ prior_fact(p) for p in (prior_report or []) ])
 
 def mk_built_facts(build_results):
     return (
