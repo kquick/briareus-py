@@ -225,5 +225,7 @@ class GitHubInfo(object):
                     logging.warning('Found %s at %s, but expected a submodule', submod_info['type'], gitmod_cfg[remote]['path'])
                     pass # ignore this submodule entry
                 else:
-                    ret.append(SubRepoVers(submod_info['name'], submod_info['submodule_git_url'], submod_info['sha']))
+                    ret.append(SubRepoVers(submod_info['name'],
+                                           self._remove_trailer(submod_info['submodule_git_url']),
+                                           submod_info['sha']))
         return GitmodulesRepoVers(reponame, branch, ret, alt_repo_url=repo_src_url)
