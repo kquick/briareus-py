@@ -75,12 +75,10 @@ def mk_prior_facts(prior_report):
         [ prior_fact(p) for p in (prior_report or []) ])
 
 def mk_built_facts(build_results):
-    if isinstance(build_results, str):
-        # Builder returned a failure / warning messsage and not an
+    if isinstance(build_results.results, str):
+        # Builder returned a failure / warning message and not an
         # actual list of results.
         return []
-    if not isinstance(build_results, list):
-        raise RuntimeError('Invalid build_results type: %s' % type(build_results))
     return (
         [ DeclareFact('bldres/10'),
         ] +
