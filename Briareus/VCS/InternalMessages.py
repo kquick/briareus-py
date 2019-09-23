@@ -52,6 +52,20 @@ class GatheredInfo(object):           # GatherInfo -->
     info = attr.ib(factory=dict)
     error = attr.ib(default=None)
 
+
+@attr.s
+class ReadFileFromVCS(object):        # --> FileReadData
+    repourl  = attr.ib()
+    repolocs = attr.ib()              # array of RepoLoc
+    file_path = attr.ib()
+    branch = attr.ib(factory=str)     # defaults to "master"
+@attr.s
+class FileReadData(object):           # ReadFileFromVCS -->
+    req = attr.ib()                     # The ReadFileFromVCS that originated this response
+    error_code = attr.ib(default=None)  # integer, 0/None on success
+    file_data = attr.ib(factory=str)    # string, empty if error_code
+
+
 @attr.s
 class Repo__ReqMsg(object):
     reponame = attr.ib()

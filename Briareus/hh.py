@@ -6,6 +6,7 @@ from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
 import Briareus.Input.Operations as BInput
 import Briareus.BuildSys.Hydra as BldSys
+from Briareus.VCS.ManagedRepo import get_updated_file
 import argparse
 import os
 import sys
@@ -21,6 +22,9 @@ class Params(object):
     reportfile = attr.ib(default=None)
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
+    input_url = attr.ib(default=None)
+    input_path = attr.ib(default=None)
+
 
 def verbosely(params, *msgargs):
     if params.verbose:
@@ -90,6 +94,29 @@ def run_hh_on_inpfile(reportf, inp_fname, params, prior_report):
                               prior_report=prior_report)
 
 
+def upd_file_atomically(srcf, data):
+    with open(srcf + '_upd', 'w') as updf:
+        updf.write(data)
+    os.rename(srcf + '_upd', srcf)
+
+def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
+    fpath = os.path.join(src_path, os.path.basename(fname))
+    try:
+        data = get_updated_file(src_url, fpath, repolocs, actor_system=actor_system)
+        if data.error_code:
+            raise RuntimeError('Error %s' % data.error_code)
+    except Exception as ex:
+        print('Warning: no remote update of %s from %s: %s'
+              % (fpath, src_url, str(ex)),
+              file=sys.stderr)
+    else:
+        if data.file_data:
+            upd_file_atomically(fname, data.file_data)
+        else:
+            print('No contents obtained for %s @ %s'
+                  % (fpath, src_url))
+
+
 def run_hh_reporting_to(reportf, input_src, params, prior_report):
     if not input_src:
         inp = input('Briareus input spec? ')
@@ -101,6 +128,10 @@ def run_hh_reporting_to(reportf, input_src, params, prior_report):
             run_hh_with_files(inp, sys.stdout, reportf, params=params,
                               prior_report=prior_report)
     else:
+        if params.input_url and params.input_path:
+            asys = ActorSystem('multiprocTCPBase', logDefs=logcfg)
+            upd_from_remote(params.input_url, params.input_path, input_src, [], asys)
+            upd_from_remote(params.input_url, params.input_path, params.builder_conf, [], asys)
         if os.path.exists(input_src):
             run_hh_on_inpfile(reportf, input_src, params=params,
                               prior_report=prior_report)
@@ -219,12 +250,31 @@ def main():
               'GitHub request limits).  This flag causes those processes to be '
               'shutdown on exit (even if running from a previously issued command.'))
     parser.add_argument(
+        '--input-url-and-path', '-I',
+        help='''Specify an input URL from which the INPUT files (and
+                builder-config, if specified) should be updated
+                from. The value should be a "url+path" with an actual
+                plus sign; the INPUT and builder-config files should
+                exist in the "path" location at the "url".
+
+                This is done atomically, so any existing files are not
+                overwritten if the update fails; normal Briareus
+                action continues even if this update is unsuccessful.
+
+                This is particularly useful if the INPUT and
+                builder-config files are contained in a private remote
+                repository for which the BRIAREUS_PAT provides access
+                tokens for updates.''')
+    parser.add_argument(
         'INPUT', default=None, nargs='?',
         help='Briareus input specification (file or URL or blank to read from stdin)')
     args = parser.parse_args()
+    input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
     params = Params(builder_type=args.builder,
                     builder_conf=args.builder_conf,
                     builder_url=args.builder_url,
+                    input_url=input_url,
+                    input_path=input_path,
                     output=args.output,
                     reportfile=args.report,
                     verbose=args.verbose,

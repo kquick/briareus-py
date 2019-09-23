@@ -98,6 +98,22 @@ class GitRepoInfo(ActorTypeDispatcher):
             self.send(msg.orig_sender, rval)
 
 
+    def receiveMsg_ReadFileFromVCS(self, msg, sender):
+        filepath = msg.file_path
+        branch = msg.branch or "master"
+        try:
+            rval = self._ghinfo.get_file_contents_raw(filepath, branch)
+        except Exception as err:
+            logging.critical('ReadFileFromVCS err: %s', err, exc_info=True)
+            if hasattr(err, 'response'):
+                ecode = getattr(err.response, 'status_code', -1)
+            else:
+                ecode = getattr(err, 'errno', -2)
+            self.send(msg.orig_sender, FileReadData(req=msg, error_code=ecode))
+        else:
+            self.send(msg.orig_sender, FileReadData(req=msg, file_data=rval))
+
+
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
             self.send(sender, self._ghinfo.stats() if self._ghinfo else
@@ -208,7 +224,7 @@ class RemoteGit__Info(object):
             rsp.raise_for_status()
         return rsp
 
-    def _get_file_contents_raw(self, target_filepath, branch):
+    def get_file_contents_raw(self, target_filepath, branch):
         rsp = self._get_file_contents_info(target_filepath, branch)
         if rsp != self.NotFound:
             if rsp['encoding'] != 'base64':
@@ -219,7 +235,7 @@ class RemoteGit__Info(object):
         return rsp
 
     def get_gitmodules(self, reponame, branch):
-        rsp = self._get_file_contents_raw('.gitmodules', branch)
+        rsp = self.get_file_contents_raw('.gitmodules', branch)
         if rsp == self.NotFound:
             return GitmodulesRepoVers(reponame, branch, [])
         return self.parse_gitmodules_contents(reponame, branch, rsp)
@@ -305,7 +321,7 @@ class GitLabInfo(RemoteGit__Info):
     def _get_file_contents_info(self, target_filepath, branch):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
 
-    def _get_file_contents_raw(self, target_filepath, branch):
+    def get_file_contents_raw(self, target_filepath, branch):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch, raw=True)
 
     def _subrepo_version(self, remote_name, remote_info, submod_info):

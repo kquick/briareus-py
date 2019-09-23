@@ -11,7 +11,16 @@ def gather_repo_info(RL, RX, BL, actor_system=None):
     """Gets the full set of information for the listed repositories, with
        location translations and branches of interest.
     """
-    return _run_actors(GatherInfo(RL, RX, BL), GatheredInfo, actor_system)
+    rspobj = _run_actors(GatherInfo(RL, RX, BL), GatheredInfo, actor_system)
+    if rspobj.error:
+        raise RuntimeError('VCS request error: ' + str(rspobj.error))
+    return rspobj.info
+
+
+def get_updated_file(repourl, filepath, repolocs, actor_system=None):
+    "Reads a specific file from the repository at the specified url"
+    return _run_actors(ReadFileFromVCS(repourl, repolocs, filepath),
+                       FileReadData, actor_system)
 
 
 def _run_actors(request, expected_resp_type, actor_system=None):
@@ -26,9 +35,7 @@ def _run_actors(request, expected_resp_type, actor_system=None):
             raise RuntimeError('Timeout waiting for GatherInfo response')
         rspobj = fromJSON(rsp)
         if isinstance(rspobj, expected_resp_type):
-            if rspobj.error:
-                raise RuntimeError('VCS request error: ' + str(rspobj.error))
-            return rspobj.info
+            return rspobj
         raise RuntimeError('Unexpected response to VCS request: %s' % str(rsp))
     finally:
         if actor_system is None:

@@ -26,6 +26,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self._get_git_info = None
         self.top_requestor = None
         self._stats = {}
+        self.responses_pending = 0
 
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
@@ -47,6 +48,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
             objmsg = fromJSON(msg)
             if isinstance(objmsg, GatherInfo):
                 self._gatherInfo(objmsg, sender, jsonReply=True)
+            elif isinstance(objmsg, ReadFileFromVCS):
+                objmsg.requestor = sender
+                self.read_vcs_file(objmsg, jsonReply=True)
             else:
                 logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
 
@@ -101,6 +105,22 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                         msg.repo_api_url,
                                         msg.errorstr))))
             self.top_requestor = None
+
+    def receiveMsg_ReadFileFromVCS(self, msg, sender):
+        """Main entrypoint to reada a specific file from a repo at the
+           specified URL
+        """
+        msg.requestor = sender
+        self.read_vcs_file(msg)
+
+    def read_vcs_file(self, readfile_msg, jsonReply=False):
+        self.prepareReply = toJSON if jsonReply else (lambda x: x)
+        self.get_git_info(Repo_AltLoc_ReqMsg(to_http_url(readfile_msg.repourl,
+                                                         readfile_msg.repolocs),
+                                             readfile_msg))
+
+    def receiveMsg_FileReadData(self, msg, sender):
+        self.send(msg.req.requestor, self.prepareReply(msg))
 
     def receiveMsg_GatherInfo(self, msg, sender):
         self._gatherInfo(msg, sender)
