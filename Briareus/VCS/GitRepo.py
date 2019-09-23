@@ -258,9 +258,15 @@ class RemoteGit__Info(object):
                     # reference sha that is completely invalid, which
                     # should cause a build failure, as long as the remote
                     # URL itself seems to be valid.
-                    logging.warning('specified submodule revision %s does not exist in target repo %s as %s',
-                                     branch, submod_info['name'], repo_src_url)
-                    ret.append(SubRepoVers(submod_info['name'], repo_src_url, 'unknownRemoteRefForPullReq'))
+                    logging.warning('in %s branch %s, there is no submodule commit for .gitmodule'
+                                    ' path %s, url %s',
+                                    repo_src_url, branch,
+                                    gitmod_cfg[remote]['path'],
+                                    gitmod_cfg[remote]['url'])
+                    # Generate an invalid revision that will cause this build to fail on fetch of source
+                    ret.append(SubRepoVers(gitmod_cfg[remote]['path'].split('/')[-1],
+                                           gitmod_cfg[remote]['url'],
+                                           'unknownRemoteRefForPullReq'))
             else:
                 ret.append(self._subrepo_version(remote, gitmod_cfg[remote], submod_info))
         return GitmodulesRepoVers(reponame, branch, ret, alt_repo_url=repo_src_url)
