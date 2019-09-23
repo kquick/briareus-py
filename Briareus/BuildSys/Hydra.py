@@ -190,6 +190,8 @@ class HydraBuilder(BuilderBase.Builder):
             if not project_name:
                 return 'Build results require a project name for querying Hydra'
             r = requests.get(self._builder_url + "/api/jobsets?project=" + project_name)
+            if r.status_code == 404:
+                return 'No build results at specified target'
             r.raise_for_status()
             self._build_results = r.json()
         return self._build_results
