@@ -2,7 +2,8 @@
 # configurations with build results (as available) and generates
 # output reports.
 
-from Briareus.BCGen.BuildConfigs import BuildResult
+from Briareus.BCGen.BuildConfigs import BuildResult, logic_result_expr
+
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
@@ -38,13 +39,25 @@ class AnaRep(object):
                                       input_desc.VAR,
                                       repo_info)
         built_facts = self.built_facts(build_results)
+        facts = input_facts + built_facts
 
         if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
-            for each in input_facts + built_facts:
+            for each in facts:
                 print(str(each))
         if self._up_to == 'built_facts':
-            return
+            return (up_to, facts)
+
+        r = run_logic_analysis('built_analysis', facts,
+                               actor_system=self._actor_system,
+                               verbose=self.verbose)
+        if self.verbose or self._up_to == 'raw_built_analysis':
+            print('## RAW BUILT ANALYSIS:')
+            print(str(r))
+        if self._up_to == 'raw_built_analysis':
+            return (up_to, r)
+
+        return ("report", eval(r, globals(), logic_result_expr))
 
 
     def get_build_results(self, build_cfgs):

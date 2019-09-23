@@ -57,7 +57,9 @@ def run_hh_gen(params, inp):
                            verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=asys)
-    anarep.report_on(inp_desc, repo_info, build_cfgs)
+    report = anarep.report_on(inp_desc, repo_info, build_cfgs)
+    print('%s: %s' % report)
+
     return builder_cfgs
 
 
@@ -105,7 +107,7 @@ class UpTo(object):
 
     # In order:
     valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
-                    "build_results", "built_facts" ]
+                    "build_results", "built_facts", "raw_built_analysis" ]
 
     @staticmethod
     def valid():
