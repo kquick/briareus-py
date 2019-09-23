@@ -8,7 +8,7 @@ import sys
 
 local_path = os.path.dirname(os.path.abspath(sys.modules['Briareus.Logic'].__file__))
 
-PROLOG_TIMEOUT = timedelta(seconds=5)
+PROLOG_TIMEOUT = timedelta(seconds=61)
 
 @attr.s(str=False)
 class Fact(object):
