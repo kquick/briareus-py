@@ -82,7 +82,7 @@ def test_example_internal_count(example_internal_bldconfigs):
 def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
     for each in [ BldConfig("pullreq", "blah", "submodules",
                                 [BldRepoRev("R1","blah", "X"),
-                                 BldRepoRev("R2","r2_master_head"),
+                                 BldRepoRev("R2","r2_master_head^22"),
                                  BldRepoRev("R3","r3_master_head"),
                                  BldRepoRev("R5","blah"),
                                  BldRepoRev("R6","master"),
@@ -650,7 +650,7 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url r2_master_head"
+                    "value": "r2_url r2_master_head^22"
                 },
                 "R3-src": {
                     "emailresponsible": False,

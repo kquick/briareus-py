@@ -105,7 +105,7 @@ submodule("R1", "master", "R4", "r4_master_head^1").
 submodule("R1", "feat1", "R2", "r2_master_head^1").
 submodule("R1", "feat1", "R3", "r3_master_head").
 submodule("R1", "feat1", "R4", "r4_feat1_head^2").
-submodule("R1", "blah", "R2", "r2_master_head").
+submodule("R1", "blah", "R2", "r2_master_head^22").
 submodule("R1", "blah", "R3", "r3_master_head").
 submodule("R1", "blah", "R7", "r7_master_head^4").
 varname("ghcver").

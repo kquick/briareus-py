@@ -44,7 +44,7 @@ class GitExample1(ActorTypeDispatcher):
             'R1': { "master":[SubRepoVers('R2', "r2_url", "r2_master_head"),
                               SubRepoVers('R3', "r3_url", "r3_master_head^3"),
                               SubRepoVers('R4', "r4_url", "r4_master_head^1")],
-                    'blah':[SubRepoVers('R2', "r2_url", "r2_master_head"),
+                    'blah':[SubRepoVers('R2', "r2_url", "r2_master_head^22"),
                             SubRepoVers('R3', "r3_url", "r3_master_head"),
                             SubRepoVers('R7', "r7_url", "r7_master_head^4")],
                     'feat1':[SubRepoVers('R2', "r2_url", "r2_master_head^1"),

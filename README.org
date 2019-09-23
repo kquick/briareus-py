@@ -111,7 +111,7 @@ arranged as shown below:
       |
       R1        master  submodules: [R2=master,R3=master^3,R4=master^1]
      /  \       feat1   submodules: [R2=master^1,R3=master,R4=feat1^2]
-     |   |\     PR#1(remote_R1_b):blah submodules: [R2=master,R3=master,R7=master^4]
+     |   |\     PR#1(remote_R1_b):blah submodules: [R2=master^22,R3=master,R7=master^4]
      |   | \
      |   |  R7  master
      |   |
@@ -141,7 +141,7 @@ The following BCD is generated:
   , "feat1.HEADs":           [R1.feat1,  R2.master,   R3.master,   R4.feat1,    R5.master,  R6.feat1] * VSETS
   , "dev.submodules":        [R1.master, R2.master,   R3.master^3, R4.master^1, R5.dev,     R6.master] * VSETS
   , "dev.HEADs":             [R1.master, R2.master,   R3.master,   R4.master,   R5.dev,     R6.master] * VSETS
-  , "PR-blah.submodules":    [R1.blah,   R2.master,   R3.master,                R5.blah,    R6.master, R7=master^4] * VSETS
+  , "PR-blah.submodules":    [R1.blah,   R2.master^22,R3.master,                R5.blah,    R6.master, R7=master^4] * VSETS
   , "PR-blah.HEADs":         [R1.blah,   R2.master,   R3.blah,                  R5.blah,    R6.master, R7=master] * VSETS
   , "PR-bugfix9.submodules": [R1.master, R2.bugfix9,  R3.master^3, R4.bugfix9,  R5.bugfix9, R6.master] * VSETS
   , "PR-bugfix9.HEADs":      [R1.master, R2.bugfix9,  R3.master,   R4.bugfix9,  R5.bugfix9, R6.master] * VSETS
