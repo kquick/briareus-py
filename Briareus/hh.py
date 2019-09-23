@@ -57,7 +57,7 @@ def run_hh_gen(params, inp):
                            verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=asys)
-    anarep.report_on(build_cfgs)
+    anarep.report_on(inp_desc, repo_info, build_cfgs)
     return builder_cfgs
 
 

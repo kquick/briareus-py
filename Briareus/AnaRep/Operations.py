@@ -17,7 +17,10 @@ class AnaRep(object):
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def report_on(self, build_cfgs):   # build_cfgs is BCGen.Generator.GeneratedConfigs
+    def report_on(self, input_desc, repo_info, build_cfgs):
+        # input_desc is 'first' returned from input_desc_and_VCS_info
+        # repo_info is 'second' returned from input_desc_and_VCS_info
+        # build_cfgs is BCGen.Generator.GeneratedConfigs
         print('AnaRep.report_on %d configs (%d subrepos, %d pullreqs): TBD'
               % (len(build_cfgs.cfg_build_configs),
                  len(build_cfgs.cfg_subrepos),
@@ -30,11 +33,15 @@ class AnaRep(object):
             for each in build_results:
                 print('**',each)
 
+        input_facts = get_input_facts(input_desc.RL,
+                                      input_desc.BL,
+                                      input_desc.VAR,
+                                      repo_info)
         built_facts = self.built_facts(build_results)
 
         if self.verbose:
             print('## BUILT FACTS:')
-            for each in built_facts:
+            for each in input_facts + built_facts:
                 print(str(each))
 
 
