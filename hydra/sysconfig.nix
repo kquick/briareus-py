@@ -14,6 +14,10 @@ let
   briareus_outfile = projectname: "${briareus_rundir}/${projectname}.hhc";
 
   slash_join = a: b:
+    # Joins a and b together with a single slash between them.
+    # Handles the cases where a ends with one or more slashes and b
+    # begins with one or more slashes; the result will always have
+    # only a single slash between a and b.
     with builtins;
     let len_a = stringLength a;
     in if stringLength b == 0
@@ -28,6 +32,13 @@ let
                 else a + "/" + b));
 
   retrieval_url = base: src_subdir: file:
+    # Given the base url, a subdirectory in that url target, returns a
+    # full URL to reference the target file at that URL path.  Handles
+    # some conversions of recognized URL's like github.com to get the
+    # raw file contents instead of the HTML page for that file.
+    #
+    # The base may also just be a local absolute filepath, in which
+    # case the result is an absolute filepath to the target file.
     with builtins;
     let github_base = "https://github.com/";
         len_gh_base = stringLength github_base;
@@ -54,7 +65,11 @@ let
 
   mkBriareusProject =
     # Called to generate the NixOS Briareus support components for a
-    # project.
+    # project.  If multiple projects are supported (projnum != 0) then
+    # the check times for the projects will be staggered on 3-minute
+    # intervals and a common briareus service is used for for handling
+    # the persistent daemon and caching elements.
+    projnum:  # null or this project's number
     project:  # attrset that describes the project
     #  project.name  = name string, short, unique, embeddable
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
@@ -63,6 +78,13 @@ let
 
     let inp_hhd = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhd;
         inp_hhb = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhb;
+
+        # This script is run periodically to fetch the input Briareus
+        # files for this project (in case they have changed) and
+        # re-run briareus to generate new build configurations (which
+        # are updated to the Hydra project input location only on
+        # changes).  Hydra will then see these changes and update the
+        # jobsets for this project automatically.
 
         run_script = ''
              set -x
@@ -78,12 +100,13 @@ let
                esac
              }
 
-             # Fetch Briareus input updates
+             # Fetch Briareus input file updates for this project
              if fetch_briareus ${inp_hhd} ${project.hhd}.new && \
                 fetch_briareus ${inp_hhb} ${project.hhb}.new; then
+               # Successfully fetched, so install these as the new files to use
                mv ${project.hhd}.new ${project.hhd}
                mv ${project.hhb}.new ${project.hhb}
-               here=$(pwd)
+               # Generate a new project config in case the input files would cause this to change
                cp $(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}") ${briareus_rundir}/${project.name}-hydra-project-config.json
              fi
 
