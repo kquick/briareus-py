@@ -173,6 +173,9 @@ def main():
         'INPUT', default=None, nargs='?',
         help='Briareus input specification (file or URL or blank to read from stdin)')
     args = parser.parse_args()
+    auth = open(args.auth,'r').read().strip() if args.auth else None
+    if auth and ':' in auth:
+        auth = HTTPBasicAuth(*tuple(auth.split(':')))
     params = Params(builder_type=args.builder,
                     builder_conf=args.builder_conf,
                     builder_url=args.builder_url,
@@ -180,8 +183,7 @@ def main():
                     verbose=args.verbose,
                     up_to=args.up_to,
                     cachedir=args.cachedir,
-                    repo_auth=HTTPBasicAuth(*tuple(open(args.auth,'r').read().strip().split(':')))
-               if args.auth else None)
+                    repo_auth=auth)
     try:
         run_hh(args.INPUT, params)
     finally:

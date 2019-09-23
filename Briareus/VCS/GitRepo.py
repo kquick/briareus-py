@@ -27,7 +27,14 @@ class GitRepoInfo(ActorTypeDispatcher):
 
     def receiveMsg_RepoRemoteSpec(self, msg, sender):
         self.repo_cachedir = "-<none>-"
-        self._ghinfo = GitHubInfo(self.repospec.repourl, request_auth=msg.request_auth)
+        self._ghinfo = (GitHubInfo(self.repospec.repourl, request_auth=msg.request_auth)
+                        if 'github' in self.repospec.repourl else
+                        (GitLabInfo(self.repospec.repourl, request_auth=msg.request_auth)
+                         if 'gitlab' in self.repospec.repourl else
+                         None))
+        if not self._ghinfo:
+            raise ValueError('Cannot determine type of remote repo at %s'
+                             % self.repospec.repourl)
 
     def receiveMsg_GetPullReqs(self, msg, sender):
         try:
@@ -35,7 +42,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
-                                  str(err)))
+                                  'GetPullReqs - ' + str(err)))
         else:
             self.send(msg.orig_sender, rsp)
 
@@ -46,7 +53,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
-                                  str(err)))
+                                  'HasBranch - ' + str(err)))
         else:
             blist = [ b['name'] for b in rsp ]
             chk = branch in blist
@@ -60,7 +67,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
-                                  str(err)))
+                                  'GitmodulesData - ' + str(err)))
         else:
             self.send(msg.orig_sender, rval)
 
@@ -72,31 +79,26 @@ class GitRepoInfo(ActorTypeDispatcher):
                       })
 
 
-class GitHubInfo(object):
-    """Retrieve information from github via API with cacheing.  Note that
-       this object does not maintain a "name" for the repo because
-       several projects may share the same repo.
-    """
-
-    NotFound = 404
-
-    def __init__(self, url, request_auth=None):
-        self._url = self.get_api_url(url)
+class RemoteGit__Info(object):
+    """Common functionality for remote Git retrieval (Github or Gitlab)."""
+    def __init__(self, api_url):
+        self._url = api_url
         self._request_session = requests.Session()
-        self._request_session.auth = request_auth
         self._rsp_cache = {}
         self._rsp_fetched = {}
         self._get_count = 0
         self._req_count = 0
         self._refresh_count = 0
 
+    NotFound = 404
+
     def stats(self):
         return { "url": self._url,
                  "rsp_cache_keys": list(self._rsp_cache.keys()),
                  "get_info_reqs": self._get_count,
-                 "github_reqs": self._req_count,
-                 "github_refreshes": self._refresh_count
-                 # n.b. get_info_reqs - github_reqs - len(rsp_cache_keys) = error or 404 responses
+                 "remote_reqs": self._req_count,
+                 "remote_refreshes": self._refresh_count
+                 # n.b. get_info_reqs - remote_reqs - len(rsp_cache_keys) = error or 404 responses
         }
 
     trailer = '.git'
@@ -107,23 +109,27 @@ class GitHubInfo(object):
                 if path[-self.trailer_len:] == self.trailer
                 else path)
 
-    def get_api_url(self, url):
-        """Converts a remote repository URL into a form that is useable for
-           the Github API (https://developer.github.com/v3) to allow
-           API-related requests.
-        """
+    def to_http_url(self, url):
+        # Convert "git@foo.com:group/proj" to "https://foo.com/group/proj"
         if url.startswith("git@"):
             trimmed_url = self._remove_trailer(url[len('git@'):])
             spl = trimmed_url.split(':')
-            return self.get_api_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])))
-        parsed = urlparse(url)
-        if parsed.netloc == 'github.com':
-            return urlunparse(
-                parsed._replace(netloc = 'api.github.com',
-                                path = 'repos' + self._remove_trailer(parsed.path)))
-        raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
+            return self.to_http_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])))
+        return self._remove_trailer(url)
 
-    def github_req(self, reqtype, repo_url_override=None, notFoundOK=False):
+    @staticmethod
+    def repo_url(self, url):
+        "Drops any additional path elements beyond the first two: owner and repo"
+        parsed = urlparse(url)
+        return urlunparse(
+            parse._replace(path = '/'.join(parse.path.split('/')[:3]) ))
+
+    def api_req(self, reqtype, repo_url_override=None, notFoundOK=False, raw=False):
+        # n.b. repo_url_override is usually used for PullRequests,
+        # which exist in the target repo but reference a branch in a
+        # source repo, so the repo_url_override specifies the latter.
+        # There is an assumption that PullRequests are for the same
+        # forge (e.g. Github or gitlab).
         self._get_count += 1
         req_url = (repo_url_override or self._url) + reqtype
         last_one = self._rsp_cache.get(req_url, None)
@@ -136,7 +142,7 @@ class GitHubInfo(object):
                     ret = self._rsp_cache[req_url]
                     if ret == self.NotFound:
                         return ret
-                    return ret.json()
+                    return ret.text if raw else ret.json()
         # If already fetched, pass the header tags to the server in
         # the request so that the server can respond with either a 304
         # "Not Modified" or the new data (the 304 does not count
@@ -162,14 +168,133 @@ class GitHubInfo(object):
             return self.NotFound
         else:
             rsp.raise_for_status()
-        return rsp.json()
+        return rsp.text if raw else rsp.json()
+
+    def _get_file_contents_raw(self, target_filepath, branch, alt_repo_url=None):
+        rsp = self._get_file_contents_info(target_filepath, branch, alt_repo_url=None)
+        if rsp != self.NotFound:
+            if rsp['encoding'] != 'base64':
+                logging.error('Unknown encoding for %s, branch %s, repo %s: %s',
+                              target_filepath, branch, alt_repo_url or self._url)
+                return self.NotFound
+            return base64.b64decode(rsp['content']).decode('utf-8')
+        return rsp
+
+    def get_gitmodules(self, reponame, branch, repo_src_url):
+        srcurl = self.get_api_url(repo_src_url) if repo_src_url else repo_src_url
+        rsp = self._get_file_contents_raw('.gitmodules', branch, repo_src_url)
+        if rsp == self.NotFound:
+            return GitmodulesRepoVers(reponame, branch, [])
+        return self.parse_gitmodules_contents(reponame, branch, rsp, srcurl)
+
+    def parse_gitmodules_contents(self, reponame, branch, gitmodules_contents, repo_src_url):
+        gitmod_cfg = configparser.ConfigParser()
+        gitmod_cfg.read_string(gitmodules_contents)
+        ret = []
+        for remote in gitmod_cfg.sections():
+            # Note: if the URL of a repo moves, need a new name for the moved location?  Or choose not to track these changes?
+            submod_info = self._get_file_contents_info(gitmod_cfg[remote]['path'], branch, repo_src_url)
+            if submod_info == self.NotFound:
+                # Is the repo in .gitmodules valid?
+                valid_repo = self.api_req('', repo_src_url, notFoundOK=True)
+                if valid_repo == self.NotFound:
+                    logging.warning('Invalid URL for submodule %s, %s: using "%s"',
+                                    remote, repo_src_url, os.path.split(gitmod_cfg[remote]['path'])[-1])
+                    # The submodule added to .gitmodules specified an
+                    # invalid repository.  Have to assume the name is
+                    # the last component of the path.
+                    ret.append(SubRepoVers(os.path.split(gitmod_cfg[remote]['path'])[-1],
+                                           'invalid_remote_repo',
+                                           'unknownRemoteRefForPullReq'))
+                else:
+                    # The submodule was added to .gitmodules, but no
+                    # actual version of the remote repo was committed, so
+                    # no reference SHA can be known.  Instead, use a
+                    # reference sha that is completely invalid, which
+                    # should cause a build failure, as long as the remote
+                    # URL itself seems to be valid.
+                    logging.warning('specified submodule revision %s does not exist in target repo %s as %s',
+                                     branch, submod_info['name'], repo_src_url)
+                    ret.append(SubRepoVers(submod_info['name'], repo_src_url, 'unknownRemoteRefForPullReq'))
+            else:
+                ret.append(self._subrepo_version(remote, gitmod_cfg[remote], submod_info))
+        return GitmodulesRepoVers(reponame, branch, ret, alt_repo_url=repo_src_url)
+
+
+class GitLabInfo(RemoteGit__Info):
+    """Retrieve information from gitlab via API with cacheing.  Note that
+       this object does not maintain a "name" for the repo because
+       several projects may share the same repo.
+    """
+    def __init__(self, url, request_auth=None):
+        super(GitLabInfo, self).__init__(self.get_api_url(url))
+        if isinstance(request_auth, str):
+            self._request_session.headers.update({'Private-Token': request_auth})
+
+    def get_api_url(self, url):
+        parsed = urlparse(self.to_http_url(url))
+        return urlunparse(
+            parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
+
+    @staticmethod
+    def _fix_subrepo_source_url(url):
+        parsed = urlparse(self._url)
+        return urlunparse(parsed._replace(path='/api/v4/projects/%d'%pr['source_project_url']))
 
     def get_pullreqs(self, reponame):
-        rsp = self.github_req('/pulls')
+        rsp = self.api_req('/merge_requests')
         # May want to filter on ["state"] == "open"
         # May want to echo either ["number"] or ["title"]
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
+        preqs = [ PullReqInfo(pr["id"],   # for user reference
+                              pr["title"],    # for user reference
+                              self._fix_subrepo_source_url(pr['source_project_url']),  # source repo URL
+                              pr["source_branch"],          # source repo branch
+                              pr["sha"])
+                  for pr in rsp if pr["state"] == "opened" and not pr["merged_at"] ]
+        return PullReqsData(reponame, preqs)
+
+    def get_branches(self):
+        return self.api_req('/repository/branches')
+
+    def _get_file_contents_info(self, target_filepath, branch, alt_repo_url=None):
+        return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
+
+    def _get_file_contents_raw(self, target_filepath, branch, alt_repo_url=None):
+        return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch, raw=True)
+
+    def _subrepo_version(self, remote_name, remote_info, submod_info):
+        return SubRepoVers(submod_info['file_name'],
+                           self.to_http_url(remote_info['url']),
+                           submod_info['blob_id'])
+
+
+class GitHubInfo(RemoteGit__Info):
+    """Retrieve information from github via API with cacheing.  Note that
+       this object does not maintain a "name" for the repo because
+       several projects may share the same repo.
+    """
+    def __init__(self, url, request_auth=None):
+        super(GitHubInfo, self).__init__(self.get_api_url(url))
+        if isinstance(request_auth, requests.auth.AuthBase):
+            self._request_session.auth = request_auth
+
+    def get_api_url(self, url):
+        """Converts a remote repository URL into a form that is useable for
+           the Github API (https://developer.github.com/v3) to allow
+           API-related requests.
+        """
+        parsed = urlparse(self.to_http_url(url))
+        if parsed.netloc == 'github.com':
+            return urlunparse(
+                parsed._replace(netloc = 'api.github.com',
+                                path = 'repos' + self._remove_trailer(parsed.path)))
+        raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
+
+    def get_pullreqs(self, reponame):
+        rsp = self.api_req('/pulls')
+        # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(pr["number"],   # for user reference
                               pr["title"],    # for user reference
                               pr["head"]["repo"]["html_url"],  # source repo URL
@@ -179,53 +304,17 @@ class GitHubInfo(object):
         return PullReqsData(reponame, preqs)
 
     def get_branches(self):
-        return self.github_req('/branches')
+        return self.api_req('/branches')
 
-    def get_gitmodules(self, reponame, branch, repo_src_url):
-        srcurl = self.get_api_url(repo_src_url) if repo_src_url else repo_src_url
-        rsp = self.github_req('/contents/.gitmodules?ref=' + branch, srcurl, notFoundOK=True)
-        if rsp == self.NotFound:
-            return GitmodulesRepoVers(reponame, branch, [])
-        return self.parse_gitmodules_response(reponame, branch, rsp, srcurl)
+    def _get_file_contents_info(self, target_filepath, branch, alt_repo_url=None):
+        return self.api_req('/contents/' + target_filepath + '?ref=' + branch,
+                            repo_url_override=alt_repo_url, notFoundOK=True)
 
-    def parse_gitmodules_response(self, reponame, branch, rsp, repo_src_url):
-        if rsp['encoding'] != 'base64':
-            raise RuntimeError('Unrecognized encoding for .gitmodules: ' + rsp['encoding'])
-        gitmodules_contents = base64.b64decode(rsp['content']).decode('utf-8')
-        gitmod_cfg = configparser.ConfigParser()
-        gitmod_cfg.read_string(gitmodules_contents)
-        ret = []
-        for remote in gitmod_cfg.sections():
-            # Note: if the URL of a repo moves, need a new name for the moved location?  Or choose not to track these changes?
-            submod_info = self.github_req('/contents/' + gitmod_cfg[remote]['path'] + '?ref=' + branch,
-                                          repo_src_url,
-                                          notFoundOK=True)
-            # TODO: instead of submitting these directly here, defer
-            # them to the GitRepoInfo associated with the target URL?
-            # This would help amortize if the same source target was
-            # used in multiple repos (unlikely).
-            if submod_info == self.NotFound:
-                # The submodule was added to .gitmodules, but no
-                # actual version of the remote repo was committed, so
-                # no reference SHA can be known.  Instead, use a
-                # reference sha that is completely invalid, which
-                # should cause a build failure.
-                submod_info = self.github_req('', repo_src_url, notFoundOK=True)
-                if submod_info == self.NotFound:
-                    # The submodule added to .gitmodules specified an
-                    # invalid repository.  Have to assume the name is
-                    # the last component of the path.
-                    ret.append(SubRepoVers(os.path.split(gitmod_cfg[remote]['path'])[-1],
-                                           'invalid_remote_repo',
-                                           'unknownRemoteRefForPullReq'))
-                else:
-                    ret.append(SubRepoVers(submod_info['name'], repo_src_url, 'unknownRemoteRefForPullReq'))
-            else:
-                if submod_info['type'] != 'submodule':
-                    logging.warning('Found %s at %s, but expected a submodule', submod_info['type'], gitmod_cfg[remote]['path'])
-                    pass # ignore this submodule entry
-                else:
-                    ret.append(SubRepoVers(submod_info['name'],
-                                           self._remove_trailer(submod_info['submodule_git_url']),
-                                           submod_info['sha']))
-        return GitmodulesRepoVers(reponame, branch, ret, alt_repo_url=repo_src_url)
+    def _subrepo_version(self, remote_name, remote_info, submod_info):
+        if submod_info['type'] != 'submodule':
+            logging.warning('Found %s at %s, but expected a submodule',
+                            submod_info['type'], gitmod_cfg[remote]['path'])
+            return None # ignore this submodule entry
+        return SubRepoVers(submod_info['name'],
+                           self.to_http_url(submod_info['submodule_git_url']),
+                           submod_info['sha'])
