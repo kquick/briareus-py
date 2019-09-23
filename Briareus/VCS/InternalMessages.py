@@ -53,11 +53,6 @@ class GatheredInfo(object):           # GatherInfo -->
     error = attr.ib(default=None)
 
 @attr.s
-class VCSConfig(object):
-    repolocs = attr.ib(factory=list)    # array of RepoLoc
-
-
-@attr.s
 class Repo__ReqMsg(object):
     reponame = attr.ib()
 @attr.s
@@ -78,6 +73,7 @@ class Repo_AltLoc_ReqMsg(object):
 @attr.s
 class DeclareRepo(Repo__ReqMsg):        #             --> RepoDeclared
     repo_url = attr.ib()
+    repolocs = attr.ib(factory=list)    # array of RepoLoc
 @attr.s
 class RepoDeclared(Repo__RspMsg):       # DeclareRepo -->
     pass

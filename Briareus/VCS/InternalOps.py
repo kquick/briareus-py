@@ -60,7 +60,6 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # override the GetGitInfo instance below with a mocked
             # version appropriate to that test.
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
-            self.send(self._get_git_info, VCSConfig(self.RX))
         self.responses_pending += 1
         self._incr_stat("get_git")
         self.send(self._get_git_info, reqmsg)
@@ -126,7 +125,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(False)
 
     def get_info_for_a_repo(self, repo):
-        self.get_git_info(DeclareRepo(repo.repo_name, repo.repo_url))
+        self.get_git_info(DeclareRepo(repo.repo_name, repo.repo_url, self.RX))
         self._pending_info[repo.repo_name] = repo
 
     def receiveMsg_RepoDeclared(self, msg, sender):
@@ -180,10 +179,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     if repo.repo_name != msg.reponame:
                         self.check_for_branch(repo.repo_name, p.pullreq_branch)
                     elif repo.project_repo:
-                        self.get_git_info(Repo_AltLoc_ReqMsg(p.pullreq_srcurl,
-                                                             GitmodulesData(repo.repo_name,
-                                                                            p.pullreq_branch)
-))
+                        self.get_git_info(
+                            Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
+                                               GitmodulesData(repo.repo_name,
+                                                              p.pullreq_branch)))
 
         self.pullreqs.update(set([PRInfo(pr_target_repo=msg.reponame,
                                          pr_srcrepo_url=p.pullreq_srcurl,
@@ -263,14 +262,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='gitmodules_repo_vers')
 
 
-@initializing_messages([('config', VCSConfig)])
 class GetGitInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GetGitInfo, self).__init__(*args, **kw)
         self.gitinfo_actors = {}
         self.gitinfo_actors_by_url = {}
 
-    def _get_subactor(self, reponame, repourl=None):
+    def _get_subactor(self, reponame, repourl=None, repolocs=None):
         suba = self.gitinfo_actors.get(reponame, None)
         if not suba:
             if not repourl:
@@ -287,7 +285,7 @@ class GetGitInfo(ActorTypeDispatcher):
             suba = self.createActor(GitRepoInfo)
             self.gitinfo_actors[reponame] = suba
             self.gitinfo_actors_by_url[repourl] = suba
-            apiloc = to_http_url(repourl, self.config.repolocs)
+            apiloc = to_http_url(repourl, repolocs or [])
             self.send(suba, RepoRemoteSpec(apiloc))
         return suba
 
@@ -306,7 +304,7 @@ class GetGitInfo(ActorTypeDispatcher):
             del self.gitinfo_actors_by_url[each]
 
     def receiveMsg_DeclareRepo(self, msg, sender):
-        suba = self._get_subactor(msg.reponame, msg.repo_url)
+        suba = self._get_subactor(msg.reponame, msg.repo_url, msg.repolocs)
         self.send(sender, RepoDeclared(msg.reponame))
 
     def receiveMsg_Repo__ReqMsg(self, msg, sender):
@@ -315,15 +313,19 @@ class GetGitInfo(ActorTypeDispatcher):
         self.send(suba, msg)
 
     def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
-        suba = self.gitinfo_actors_by_url.get(msg.api_repo_loc, None)
+        """Send a message to an alternate repo URL; the repo URL must already
+           have been normalized and translated (by to_http_url).
+        """
+        loc = msg.api_repo_loc.apiloc
+        suba = self.gitinfo_actors_by_url.get(loc, None)
         if not suba:
             suba = self.createActor(GitRepoInfo)
-            self.gitinfo_actors_by_url[msg.api_repo_loc] = suba
+            self.gitinfo_actors_by_url[loc] = suba
             # No self.gitinfo_actors entry: all primary requests are
             # routed by reponame to the main GitRepoInfo actor; this
             # is just for alternate locations (e.g. source of
             # pullreqs)
-            self.send(suba, RepoRemoteSpec(to_http_url(msg.api_repo_loc, self.config.repolocs)))
+            self.send(suba, RepoRemoteSpec(msg.api_repo_loc))
         msg.altloc_reqmsg.orig_sender = sender
         self.send(suba, msg.altloc_reqmsg)
 

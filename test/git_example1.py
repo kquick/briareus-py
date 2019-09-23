@@ -46,6 +46,8 @@ class GitExample1(ActorTypeDispatcher):
 
     def _gitmodules_data(self, msg, sender, alt_repo_url):
         branch = msg.branch_name
+        alt_url = alt_repo_url.apiloc if alt_repo_url else alt_repo_url
+        print('_gitmodules_data, branch %s, alt_repo_url %s' % (branch, alt_url) )
         ### EXAMPLE-vvv
         rsub = {
             'R1': { "master":[SubRepoVers('R2', "r2_url", "r2_master_head"),
@@ -65,11 +67,11 @@ class GitExample1(ActorTypeDispatcher):
         }[msg.reponame]
         rval = rsub.get(branch, [])  # KWQ: name is derived from URL, remove name?
         if msg.reponame == 'R1':
-            if branch == 'blah' and alt_repo_url != 'remote_R1_b':
+            if branch == 'blah' and alt_url != 'remote_R1_b':
                 # The blah gitmodules information only exists in the alternate repo
                 rval = rsub.get("master", [])
-            if branch != 'blah' and alt_repo_url:
-                # Otherwise if an alt_repo_url is specified, return nothing
+            if branch != 'blah' and alt_url:
+                # Otherwise if an alt_url is specified, return nothing
                 rval = []
         ### EXAMPLE-^^^
         self.send(sender, GitmodulesRepoVers(msg.reponame, branch, rval))
