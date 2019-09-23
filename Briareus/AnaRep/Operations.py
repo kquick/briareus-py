@@ -3,6 +3,7 @@
 # output reports.
 
 from Briareus.BCGen.BuildConfigs import BuildResult
+from Briareus.BCGen.Logic import DeclareFact, Fact, run_logic_analysis
 
 
 class AnaRep(object):
@@ -23,8 +24,17 @@ class AnaRep(object):
 
         build_results = self.get_build_results(build_cfgs)
 
-        for each in build_results:
-            print('**',each)
+        if self.verbose:
+            print('## CORRELATED BUILD RESULTS:')
+            for each in build_results:
+                print('**',each)
+
+        built_facts = self.built_facts(build_results)
+
+        if self.verbose:
+            print('## BUILT FACTS:')
+            for each in built_facts:
+                print(str(each))
 
 
     def get_build_results(self, build_cfgs):
@@ -32,3 +42,25 @@ class AnaRep(object):
         return [ BuildResult(build,
                              self._bldsys.get_build_result(build))
                  for build in build_cfgs.cfg_build_configs ]
+
+    def built_facts(self, build_results):
+        return (
+            [ DeclareFact('bldres/10'),
+            ] +
+            [ Fact(self.built_fact(r)) for r in build_results ])
+
+    def built_fact(self, result):
+        vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
+                 for v in result.bldconfig.bldvars ]
+        return ('bldres({r.bldconfig.branchtype}'
+                ', "{r.bldconfig.branchname}"'
+                ', {r.bldconfig.strategy}'
+                ', {vars}'
+                ', "{r.results.buildname}"'
+                ', {r.results.nrtotal}'
+                ', {r.results.nrsucceeded}'
+                ', {r.results.nrfailed}'
+                ', {r.results.nrscheduled}'
+                ', {r.results.cfgerror}'
+                ')'
+        ).format(r=result, vars='[ ' + ', '.join(vars) + ' ]')
