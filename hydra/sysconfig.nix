@@ -105,6 +105,12 @@ let
                esac
              }
 
+	     replace_json_if_newer () { # $1 = newfile, $2 = oldfile
+	       if ! ${pkgs.diffutils}/bin/cmp -s <(cat $2 | ${pkgs.jq}/bin/jq -S) <(cat $1 | ${pkgs.jq}/bin/jq -S) ; then
+	         cp $1 $2
+	       fi
+	     }
+
              # Fetch Briareus input file updates for this project
              if fetch_briareus ${inp_hhd} ${project.hhd}.new && \
                 fetch_briareus ${inp_hhb} ${project.hhb}.new; then
@@ -112,13 +118,14 @@ let
                mv ${project.hhd}.new ${project.hhd}
                mv ${project.hhb}.new ${project.hhb}
                # Generate a new project config in case the input files would cause this to change
-               cp $(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}") ${briareus_rundir}/${name}-hydra-project-config.json
+	       newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
+	       replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
              fi
 
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new
-             if [ $? -eq 0 ] && ! ${pkgs.diffutils}/bin/cmp -s ${briareus_outfile name} ${briareus_outfile name}.new ; then
-               cp ${briareus_outfile name}.new ${briareus_outfile name}
+             if [ $? -eq 0 ] ; then
+	       replace_json_if_newer ${briareus_outfile name}.new ${briareus_outfile name}
              fi
              '';
 
