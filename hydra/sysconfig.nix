@@ -101,6 +101,7 @@ rec {
         description = "Briareus build configuration generator for ${project.name}";
         serviceConfig = {
           Type = "forking";
+          TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
         };
         script = run_script;
         startAt = "*:0/30";  # every 30 minutes
