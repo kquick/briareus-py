@@ -10,8 +10,8 @@ python -m thespian.director gensrc \
     tli:$(pwd)/../Briareus_VCS.tli \
     ../../Briareus/__init__.py \
     '../../Briareus/VCS/**/*.p[yl]' \
-    ../../Briareus/BCGen/__init__.py \
-    ../../Briareus/BCGen/Description.py
+    ../../Briareus/Input/__init__.py \
+    ../../Briareus/Input/Description.py
 
 # Note: deps does not include "requests" and the associated
 # dependencies: urllib3 chardet OpenSSL certifi ... because some of

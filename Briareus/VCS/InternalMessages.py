@@ -2,7 +2,7 @@
 
 import attr
 import json
-from Briareus.BCGen.Description import *
+from Briareus.Input.Description import *
 
 def toJSON(obj):
     class objToJSON(json.JSONEncoder):

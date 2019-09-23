@@ -1,6 +1,7 @@
 # Module providing parsing of Briareus input specifications
 
-import Briareus.BCGen.Description as Desc
+import Briareus.Input.Description as Desc
+
 
 class BISParser(object):
     "Parser for the Briareus Input Specification"

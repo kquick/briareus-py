@@ -2,7 +2,7 @@
 
 from thespian.actors import *
 from thespian.initmsgs import initializing_messages
-from Briareus.BCGen.Description import RepoDesc
+from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
 import attr

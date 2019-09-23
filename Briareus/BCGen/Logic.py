@@ -1,7 +1,7 @@
 import attr
 from thespian.actors import *
 from thespian.runcommand import Command, RunCommand, CommandResult
-import Briareus.BCGen.Description as Local   # only for determining module path
+import Briareus.BCGen.BuildConfigs as Local   # only for determining module path
 from datetime import timedelta
 import tempfile
 import os
