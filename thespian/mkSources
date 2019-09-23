@@ -10,4 +10,5 @@ python -m thespian.director gensrc \
     tli:$(pwd)/../Briareus_VCS.tli \
     ../../Briareus/__init__.py \
     '../../Briareus/VCS/**/*.p[yl]' \
+    ../../Briareus/BCGen/__init__.py \
     ../../Briareus/BCGen/Description.py
