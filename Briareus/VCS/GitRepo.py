@@ -167,6 +167,18 @@ class RemoteGit__Info(object):
             logging.error('Unable to join nextrsp type %s to this response type %s',
                           type(nextrsp), type(rsp.json()))
 
+    def set_PAT_auth_if_exists(self, for_remote):
+        patspec = os.getenv('BRIAREUS_PAT')
+        if patspec is None:
+            return
+        # The BRIAREUS_PAT format: remote=user:token;...
+        patlist = patspec.split(';')
+        for pat in patlist:
+            if pat.startswith(for_remote + '='):
+                patval = pat[len(for_remote)+1:]
+                self.set_PAT_auth(patval)
+                return
+
     def _get_cached_url(self, req_url, notFoundOK, raw):
         last_one = self._rsp_cache.get(req_url, None)
         if last_one:
@@ -253,6 +265,7 @@ class RemoteGit__Info(object):
                 ret.append(self._subrepo_version(remote, gitmod_cfg[remote], submod_info))
         return GitmodulesRepoVers(reponame, branch, ret, alt_repo_url=repo_src_url)
 
+# ----------------------------------------------------------------------
 
 class GitLabInfo(RemoteGit__Info):
     """Retrieve information from gitlab via API with cacheing.  Note that
@@ -263,6 +276,12 @@ class GitLabInfo(RemoteGit__Info):
         super(GitLabInfo, self).__init__(self.get_api_url(url))
         if isinstance(request_auth, str):
             self._request_session.headers.update({'Private-Token': request_auth})
+        else:
+            parsed = urlparse(self.to_http_url(url))
+            self.set_PAT_auth_if_exists(parsed.netloc)
+
+    def set_PAT_auth(self, patval):
+        self._request_session.headers.update({'Private-Token': patval})
 
     def get_api_url(self, url):
         parsed = urlparse(self.to_http_url(url))
@@ -303,6 +322,8 @@ class GitLabInfo(RemoteGit__Info):
                            submod_info['blob_id'])
 
 
+# ----------------------------------------------------------------------
+
 class GitHubInfo(RemoteGit__Info):
     """Retrieve information from github via API with cacheing.  Note that
        this object does not maintain a "name" for the repo because
@@ -312,6 +333,13 @@ class GitHubInfo(RemoteGit__Info):
         super(GitHubInfo, self).__init__(self.get_api_url(url))
         if isinstance(request_auth, requests.auth.AuthBase):
             self._request_session.auth = request_auth
+        else:
+            parsed = urlparse(self.to_http_url(url))
+            self.set_PAT_auth_if_exists(parsed.netloc)
+
+    def set_PAT_auth(self, patval):
+        self._request_session.auth = requests.auth.HTTPBasicAuth(
+            *tuple(patval.split(':')))
 
     def get_api_url(self, url):
         """Converts a remote repository URL into a form that is useable for
