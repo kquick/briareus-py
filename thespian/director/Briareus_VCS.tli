@@ -1,0 +1,12 @@
+{ 'Actors':
+  { 'Briareus.VCS.GatherRepoInfo':
+    { 'OnLoad': { 'GlobalName': 'GatherRepoInfo'
+                , 'Message': 'Start'
+                , 'Role': 'VCSRepoInfo'
+                },
+      'OnDeactivate': { 'Message': 'Deactivate' },
+    },
+  },
+  'AutoUnload': True,
+  'TLS_Keep_Limit': 3,
+}
