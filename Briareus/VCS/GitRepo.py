@@ -134,6 +134,39 @@ class RemoteGit__Info(object):
         # forge (e.g. Github or gitlab).
         self._get_count += 1
         req_url = (repo_url_override or self._url) + reqtype
+        return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
+
+    def _get_cached_links_pageable_url(self, req_url, notFoundOK, raw):
+        rsp = self._get_cached_url(req_url, notFoundOK=notFoundOK, raw=raw)
+        if rsp == self.NotFound:
+            return rsp
+        if 'Link' not in rsp.headers or not rsp.links.get('next', None):
+            return rsp.text if raw else rsp.json()
+        # $ curl -v https://api.github.com/repos/matterhorn-chat/matterhorn/branches
+        # ...
+        # Link: <https://api.github.com/repositories/66096261/branches?page=2>; rel="next", \
+        #       <https://api.github.com/repositories/66096261/branches?page=2>; rel="last"
+        # ...
+        #
+        # [Line continuation added for readability]
+        #
+        # Used by both github and gitlab APIs.  Supported easily by
+        # requests
+        # https://2.python-requests.org/en/master/user/advanced/#link-headers
+        nextrsp = self._get_cached_links_pageable_url(rsp.links['next']['url'],
+                                                      notFoundOK=notFoundOK, raw=raw)
+        if raw:
+            return rsp.text + nextrsp
+        if isinstance(nextrsp, dict):
+            nextrsp.update(rsp.json())
+            return nextrsp
+        elif isinstance(nextrsp, list):
+            return rsp.json() + nextrsp
+        else:
+            logging.error('Unable to join nextrsp type %s to this response type %s',
+                          type(nextrsp), type(rsp.json()))
+
+    def _get_cached_url(self, req_url, notFoundOK, raw):
         last_one = self._rsp_cache.get(req_url, None)
         if last_one:
             # If fetched within the local cache period, just re-use
@@ -141,10 +174,7 @@ class RemoteGit__Info(object):
             last = self._rsp_fetched.get(req_url, None)
             if last:
                 if datetime.datetime.now() - last < LocalCachePeriod:
-                    ret = self._rsp_cache[req_url]
-                    if ret == self.NotFound:
-                        return ret
-                    return ret.text if raw else ret.json()
+                    return self._rsp_cache[req_url]
         # If already fetched, pass the header tags to the server in
         # the request so that the server can respond with either a 304
         # "Not Modified" or the new data (the 304 does not count
@@ -170,7 +200,7 @@ class RemoteGit__Info(object):
             return self.NotFound
         else:
             rsp.raise_for_status()
-        return rsp.text if raw else rsp.json()
+        return rsp
 
     def _get_file_contents_raw(self, target_filepath, branch, alt_repo_url=None):
         rsp = self._get_file_contents_info(target_filepath, branch, alt_repo_url=None)
