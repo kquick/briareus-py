@@ -1,7 +1,7 @@
 # Briareus BCGen functionality: create Build Configurations from input
 # specifications and repository information.
 
-import Briareus.BCGen.Parser as Parser
+import Briareus.Input.Parser as Parser
 import Briareus.BCGen.Generator as Generator
 
 class BCGen(object):

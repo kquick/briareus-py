@@ -5,7 +5,7 @@ import json
 import pytest
 import Briareus.BCGen.Operations as BCGen
 import Briareus.BCGen.BuildConfigs as CFG
-import Briareus.BCGen.Parser as Parser
+import Briareus.Input.Parser as Parser
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
 from Briareus.VCS.InternalMessages import *

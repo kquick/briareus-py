@@ -1,5 +1,5 @@
 from thespian.actors import *
-import Briareus.BCGen.Parser as Parser
+import Briareus.Input.Parser as Parser
 import Briareus.BCGen.Description as D
 from Briareus.BCGen.Generator import Generator
 from git_example1 import GitExample1
