@@ -75,14 +75,10 @@ def mk_prior_facts(prior_report):
         [ prior_fact(p) for p in (prior_report or []) ])
 
 def mk_built_facts(build_results):
-    if isinstance(build_results.results, str):
-        # Builder returned a failure / warning message and not an
-        # actual list of results.
-        return []
     return (
         [ DeclareFact('bldres/10'),
         ] +
-        [ built_fact(r) for r in build_results ])
+        list(filter(None, [ built_fact(r) for r in build_results ])))
 
 def prior_fact(prior):
     vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
@@ -99,6 +95,10 @@ def prior_fact(prior):
 def built_fact(result):
     vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
              for v in result.bldconfig.bldvars ]
+    if isinstance(result.results, str):
+        # Builder returned a failure / warning message and not an
+        # actual list of results.
+        return None
     return Fact(
         ('bldres({r.bldconfig.branchtype}'
          ', "{r.bldconfig.branchname}"'
