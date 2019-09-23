@@ -296,6 +296,16 @@ class GetGitInfo(ActorTypeDispatcher):
         for each in self.gitinfo_actors.values():
             self.send(each, msg)
 
+    def receiveMsg_ChildActorExited(self, msg, sender):
+        for each in [ k
+                      for k in self.gitinfo_actors
+                      if self.gitinfo_actors[k] == msg.childAddress ]:
+            del self.gitinfo_actors[each]
+        for each in [ k
+                      for k in self.gitinfo_actors_by_url
+                      if self.gitinfo_actors_by_url[k] == msg.childAddress ]:
+            del self.gitinfo_actors_by_url[each]
+
     def receiveMsg_DeclareRepo(self, msg, sender):
         suba = self._get_subactor(msg.reponame, msg.repo_url)
         self.send(sender, RepoDeclared(msg.reponame))

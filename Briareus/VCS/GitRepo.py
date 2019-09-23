@@ -17,7 +17,28 @@ import datetime
 LocalCachePeriod = datetime.timedelta(minutes=1, seconds=35)
 
 
+def transient_idle(exit_delay=datetime.timedelta(seconds=20)):
+    def _TrIdAc(actor_class):
+        def rmsg(self, msg, sender):
+            if not getattr(self, '_TIES', None):
+                self.wakeupAfter(exit_delay)
+                self._TIES = datetime.datetime.now() + exit_delay
+            if isinstance(msg, WakeupMessage):
+                if datetime.datetime.now() >= self._TIES:
+                    self.send(self.myAddress, ActorExitRequest())
+                else:
+                    self.wakeupAfter(self._TIES - datetime.datetime.now())
+            elif not isinstance(msg, ActorSystemMessage):
+                self._TIES = datetime.datetime.now() + exit_delay
+            return self._TIA_rmsg(msg, sender)
+        actor_class._TIA_rmsg = actor_class.receiveMessage
+        actor_class.receiveMessage = rmsg
+        return actor_class
+    return _TrIdAc
+
+
 @initializing_messages([('repospec', RepoRemoteSpec)], init_passthru=True)
+@transient_idle(datetime.timedelta(hours=12))
 class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitRepoInfo, self).__init__(*args, **kw)
