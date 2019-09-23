@@ -9,4 +9,5 @@ python -m thespian.director gensrc \
     version:date deps:$(pwd)/../deps \
     tli:$(pwd)/../Briareus_VCS.tli \
     ../../Briareus/__init__.py \
-    '../../Briareus/VCS/**/*.p[yl]'
+    '../../Briareus/VCS/**/*.p[yl]' \
+    ../../Briareus/BCGen/Description.py
