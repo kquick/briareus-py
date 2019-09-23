@@ -32,8 +32,20 @@ def fromJSON(jstr):
 
 
 @attr.s
+class RepoAPI_Location(object):
+    apiloc = attr.ib()   # HTTP API URL base used internally to get
+                         # information.  This may not yet be a valid
+                         # API reference because there is often path
+                         # or URL adjustments based on that, but this
+                         # should be an http reference to an API
+                         # server (e.g. a git forge) instead of an ssh
+                         # or http reference to a repository.
+    apitoken = attr.ib() # Token used to access the API URL (or None if no token)
+
+@attr.s
 class GatherInfo(object):             #            --> GatheredInfo
     repolist = attr.ib(factory=list)    # array of RepoDesc
+    repolocs = attr.ib(factory=list)    # array of RepoLoc
     branchlist = attr.ib(factory=list)  # array of BranchDesc
     request_auth = attr.ib(default=None)  # interpreted by VCS/GitRepo
 @attr.s
@@ -43,6 +55,7 @@ class GatheredInfo(object):           # GatherInfo -->
 
 @attr.s
 class VCSConfig(object):
+    repolocs = attr.ib(factory=list)    # array of RepoLoc
     request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 
@@ -109,7 +122,7 @@ class SubRepoVers(object):
 
 @attr.s
 class RepoRemoteSpec(object):
-    repourl  = attr.ib()
+    repo_api_loc = attr.ib()               # RepoAPI_Location for forge API
     request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 

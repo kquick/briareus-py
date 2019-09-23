@@ -17,7 +17,9 @@ def input_desc_and_VCS_info(input_spec,
     # removing duplicates, and adding in any specified in the
     # gitmodules of the project repo.  Then actively gather
     # information from the repositories.
-    repo_info = gather_repo_info(input_desc.RL, input_desc.BL,
+    repo_info = gather_repo_info(input_desc.RL,
+                                 input_desc.RX,
+                                 input_desc.BL,
                                  repo_auth=repo_auth,
                                  actor_system=actor_system)
     return (input_desc, repo_info)

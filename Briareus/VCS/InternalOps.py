@@ -5,8 +5,10 @@ from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
+from urllib.parse import urlparse, urlunparse
 import attr
 import logging
+import os
 
 
 class GatherRepoInfo(ActorTypeDispatcher):
@@ -55,7 +57,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def get_git_info(self, reqmsg):
         if not self._get_git_info:
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
-            self.send(self._get_git_info, VCSConfig(self.request_auth))
+            self.send(self._get_git_info, VCSConfig(self.RX, self.request_auth))
         self.responses_pending += 1
         self._incr_stat("get_git")
         self.send(self._get_git_info, reqmsg)
@@ -113,6 +115,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self._pending_info = {}
 
         self.RL = msg.repolist
+        self.RX = msg.repolocs
         self.BL = msg.branchlist
         self.request_auth = msg.request_auth
         for repo in self.RL:
@@ -277,11 +280,12 @@ class GetGitInfo(ActorTypeDispatcher):
             if repourl in self.gitinfo_actors_by_url:
                 self.gitinfo_actors[reponame] = self.gitinfo_actors_by_url[repourl]
                 return self.gitinfo_actors[reponame]
+
             suba = self.createActor(GitRepoInfo)
             self.gitinfo_actors[reponame] = suba
             self.gitinfo_actors_by_url[repourl] = suba
-            self.send(suba, RepoRemoteSpec(repourl,
-                                           request_auth=self.config.request_auth))
+            apiloc = to_http_url(repourl, self.config.repolocs)
+            self.send(suba, RepoRemoteSpec(apiloc, request_auth=self.config.request_auth))
         return suba
 
     def receiveMsg_ActorExitRequest(self, msg, sender):
@@ -300,3 +304,51 @@ class GetGitInfo(ActorTypeDispatcher):
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
             self.send(sender, self.gitinfo_actors)
+
+
+# ----------------------------------------------------------------------
+# Support functions
+
+def _remove_trailer(path, trailer):
+    trailer_len = len(trailer)
+    return path[:-trailer_len] if path[-trailer_len:] == trailer else path
+
+def _changeloc(url, repolocs):
+    parsed = urlparse(url)
+    for each in repolocs:
+        if parsed.netloc == each.repo_loc:
+            return urlunparse(parsed._replace(netloc=each.api_host)), each.api_host
+    return url, parsed.netloc
+
+def to_http_url(url, repolocs):
+    """Converts git clone access specification
+    (e.g. "git@foo.com:group/proj") to the corresponding HTTP forge
+    reference RepoAPI_URL (e.g. "https://foo.com/group/proj").  Also
+    works if the source ends with ".git".
+
+    Performs any network location translations specified in the xlate
+    list (which has (from, to) pairs in it as commonly specified by
+    the RepoLoc input specification.
+
+    Returns the translated URL along with any access token for that
+    URL (as extracted from the BRIAREUS_PAT environment variable).
+
+    """
+    if url.startswith("git@"):
+        trimmed_url = _remove_trailer(url[len('git@'):], '.git')
+        spl = trimmed_url.split(':')
+        return to_http_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])), repolocs)
+
+    returl, for_remote = _changeloc(_remove_trailer(url, '.git'), repolocs)
+
+    patspec = os.getenv('BRIAREUS_PAT')
+    if patspec is None:
+        return RepoAPI_Location(returl, None)
+    # The BRIAREUS_PAT format: remote=user:token;...
+    patlist = patspec.split(';')
+    for pat in patlist:
+        if pat.startswith(for_remote + '='):
+            patval = pat[len(for_remote)+1:]
+            return RepoAPI_Location(returl, patval)
+
+    return RepoAPI_Location(returl, None)

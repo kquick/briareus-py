@@ -22,17 +22,19 @@ class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo = None
-        self.repospec = RepoRemoteSpec("no-url", None)
+        self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None), None)
 
     def receiveMsg_RepoRemoteSpec(self, msg, sender):
-        self._ghinfo = (GitHubInfo(self.repospec.repourl, request_auth=msg.request_auth)
-                        if 'github' in self.repospec.repourl else
-                        (GitLabInfo(self.repospec.repourl, request_auth=msg.request_auth)
-                         if 'gitlab' in self.repospec.repourl else
+        self._ghinfo = (GitHubInfo(msg.repo_api_loc,
+                                   request_auth=msg.request_auth)
+                        if 'github' in self.repospec.repo_api_loc.apiloc else
+                        (GitLabInfo(msg.repo_api_loc,
+                                    request_auth=msg.request_auth)
+                         if 'gitlab' in self.repospec.repo_api_loc.apiloc else
                          None))
         if not self._ghinfo:
             raise ValueError('Cannot determine type of remote repo at %s'
-                             % self.repospec.repourl)
+                             % self.repospec.repo_api_loc.apiloc)
 
     def receiveMsg_GetPullReqs(self, msg, sender):
         try:
@@ -40,7 +42,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('GetPullReqs err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   'GetPullReqs - ' + str(err)))
         else:
             self.send(msg.orig_sender, rsp)
@@ -52,7 +54,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('HasBranch: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   'HasBranch - ' + str(err)))
         else:
             blist = [ b['name'] for b in rsp ]
@@ -69,7 +71,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         except Exception as err:
             logging.critical('GitmodulesData err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
-                      InvalidRepo(msg.reponame, 'git', self.repospec.repourl,
+                      InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   'GitmodulesData - ' + str(err)))
         else:
             self.send(msg.orig_sender, rval)
@@ -78,7 +80,7 @@ class GitRepoInfo(ActorTypeDispatcher):
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
             self.send(sender, self._ghinfo.stats() if self._ghinfo else
-                      { "url": str(self.repospec.repourl) + " (never accessed)",
+                      { "url": str(self.repospec.repo_api_loc.apiloc) + " (never accessed)",
                       })
 
 
@@ -106,19 +108,6 @@ class RemoteGit__Info(object):
 
     trailer = '.git'
     trailer_len = len(trailer)
-
-    def _remove_trailer(self, path):
-        return (path[:-self.trailer_len]
-                if path[-self.trailer_len:] == self.trailer
-                else path)
-
-    def to_http_url(self, url):
-        # Convert "git@foo.com:group/proj" to "https://foo.com/group/proj"
-        if url.startswith("git@"):
-            trimmed_url = self._remove_trailer(url[len('git@'):])
-            spl = trimmed_url.split(':')
-            return self.to_http_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])))
-        return self._remove_trailer(url)
 
     @staticmethod
     def repo_url(self, url):
@@ -166,18 +155,6 @@ class RemoteGit__Info(object):
         else:
             logging.error('Unable to join nextrsp type %s to this response type %s',
                           type(nextrsp), type(rsp.json()))
-
-    def set_PAT_auth_if_exists(self, for_remote):
-        patspec = os.getenv('BRIAREUS_PAT')
-        if patspec is None:
-            return
-        # The BRIAREUS_PAT format: remote=user:token;...
-        patlist = patspec.split(';')
-        for pat in patlist:
-            if pat.startswith(for_remote + '='):
-                patval = pat[len(for_remote)+1:]
-                self.set_PAT_auth(patval)
-                return
 
     def _get_cached_url(self, req_url, notFoundOK, raw):
         last_one = self._rsp_cache.get(req_url, None)
@@ -278,19 +255,16 @@ class GitLabInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, url, request_auth=None):
-        super(GitLabInfo, self).__init__(self.get_api_url(url))
+    def __init__(self, repo_api_location, request_auth=None):
+        super(GitLabInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
         if isinstance(request_auth, str):
             self._request_session.headers.update({'Private-Token': request_auth})
         else:
-            parsed = urlparse(self.to_http_url(url))
-            self.set_PAT_auth_if_exists(parsed.netloc)
-
-    def set_PAT_auth(self, patval):
-        self._request_session.headers.update({'Private-Token': patval})
+            if repo_api_location.apitoken:
+                self._request_session.headers.update({'Private-Token': repo_api_location.apitoken})
 
     def get_api_url(self, url):
-        parsed = urlparse(self.to_http_url(url))
+        parsed = urlparse(url)
         return urlunparse(
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
 
@@ -324,7 +298,7 @@ class GitLabInfo(RemoteGit__Info):
 
     def _subrepo_version(self, remote_name, remote_info, submod_info):
         return SubRepoVers(submod_info['file_name'],
-                           self.to_http_url(remote_info['url']),
+                           remote_info['url'],
                            submod_info['blob_id'])
 
 
@@ -335,28 +309,25 @@ class GitHubInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, url, request_auth=None):
-        super(GitHubInfo, self).__init__(self.get_api_url(url))
+    def __init__(self, repo_api_location, request_auth=None):
+        super(GitHubInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
         if isinstance(request_auth, requests.auth.AuthBase):
             self._request_session.auth = request_auth
         else:
-            parsed = urlparse(self.to_http_url(url))
-            self.set_PAT_auth_if_exists(parsed.netloc)
-
-    def set_PAT_auth(self, patval):
-        self._request_session.auth = requests.auth.HTTPBasicAuth(
-            *tuple(patval.split(':')))
+            if repo_api_location.apitoken:
+                self._request_session.auth = requests.auth.HTTPBasicAuth(
+                    *tuple(repo_api_location.apitoken.split(':')))
 
     def get_api_url(self, url):
         """Converts a remote repository URL into a form that is useable for
            the Github API (https://developer.github.com/v3) to allow
            API-related requests.
         """
-        parsed = urlparse(self.to_http_url(url))
+        parsed = urlparse(url)
         if parsed.netloc == 'github.com':
             return urlunparse(
                 parsed._replace(netloc = 'api.github.com',
-                                path = 'repos' + self._remove_trailer(parsed.path)))
+                                path = 'repos' + parsed.path))
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
 
     def get_pullreqs(self, reponame):
@@ -383,5 +354,5 @@ class GitHubInfo(RemoteGit__Info):
                             submod_info['type'], gitmod_cfg[remote]['path'])
             return None # ignore this submodule entry
         return SubRepoVers(submod_info['name'],
-                           self.to_http_url(submod_info['submodule_git_url']),
+                           submod_info['submodule_git_url'],
                            submod_info['sha'])
