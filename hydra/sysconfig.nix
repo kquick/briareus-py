@@ -12,7 +12,7 @@ let
   # The briareus.pat file can contain a string specifying the Personal
   # Access Tokens to be used for specifying the BRIAREUS_PAT
   # environment variable in the system jobs.
-  briareus_pat = if builtins.fileExists briareus.pat
+  briareus_pat = if builtins.pathExists briareus.pat
                  then builtins.readFile briareus.pat
                  else "";
 
