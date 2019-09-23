@@ -3,6 +3,7 @@
 # output reports.
 
 from Briareus.BCGen.BuildConfigs import BuildResult
+from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
 
