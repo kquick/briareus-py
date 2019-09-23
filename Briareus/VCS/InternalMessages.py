@@ -117,12 +117,10 @@ class BranchPresent(Repo__RspMsg):      # HasBranch -->
 @attr.s
 class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers
     branch_name = attr.ib()
-    alt_repo_url = attr.ib(default=None)  # if in another repo (e.g. for a PullReq)
 @attr.s
 class GitmodulesRepoVers(Repo__RspMsg): # GitmodulesData -->
     branch_name = attr.ib()
     gitmodules_repovers = attr.ib(factory=list)  # array of SubRepoVers
-    alt_repo_url = attr.ib(default=None)  # if in another repo (e.g. for a PullReq)
 
 @attr.s
 class SubRepoVers(object):
@@ -151,4 +149,3 @@ class SubModuleInfo(object):
     sm_branch    = attr.ib()
     sm_sub_name  = attr.ib()
     sm_sub_vers  = attr.ib()
-    sm_alt_repourl = attr.ib(default=None)  # set if this came from an alt repo (eg. PullReq src repo)

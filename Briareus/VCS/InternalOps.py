@@ -246,15 +246,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
                                                        sm_sub_name=r.repo_name,
-                                                       sm_sub_vers=each.subrepo_vers,
-                                                       sm_alt_repourl=msg.alt_repo_url) )
+                                                       sm_sub_vers=each.subrepo_vers) )
             for r in self.subrepos:
                 if r.repo_url == named_submod_repo.repo_url:
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
                                                        sm_sub_name=r.repo_name,
-                                                       sm_sub_vers=each.subrepo_vers,
-                                                       sm_alt_repourl=msg.alt_repo_url) )
+                                                       sm_sub_vers=each.subrepo_vers) )
             # Now check for PR-driven branches in those subrepos
             for pr in self.pullreqs:
                 # For any pull requests that have already been fetched:

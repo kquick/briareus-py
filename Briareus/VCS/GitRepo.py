@@ -136,14 +136,9 @@ class RemoteGit__Info(object):
         return urlunparse(
             parse._replace(path = '/'.join(parse.path.split('/')[:3]) ))
 
-    def api_req(self, reqtype, repo_url_override=None, notFoundOK=False, raw=False):
-        # n.b. repo_url_override is usually used for PullRequests,
-        # which exist in the target repo but reference a branch in a
-        # source repo, so the repo_url_override specifies the latter.
-        # There is an assumption that PullRequests are for the same
-        # forge (e.g. Github or gitlab).
+    def api_req(self, reqtype, notFoundOK=False, raw=False):
         self._get_count += 1
-        req_url = (repo_url_override or self._url) + reqtype
+        req_url = self._url + reqtype
         return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
 
     def _get_cached_links_pageable_url(self, req_url, notFoundOK, raw):
@@ -212,36 +207,35 @@ class RemoteGit__Info(object):
             rsp.raise_for_status()
         return rsp
 
-    def _get_file_contents_raw(self, target_filepath, branch, alt_repo_url=None):
-        rsp = self._get_file_contents_info(target_filepath, branch, alt_repo_url=None)
+    def _get_file_contents_raw(self, target_filepath, branch):
+        rsp = self._get_file_contents_info(target_filepath, branch)
         if rsp != self.NotFound:
             if rsp['encoding'] != 'base64':
                 logging.error('Unknown encoding for %s, branch %s, repo %s: %s',
-                              target_filepath, branch, alt_repo_url or self._url)
+                              target_filepath, branch, self._url)
                 return self.NotFound
             return base64.b64decode(rsp['content']).decode('utf-8')
         return rsp
 
-    def get_gitmodules(self, reponame, branch, repo_src_url=None):
-        srcurl = self.get_api_url(repo_src_url) if repo_src_url else repo_src_url
-        rsp = self._get_file_contents_raw('.gitmodules', branch, repo_src_url)
+    def get_gitmodules(self, reponame, branch):
+        rsp = self._get_file_contents_raw('.gitmodules', branch)
         if rsp == self.NotFound:
             return GitmodulesRepoVers(reponame, branch, [])
-        return self.parse_gitmodules_contents(reponame, branch, rsp, srcurl)
+        return self.parse_gitmodules_contents(reponame, branch, rsp)
 
-    def parse_gitmodules_contents(self, reponame, branch, gitmodules_contents, repo_src_url):
+    def parse_gitmodules_contents(self, reponame, branch, gitmodules_contents):
         gitmod_cfg = configparser.ConfigParser()
         gitmod_cfg.read_string(gitmodules_contents)
         ret = []
         for remote in gitmod_cfg.sections():
             # Note: if the URL of a repo moves, need a new name for the moved location?  Or choose not to track these changes?
-            submod_info = self._get_file_contents_info(gitmod_cfg[remote]['path'], branch, repo_src_url)
+            submod_info = self._get_file_contents_info(gitmod_cfg[remote]['path'], branch)
             if submod_info == self.NotFound:
                 # Is the repo in .gitmodules valid?
-                valid_repo = self.api_req('', repo_src_url, notFoundOK=True)
+                valid_repo = self.api_req('', notFoundOK=True)
                 if valid_repo == self.NotFound:
                     logging.warning('Invalid URL for submodule %s, %s: using "%s"',
-                                    remote, repo_src_url, os.path.split(gitmod_cfg[remote]['path'])[-1])
+                                    remote, self._url, os.path.split(gitmod_cfg[remote]['path'])[-1])
                     # The submodule added to .gitmodules specified an
                     # invalid repository.  Have to assume the name is
                     # the last component of the path.
@@ -257,7 +251,7 @@ class RemoteGit__Info(object):
                     # URL itself seems to be valid.
                     logging.warning('in %s branch %s, there is no submodule commit for .gitmodule'
                                     ' path %s, url %s',
-                                    repo_src_url, branch,
+                                    self._url, branch,
                                     gitmod_cfg[remote]['path'],
                                     gitmod_cfg[remote]['url'])
                     # Generate an invalid revision that will cause this build to fail on fetch of source
@@ -310,10 +304,10 @@ class GitLabInfo(RemoteGit__Info):
     def get_branches(self):
         return self.api_req('/repository/branches')
 
-    def _get_file_contents_info(self, target_filepath, branch, alt_repo_url=None):
+    def _get_file_contents_info(self, target_filepath, branch):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
 
-    def _get_file_contents_raw(self, target_filepath, branch, alt_repo_url=None):
+    def _get_file_contents_raw(self, target_filepath, branch):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch, raw=True)
 
     def _subrepo_version(self, remote_name, remote_info, submod_info):
@@ -364,9 +358,8 @@ class GitHubInfo(RemoteGit__Info):
     def get_branches(self):
         return self.api_req('/branches')
 
-    def _get_file_contents_info(self, target_filepath, branch, alt_repo_url=None):
-        return self.api_req('/contents/' + target_filepath + '?ref=' + branch,
-                            repo_url_override=alt_repo_url, notFoundOK=True)
+    def _get_file_contents_info(self, target_filepath, branch):
+        return self.api_req('/contents/' + target_filepath + '?ref=' + branch, notFoundOK=True)
 
     def _subrepo_version(self, remote_name, remote_info, submod_info):
         if submod_info['type'] != 'submodule':
