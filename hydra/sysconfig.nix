@@ -135,7 +135,7 @@ let
           TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
         };
         script = run_script;
-        startAt = "*:${startMin}/${briareusPeriod}";
+        startAt = "*:${builtins.toString startMin}/${builtins.toString briareusPeriod}";
       } //
       (if projnum == null then {} else {
         wants = [ "briareus.service" ];
@@ -144,8 +144,8 @@ let
     };
 
   mapEnum = f: l:
-    let pnums = builtins.genList (n:n) (builtins.length l);
-        callNum = n: f n (builtins.elemAt l n)
+    let pnums = builtins.genList (n: n) (builtins.length l);
+        callNum = n: let v = builtins.elemAt l n; in f n v;
     in builtins.map callNum pnums;
 
 in
@@ -168,9 +168,7 @@ rec {
     # service is used to manage the persistent daemon processes and
     # cache.
     projectList:
-    rec {
-      briareusServiceBase // (mapEnum mkBriareusProject projectList);
-    };
+      [briareusServiceBase] ++ (mapEnum mkBriareusProject projectList);
 
   briareusServiceBase = {
     systemd.services."briareus" = {
@@ -179,7 +177,7 @@ rec {
       environment = { THESPIAN_DIRECTOR_DIR=thespian_director_dir; };
       serviceConfig = {
         Type = "forking";
-        ExecStartPre="${bash}/bin/bash ${briareus_thespian_director}/install_to ${thespian_director_dir}";
+        ExecStartPre="${pkgs.bash}/bin/bash ${briareus_thespian_director}/install_to ${thespian_director_dir}";
         ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director start refresh";
         ExecStop="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director shutdown";
       };
