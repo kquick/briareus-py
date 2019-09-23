@@ -180,6 +180,7 @@ rec {
       description = "Briareus central support";
       after = [ "network-online.target" ];
       environment = { THESPIAN_DIRECTOR_DIR=thespian_director_dir; };
+      path = [ pkgs.swiProlog ];
       serviceConfig = {
         Type = "forking";
         ExecStartPre="${pkgs.bash}/bin/bash ${briareus_thespian_director}/install_to ${thespian_director_dir}";
