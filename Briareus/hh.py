@@ -183,6 +183,8 @@ class UpTo(object):
 def main():
     parser = argparse.ArgumentParser(
         description='Run the Briareus (hundred hander) tool to generate build configurations.',
+        epilog=('The BRIAREUS_PAT environment variable can be used to supply "repo=token;..." '
+                'specifications of access tokens needed for access to the specified repo.'),
         prog='hh')
     parser.add_argument(
         '--output', '-o', default=None,
