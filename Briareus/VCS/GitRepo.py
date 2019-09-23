@@ -296,10 +296,9 @@ class GitLabInfo(RemoteGit__Info):
         return urlunparse(
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
 
-    @staticmethod
-    def _fix_subrepo_source_url(url):
+    def _fix_subrepo_source_url(self, source_proj_id):
         parsed = urlparse(self._url)
-        return urlunparse(parsed._replace(path='/api/v4/projects/%d'%pr['source_project_url']))
+        return urlunparse(parsed._replace(path='/api/v4/projects/%d'%source_proj_id))
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/merge_requests')
@@ -309,7 +308,8 @@ class GitLabInfo(RemoteGit__Info):
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         preqs = [ PullReqInfo(pr["id"],   # for user reference
                               pr["title"],    # for user reference
-                              self._fix_subrepo_source_url(pr['source_project_url']),  # source repo URL
+                              pr.get('source_project_url', None) or
+                              self._fix_subrepo_source_url(pr['source_project_id']),  # source repo URL
                               pr["source_branch"],          # source repo branch
                               pr["sha"])
                   for pr in rsp if pr["state"] == "opened" and not pr["merged_at"] ]
