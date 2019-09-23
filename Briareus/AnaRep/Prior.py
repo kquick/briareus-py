@@ -7,7 +7,8 @@ def get_prior_report(report_fname):
         rep = repf.read()
     if rep:
         try:
-            return [ eval(l, globals(), {})
+            return [ eval(l.replace('StatusReport', 'PriorStatus'),
+                          globals(), {})
                      for l in rep.split('\n\n')
                      if l.strip() ]
         except Exception as e:

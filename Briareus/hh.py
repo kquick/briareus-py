@@ -30,7 +30,7 @@ def verbosely(params, *msgargs):
     if params.verbose:
         print(*msgargs)
 
-def run_hh_gen(params, inp):
+def run_hh_gen(params, inp, prior_report):
     asys = ActorSystem('multiprocTCPBase')
     if params.builder_type == 'hydra':
         builder = BldSys.HydraBuilder(params.builder_conf,
@@ -62,7 +62,7 @@ def run_hh_gen(params, inp):
                            verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=asys)
-    report = anarep.report_on(inp_desc, repo_info, build_cfgs)
+    report = anarep.report_on(inp_desc, repo_info, build_cfgs, prior_report)
 
     if params.up_to and not params.up_to.enough('report'):
         return builder_cfgs, []
@@ -71,14 +71,14 @@ def run_hh_gen(params, inp):
     return builder_cfgs, report[1]
 
 
-def run_hh_with_files(inp, outputf, reportf, params):
-    cfgs, report = run_hh_gen(params, inp)
+def run_hh_with_files(inp, outputf, reportf, params, prior_report):
+    cfgs, report = run_hh_gen(params, inp, prior_report=prior_report)
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
         outputf.write(cfgs)
     if reportf and (not params.up_to or params.up_to.enough('report')):
         write_report_output(reportf, report)
 
-def run_hh_on_inpfile(reportf, inp_fname, params):
+def run_hh_on_inpfile(reportf, inp_fname, params, prior_report):
     inp_parts = os.path.split(inp_fname)
     outfname = params.output or os.path.join(os.getcwd(),
                                              os.path.splitext(inp_parts[-1])[0] + '.hhc')
@@ -87,25 +87,32 @@ def run_hh_on_inpfile(reportf, inp_fname, params):
             verbosely(params, 'hh <',inp_fname,'>',outfname)
             atomic_write_to(
                 outfname,
-                lambda outf: run_hh_with_files(inpf.read(), outf, reportf, params))
+                lambda outf: run_hh_with_files(inpf.read(), outf, reportf,
+                                               params=params,
+                                               prior_report=prior_report))
         else:
             verbosely(params, 'hh partial run, no output')
-            run_hh_with_files(inpf.read(), None, reportf, params)
+            run_hh_with_files(inpf.read(), None, reportf, params=params,
+                              prior_report=prior_report)
 
 
-def run_hh_reporting_to(reportf, input_src, params):
+def run_hh_reporting_to(reportf, input_src, params, prior_report):
     if not input_src:
         inp = input('Briareus input spec? ')
         if params.output:
             with open(params.output, 'w') as outf:
-                run_hh_with_files(inp, outf, reportf, params)
+                run_hh_with_files(inp, outf, reportf,
+                                  params=params, prior_report=prior_report)
         else:
-            run_hh_with_files(inp, sys.stdout, reportf, params)
+            run_hh_with_files(inp, sys.stdout, reportf, params=params,
+                              prior_report=prior_report)
     else:
         if os.path.exists(input_src):
-            run_hh_on_inpfile(reportf, input_src, params)
+            run_hh_on_inpfile(reportf, input_src, params=params,
+                              prior_report=prior_report)
         elif os.path.exists(input_src + '.hhd'):
-            run_hh_on_inpfile(reportf, input_src + '.hhd', params)
+            run_hh_on_inpfile(reportf, input_src + '.hhd', params=params,
+                              prior_report=prior_report)
         else:
             raise RuntimeError('Input specification not found (in %s): %s' %
                                (os.getcwd(), input_src))
@@ -131,10 +138,10 @@ def run_hh(input_src, params):
             prior_report = None
         atomic_write_to(
             params.reportfile,
-            lambda rep_fd: run_hh_reporting_to(rep_fd, input_src, params))
+            lambda rep_fd: run_hh_reporting_to(rep_fd, input_src, params, prior_report))
     else:
         verbosely(params, 'No reporting')
-        run_hh_reporting_to(None, input_src, params)
+        run_hh_reporting_to(None, input_src, params, None)
     verbosely(params,'hh',('completed up to: ' + str(params.up_to)) if params.up_to else 'done')
 
 

@@ -17,7 +17,7 @@ class AnaRep(object):
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def report_on(self, input_desc, repo_info, build_cfgs):
+    def report_on(self, input_desc, repo_info, build_cfgs, prior_report=[]):
         # input_desc is 'first' returned from input_desc_and_VCS_info
         # repo_info is 'second' returned from input_desc_and_VCS_info
         # build_cfgs is BCGen.Generator.GeneratedConfigs
@@ -38,8 +38,9 @@ class AnaRep(object):
                                       input_desc.BL,
                                       input_desc.VAR,
                                       repo_info)
-        built_facts = self.built_facts(build_results)
-        facts = input_facts + built_facts
+        prior_facts = mk_prior_facts(prior_report)
+        built_facts = mk_built_facts(build_results)
+        facts = input_facts + prior_facts + built_facts
 
         if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
@@ -67,29 +68,49 @@ class AnaRep(object):
                              self._bldsys.get_build_result(build))
                  for build in build_cfgs.cfg_build_configs ]
 
-    def built_facts(self, build_results):
-        return (
-            [ DeclareFact('bldres/10'),
-            ] +
-            [ Fact(self.built_fact(r)) for r in build_results ])
+def mk_prior_facts(prior_report):
+    return (
+        [ DeclareFact('prior_status/5'),
+        ] +
+        [ prior_fact(p) for p in prior_report ])
 
-    def built_fact(self, result):
-        vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
-                 for v in result.bldconfig.bldvars ]
-        return ('bldres({r.bldconfig.branchtype}'
-                ', "{r.bldconfig.branchname}"'
-                ', {strategy}'
-                ', {vars}'
-                ', "{r.results.buildname}"'
-                ', {r.results.nrtotal}'
-                ', {r.results.nrsucceeded}'
-                ', {r.results.nrfailed}'
-                ', {r.results.nrscheduled}'
-                ', {configStatus}'
-                ')'
+def mk_built_facts(build_results):
+    return (
+        [ DeclareFact('bldres/10'),
+        ] +
+        [ built_fact(r) for r in build_results ])
+
+def prior_fact(prior):
+    vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
+             for v in prior.bldvars ]
+    return Fact(
+        ('prior_status({p.status}'
+         ', project("{p.project}")'
+         ', "{p.projrepo}"'
+         ', "{p.buildname}"'
+         ', {vars}'
+         ')'
+         ).format(p=prior, vars='[ ' + ', '.join(vars) + ' ]'))
+
+def built_fact(result):
+    vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
+             for v in result.bldconfig.bldvars ]
+    return Fact(
+        ('bldres({r.bldconfig.branchtype}'
+         ', "{r.bldconfig.branchname}"'
+         ', {strategy}'
+         ', {vars}'
+         ', "{r.results.buildname}"'
+         ', {r.results.nrtotal}'
+         ', {r.results.nrsucceeded}'
+         ', {r.results.nrfailed}'
+         ', {r.results.nrscheduled}'
+         ', {configStatus}'
+         ')'
         ).format(r=result,
                  vars='[ ' + ', '.join(vars) + ' ]',
                  strategy=result.bldconfig.strategy.lower(),
                  configStatus=('configError'
                                if result.results.cfgerror else 'configValid')
-                 )
+        )
+    )
