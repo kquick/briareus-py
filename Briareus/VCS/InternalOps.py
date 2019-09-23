@@ -107,6 +107,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.submodules = set()
         self.subrepos = set()
         self.branches = set()
+        self.known_branches = set()
         self._pending_info = {}
 
         self.RL = msg.repolist
@@ -190,6 +191,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
         for br in self.branches:
             if curbr == br:
                 return
+        for br in self.known_branches:
+            if curbr == br:
+                self.branches.add(br)
+                return
         self._incr_stat('chk_for_branch_missed')
         self.get_git_info(HasBranch(*curbr))
 
@@ -206,15 +211,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
                   [ r for r in self.subrepos if r.repo_name == msg.reponame ] +
                   [ None ])[0]
         for br in msg.known_branches:
-            self.branches.add( (msg.reponame, br) )
+            self.known_branches.add( (msg.reponame, br) )
             if main_r:
                 # Set branches any other projects sharing this repo
                 for each in self.RL:
                     if each.repo_url == main_r.repo_url:
-                        self.branches.add( (each.repo_name, br) )
+                        self.known_branches.add( (each.repo_name, br) )
                 for each in self.subrepos:
                     if each.repo_url == main_r.repo_url:
-                        self.branches.add( (each.repo_name, br) )
+                        self.known_branches.add( (each.repo_name, br) )
         self.got_response(response_name='branch_present')
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
