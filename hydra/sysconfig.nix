@@ -1,12 +1,16 @@
 { briareusSrc ? "/home/galois/Briareus"
+, briareus_rundir ? "/var/run/briareus"
+, thespian_director_dir ? briareus_rundir + "/thespian"
 , pkgs ? import <nixpkgs> {}
+, briareusPeriod ? 30  # Period between briareus runs for a project (in minutes)
 }:
 
-rec {
+let
 
   briareus = pkgs.callPackage briareusSrc {};
 
-  briareus_rundir = "/var/run/briareus";
+  briareus_thespian_director = pkgs.callPackage (briareusSrc + "/thespian/director") {};
+
   briareus_outfile = projectname: "${briareus_rundir}/${projectname}.hhc";
 
   slash_join = a: b:
@@ -48,7 +52,7 @@ rec {
               (slash_join
                 (slash_join base "/raw/master/") src_subdir) file));
 
-  mkBriareus =
+  mkBriareusProject =
     # Called to generate the NixOS Briareus support components for a
     # project.
     project:  # attrset that describes the project
@@ -90,6 +94,7 @@ rec {
              fi
              '';
 
+        startMin = if projnum == null then 0 else projnum;
 
     in rec {
 
@@ -107,19 +112,52 @@ rec {
           TimeoutSec = 300;  # this script can take a while to run if there are lots of PRs and repos.
         };
         script = run_script;
-        startAt = "*:0/30";
-        # wants = [ "briareus.service" ];
-        # after = [ "briareus.service" ];
-      };
+        startAt = "*:${startMin}/${briareusPeriod}";
+      } //
+      (if projnum == null then {} else {
+        wants = [ "briareus.service" ];
+        after = [ "briareus.service" ];
+      });
+    };
+
+  mapEnum = f: l:
+    let pnums = builtins.genList (n:n) (builtins.length l);
+        callNum = n: f n (builtins.elemAt l n)
+    in builtins.map callNum pnums;
+
+in
+rec {
+
+  mkBriareus =
+    # Called to generate the NixOS Briareus support components for a
+    # project.
+    project:  # attrset that describes the project
+    #  project.name  = name string, short, unique, embeddable
+    #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
+    #  project.hhd   = filename for Briareus input specification (in hhSrc)
+    #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
+    mkBriareusProject null project;
+
+  mkBriareusMulti =
+    # mkBriareusMulti should be used instead of calling mkBriareus
+    # multiple times (i.e. when there are multiple Briareus-managed
+    # projects).  The mkBriareusMulti ensures that the briareus base
+    # service is used to manage the persistent daemon processes and
+    # cache.
+    projectList:
+    rec {
+      briareusServiceBase // (mapEnum mkBriareusProject projectList);
     };
 
   briareusServiceBase = {
     systemd.services."briareus" = {
       description = "Briareus central support";
       after = [ "network-online.target" ];
+      environment = { THESPIAN_DIRECTOR_DIR=thespian_director_dir; };
       serviceConfig = {
         Type = "forking";
-        ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director start";
+        ExecStartPre="${bash}/bin/bash ${briareus_thespian_director}/install_to ${thespian_director_dir}";
+        ExecStart="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director start refresh";
         ExecStop="${pkgs.python37.withPackages (pp: [ pp.thespian pp.setproctitle ])}/bin/python -m thespian.director shutdown";
       };
     };
