@@ -1,5 +1,5 @@
 import pprint
-from Briareus.BCGen.BuildConfigs import *
+from Briareus.Types import *
 
 
 def get_prior_report(report_fname):

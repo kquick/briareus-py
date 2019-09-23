@@ -2,8 +2,7 @@
 # configurations with build results (as available) and generates
 # output reports.
 
-from Briareus.BCGen.BuildConfigs import BuildResult, logic_result_expr
-
+from Briareus.Types import BuildResult, logic_result_expr
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 

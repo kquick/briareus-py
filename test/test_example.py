@@ -1,5 +1,5 @@
 import Briareus.BCGen.Operations as BCGen
-import Briareus.BCGen.BuildConfigs as CFG
+from Briareus.Types import BldConfig, BldRepoRev, BldVariable
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
@@ -80,26 +80,26 @@ def test_example_internal_count(example_internal_bldconfigs):
     assert len(GS) * len(CS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
 
 def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("pullreq", "blah", "submodules",
-                                [CFG.BldRepoRev("R1","blah", "X"),
-                                 CFG.BldRepoRev("R2","r2_master_head"),
-                                 CFG.BldRepoRev("R3","r3_master_head"),
-                                 CFG.BldRepoRev("R5","blah"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R7","r7_master_head^4", "Y")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("pullreq", "blah", "submodules",
+                                [BldRepoRev("R1","blah", "X"),
+                                 BldRepoRev("R2","r2_master_head"),
+                                 BldRepoRev("R3","r3_master_head"),
+                                 BldRepoRev("R5","blah"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R7","r7_master_head^4", "Y")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("pullreq", "blah", "HEADs",
-                                [CFG.BldRepoRev("R1","blah", "ignored"),
-                                 CFG.BldRepoRev("R2","master", 9999),
-                                 CFG.BldRepoRev("R3","blah"),
-                                 CFG.BldRepoRev("R5","blah"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R7","master")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("pullreq", "blah", "HEADs",
+                                [BldRepoRev("R1","blah", "ignored"),
+                                 BldRepoRev("R2","master", 9999),
+                                 BldRepoRev("R3","blah"),
+                                 BldRepoRev("R5","blah"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R7","master")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -116,26 +116,26 @@ def test_example_internal_no_blah_regular_HEADs(example_internal_bldconfigs):
                     each.strategy == "HEADs")
 
 def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("pullreq", "bugfix9", "submodules",
-                                [CFG.BldRepoRev("R1","master", "X"),
-                                 CFG.BldRepoRev("R2","bugfix9"),
-                                 CFG.BldRepoRev("R3","r3_master_head^3"),
-                                 CFG.BldRepoRev("R5","bugfix9"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","bugfix9")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("pullreq", "bugfix9", "submodules",
+                                [BldRepoRev("R1","master", "X"),
+                                 BldRepoRev("R2","bugfix9"),
+                                 BldRepoRev("R3","r3_master_head^3"),
+                                 BldRepoRev("R5","bugfix9"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","bugfix9")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("pullreq", "bugfix9", "HEADs",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","bugfix9"),
-                                 CFG.BldRepoRev("R3","master"),
-                                 CFG.BldRepoRev("R5","bugfix9"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","bugfix9")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("pullreq", "bugfix9", "HEADs",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","bugfix9"),
+                                 BldRepoRev("R3","master"),
+                                 BldRepoRev("R5","bugfix9"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","bugfix9")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -152,75 +152,75 @@ def test_example_internal_no_bugfix9_regular_HEADs(example_internal_bldconfigs):
                     each.strategy == "HEADs")
 
 def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "feat1", "submodules",
-                                [CFG.BldRepoRev("R1","feat1"),
-                                 CFG.BldRepoRev("R2","r2_master_head^1"),
-                                 CFG.BldRepoRev("R3","r3_master_head"),
-                                 CFG.BldRepoRev("R5","master"),
-                                 CFG.BldRepoRev("R6","feat1"),
-                                 CFG.BldRepoRev("R4","r4_feat1_head^2")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "feat1", "submodules",
+                                [BldRepoRev("R1","feat1"),
+                                 BldRepoRev("R2","r2_master_head^1"),
+                                 BldRepoRev("R3","r3_master_head"),
+                                 BldRepoRev("R5","master"),
+                                 BldRepoRev("R6","feat1"),
+                                 BldRepoRev("R4","r4_feat1_head^2")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "feat1", "HEADs",
-                                [CFG.BldRepoRev("R1","feat1"),
-                                 CFG.BldRepoRev("R2","master"),
-                                 CFG.BldRepoRev("R3","master"),
-                                 CFG.BldRepoRev("R5","master"),
-                                 CFG.BldRepoRev("R6","feat1"),
-                                 CFG.BldRepoRev("R4","feat1")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "feat1", "HEADs",
+                                [BldRepoRev("R1","feat1"),
+                                 BldRepoRev("R2","master"),
+                                 BldRepoRev("R3","master"),
+                                 BldRepoRev("R5","master"),
+                                 BldRepoRev("R6","feat1"),
+                                 BldRepoRev("R4","feat1")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_submodules(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "master", "submodules",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","r2_master_head"),
-                                 CFG.BldRepoRev("R3","r3_master_head^3"),
-                                 CFG.BldRepoRev("R5","master"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","r4_master_head^1")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "master", "submodules",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","r2_master_head"),
+                                 BldRepoRev("R3","r3_master_head^3"),
+                                 BldRepoRev("R5","master"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","r4_master_head^1")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "master", "HEADs",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","master"),
-                                 CFG.BldRepoRev("R3","master"),
-                                 CFG.BldRepoRev("R5","master"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","master")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "master", "HEADs",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","master"),
+                                 BldRepoRev("R3","master"),
+                                 BldRepoRev("R5","master"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","master")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "dev", "submodules",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","r2_master_head"),
-                                 CFG.BldRepoRev("R3","r3_master_head^3"),
-                                 CFG.BldRepoRev("R5","dev"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","r4_master_head^1")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "dev", "submodules",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","r2_master_head"),
+                                 BldRepoRev("R3","r3_master_head^3"),
+                                 BldRepoRev("R5","dev"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","r4_master_head^1")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         print(example_internal_bldconfigs)
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "dev", "HEADs",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","master"),
-                                 CFG.BldRepoRev("R3","master"),
-                                 CFG.BldRepoRev("R5","dev"),
-                                 CFG.BldRepoRev("R6","master"),
-                                 CFG.BldRepoRev("R4","master")],
-                                [CFG.BldVariable("ghcver", G), CFG.BldVariable("c_compiler", C)])
+    for each in [ BldConfig("regular", "dev", "HEADs",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","master"),
+                                 BldRepoRev("R3","master"),
+                                 BldRepoRev("R5","dev"),
+                                 BldRepoRev("R6","master"),
+                                 BldRepoRev("R4","master")],
+                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

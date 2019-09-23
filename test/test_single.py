@@ -4,7 +4,7 @@ from thespian.actors import *
 import json
 import pytest
 import Briareus.BCGen.Operations as BCGen
-import Briareus.BCGen.BuildConfigs as CFG
+from Briareus.Types import BldConfig, BldRepoRev
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
@@ -136,21 +136,21 @@ def test_single_internal_count(single_internal_bldconfigs):
     assert 5 == len(single_internal_bldconfigs.cfg_build_configs)
 
 def test_single_internal_master(single_internal_bldconfigs):
-    expected = CFG.BldConfig("regular", "master", "main", [CFG.BldRepoRev("TheRepo","master")], [])
+    expected = BldConfig("regular", "master", "main", [BldRepoRev("TheRepo","master")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_feat1(single_internal_bldconfigs):
-    expected = CFG.BldConfig("regular", "feat1", "main", [CFG.BldRepoRev("TheRepo","feat1")], [])
+    expected = BldConfig("regular", "feat1", "main", [BldRepoRev("TheRepo","feat1")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_dev(single_internal_bldconfigs):
-    expected = CFG.BldConfig("regular", "dev", "main", [CFG.BldRepoRev("TheRepo","master")], [])
+    expected = BldConfig("regular", "dev", "main", [BldRepoRev("TheRepo","master")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_toad(single_internal_bldconfigs):
-    expected = CFG.BldConfig("pullreq", "toad", "main", [CFG.BldRepoRev("TheRepo","toad")], [])
+    expected = BldConfig("pullreq", "toad", "main", [BldRepoRev("TheRepo","toad")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_frog(single_internal_bldconfigs):
-    expected = CFG.BldConfig("pullreq", "frog", "main", [CFG.BldRepoRev("TheRepo","frog")], [])
+    expected = BldConfig("pullreq", "frog", "main", [BldRepoRev("TheRepo","frog")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs

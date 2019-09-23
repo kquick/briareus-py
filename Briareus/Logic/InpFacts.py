@@ -1,9 +1,10 @@
 from Briareus.Logic.Evaluation import DeclareFact, Fact
 
+
 def get_input_facts(RL, BL, VAR, repo_info):
 
     if not RL:
-        return BuildConfigs.BldConfigSet()  # dummy run, build nothing
+        return []  # dummy run, build nothing
 
     projects = [ r for r in RL if r.project_repo ]
 

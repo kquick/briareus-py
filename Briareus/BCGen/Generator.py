@@ -1,6 +1,6 @@
 # Core BCGen functionality to process input specification into build configurations
 
-from Briareus.BCGen.BuildConfigs import logic_result_expr
+from Briareus.Types import logic_result_expr
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 from Briareus.Logic.InpFacts import get_input_facts
 import attr

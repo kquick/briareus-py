@@ -1,7 +1,7 @@
 # Definitions for a Nix Hydra builder
 
 import Briareus.BuildSys.BuilderBase as BuilderBase
-import Briareus.BCGen.BuildConfigs
+from Briareus.Types import BuilderResult
 import requests
 import json
 
@@ -167,7 +167,7 @@ class HydraBuilder(BuilderBase.Builder):
         if isinstance(r, str):
             return r
         return ([
-            Briareus.BCGen.BuildConfigs.BuilderResult(
+            BuilderResult(
                 buildname=n,
                 nrtotal=get_or_show(e, 'nrtotal'),
                 nrsucceeded=get_or_show(e, 'nrsucceeded'),

@@ -1,5 +1,5 @@
 import Briareus.BCGen.Operations as BCGen
-import Briareus.BCGen.BuildConfigs as CFG
+from Briareus.Types import BldConfig, BldRepoRev, BldVariable
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
@@ -125,42 +125,42 @@ def test_example_internal_count(example_internal_bldconfigs):
     assert len(GS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
 
 def test_example_internal_regular_develop_submodules(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "develop", "submodules",
-                                [CFG.BldRepoRev("R1","develop"),
-                                 CFG.BldRepoRev("R2","r2_develop_head"),
-                                 CFG.BldRepoRev("R3","r3_develop_head"),
-                                 CFG.BldRepoRev("R4","r4_master_head")],
-                                [CFG.BldVariable("ghcver", G)])
+    for each in [ BldConfig("regular", "develop", "submodules",
+                                [BldRepoRev("R1","develop"),
+                                 BldRepoRev("R2","r2_develop_head"),
+                                 BldRepoRev("R3","r3_develop_head"),
+                                 BldRepoRev("R4","r4_master_head")],
+                                [BldVariable("ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "develop", "HEADs",
-                                [CFG.BldRepoRev("R1","develop"),
-                                 CFG.BldRepoRev("R2","develop"),
-                                 CFG.BldRepoRev("R3","develop"),
-                                 CFG.BldRepoRev("R4","master")],
-                                [CFG.BldVariable("ghcver", G)])
+    for each in [ BldConfig("regular", "develop", "HEADs",
+                                [BldRepoRev("R1","develop"),
+                                 BldRepoRev("R2","develop"),
+                                 BldRepoRev("R3","develop"),
+                                 BldRepoRev("R4","master")],
+                                [BldVariable("ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_submodules(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "master", "submodules",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","r2_master_head"),
-                                 CFG.BldRepoRev("R3","r3_master_head^3"),
-                                 CFG.BldRepoRev("R4","r4_master_head^1")],
-                                [CFG.BldVariable("ghcver", G)])
+    for each in [ BldConfig("regular", "master", "submodules",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","r2_master_head"),
+                                 BldRepoRev("R3","r3_master_head^3"),
+                                 BldRepoRev("R4","r4_master_head^1")],
+                                [BldVariable("ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_HEADs(example_internal_bldconfigs):
-    for each in [ CFG.BldConfig("regular", "master", "HEADs",
-                                [CFG.BldRepoRev("R1","master"),
-                                 CFG.BldRepoRev("R2","master"),
-                                 CFG.BldRepoRev("R3","master"),
-                                 CFG.BldRepoRev("R4","master")],
-                                [CFG.BldVariable("ghcver", G)])
+    for each in [ BldConfig("regular", "master", "HEADs",
+                                [BldRepoRev("R1","master"),
+                                 BldRepoRev("R2","master"),
+                                 BldRepoRev("R3","master"),
+                                 BldRepoRev("R4","master")],
+                                [BldVariable("ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

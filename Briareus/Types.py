@@ -1,4 +1,4 @@
-# Data representation of build configurations
+# Data representation of build configurations and report data
 
 import attr
 
