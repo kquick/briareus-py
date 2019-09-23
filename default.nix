@@ -1,4 +1,4 @@
-{ lib, python3Packages, swiProlog }:
+{ lib, python3Packages, swiProlog, thespian, setproctitle, attrs, requests }:
 
 python3Packages.buildPythonApplication rec {
   pname = "briareus";
@@ -11,7 +11,7 @@ python3Packages.buildPythonApplication rec {
   # };
 
   propagatedBuildInputs =
-    let ppkgs = with python3Packages; [
+    let ppkgs = [
           thespian
           setproctitle
           attrs
