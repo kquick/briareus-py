@@ -40,6 +40,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         try:
             rsp = self._ghinfo.get_pullreqs(msg.reponame)
         except Exception as err:
+            logging.critical('GetPullReqs err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
                                   'GetPullReqs - ' + str(err)))
@@ -51,6 +52,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         try:
             rsp = self._ghinfo.get_branches()
         except Exception as err:
+            logging.critical('HasBranch: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
                                   'HasBranch - ' + str(err)))
@@ -67,6 +69,7 @@ class GitRepoInfo(ActorTypeDispatcher):
             rval = self._ghinfo.get_gitmodules(msg.reponame, branch,
                                                repo_src_url=msg.alt_repo_url)
         except Exception as err:
+            logging.critical('GitmodulesData err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repourl, self.repo_cachedir,
                                   'GitmodulesData - ' + str(err)))
