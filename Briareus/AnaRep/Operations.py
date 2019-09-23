@@ -2,12 +2,7 @@
 # configurations with build results (as available) and generates
 # output reports.
 
-import attr
-
-@attr.s(frozen=True)
-class BuildResult(object):
-    bldconfig = attr.ib()  # BCGen.BuildConfigs.BldConfig
-    results = attr.ib()  # ??
+from Briareus.BCGen.BuildConfigs import BuildResult
 
 
 class AnaRep(object):

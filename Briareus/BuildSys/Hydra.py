@@ -166,5 +166,20 @@ class HydraBuilder(BuilderBase.Builder):
         r = self._get_build_results()
         if isinstance(r, str):
             return r
-        return ([e for e in r if e['name'] == n ] +
-                ['No results available for jobset ' + n])[0]
+        return ([
+            Briareus.BCGen.BuildConfigs.BuilderResult(
+                buildname=n,
+                nrtotal=get_or_show(e, 'nrtotal'),
+                nrsucceeded=get_or_show(e, 'nrsucceeded'),
+                nrfailed=get_or_show(e, 'nrfailed'),
+                nrscheduled=get_or_show(e, 'nrscheduled'),
+                cfgerror=get_or_show(e, 'haserrormsg'),
+            )
+            for e in r if e['name'] == n
+        ] + ['No results available for jobset ' + n])[0]
+
+def get_or_show(obj, fieldname):
+    if fieldname not in obj:
+        print('Missing field "%s" in builder result: %s'
+              % ( fieldname, str(obj) ))
+    return obj.get(fieldname)

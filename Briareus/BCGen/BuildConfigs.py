@@ -28,6 +28,24 @@ class BldVariable(object):
 
 
 # ----------------------------------------------------------------------
+
+@attr.s(frozen=True)
+class BuildResult(object):
+    bldconfig = attr.ib()  # BldConfig
+    results = attr.ib()    # BuilderResult
+
+@attr.s(frozen=True)
+class BuilderResult(object):
+    buildname   = attr.ib()  # string name of build on builder
+    nrtotal     = attr.ib()  # int
+    nrsucceeded = attr.ib()  # int
+    nrfailed    = attr.ib()  # int
+    nrscheduled = attr.ib()  # int
+    cfgerror    = attr.ib()  # bool
+
+
+
+# ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
 # operation, so define some terms to re-ify the eval'd string into
 # Python description.
