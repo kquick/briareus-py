@@ -1,2 +1,3 @@
 attr
 requests
+urllib3
