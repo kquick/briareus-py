@@ -128,7 +128,7 @@ let
       # The associated mkProjectCfg will read these build
       # configurations to generate the project's .jobset
       # configuration.
-      service.systemd.services."briareus-${project.name}" = {
+      systemd.services."briareus-${project.name}" = {
         description = "Briareus build configuration generator for ${project.name}";
         serviceConfig = {
           Type = "forking";
