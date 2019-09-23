@@ -59,6 +59,10 @@ class GitTestSingle(ActorTypeDispatcher):
         branch = msg.branch_name
         self.send(sender, GitmodulesRepoVers(msg.reponame, branch, []))
 
+    def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
+        assert isinstance(msg.altloc_reqmsg, GitmodulesData)
+        self.receiveMsg_GitmodulesData(msg.altloc_reqmsg, sender)
+
 
 expected_facts = sorted(filter(None, '''
 :- dynamic project/1.

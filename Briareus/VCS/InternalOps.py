@@ -56,6 +56,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def get_git_info(self, reqmsg):
         if not self._get_git_info:
+            # n.b. use a globalName for GetGitInfo because tests will
+            # override the GetGitInfo instance below with a mocked
+            # version appropriate to that test.
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
             self.send(self._get_git_info, VCSConfig(self.RX, self.request_auth))
         self.responses_pending += 1
@@ -177,9 +180,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     if repo.repo_name != msg.reponame:
                         self.check_for_branch(repo.repo_name, p.pullreq_branch)
                     elif repo.project_repo:
-                        self.get_git_info(GitmodulesData(repo.repo_name,
-                                                         p.pullreq_branch,
-                                                         alt_repo_url=p.pullreq_srcurl))
+                        self.get_git_info(Repo_AltLoc_ReqMsg(p.pullreq_srcurl,
+                                                             GitmodulesData(repo.repo_name,
+                                                                            p.pullreq_branch)
+))
 
         self.pullreqs.update(set([PRInfo(pr_target_repo=msg.reponame,
                                          pr_srcrepo_url=p.pullreq_srcurl,
@@ -300,6 +304,19 @@ class GetGitInfo(ActorTypeDispatcher):
         suba = self._get_subactor(msg.reponame)
         msg.orig_sender = sender
         self.send(suba, msg)
+
+    def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
+        suba = self.gitinfo_actors_by_url.get(msg.api_repo_loc, None)
+        if not suba:
+            suba = self.createActor(GitRepoInfo)
+            self.gitinfo_actors_by_url[msg.api_repo_loc] = suba
+            # No self.gitinfo_actors entry: all primary requests are
+            # routed by reponame to the main GitRepoInfo actor; this
+            # is just for alternate locations (e.g. source of
+            # pullreqs)
+            self.send(suba, RepoRemoteSpec(to_http_url(msg.api_repo_loc, self.config.repolocs)))
+        msg.altloc_reqmsg.orig_sender = sender
+        self.send(suba, msg.altloc_reqmsg)
 
     def receiveMsg_str(self, msg, sender):
         if msg == "status":

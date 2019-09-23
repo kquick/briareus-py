@@ -17,3 +17,5 @@ python -m thespian.director gensrc \
 # dependencies: urllib3 chardet OpenSSL certifi ... because some of
 # these have external library components, so "requests" should be part
 # of the environment used to run the thespian.director start.
+
+# Should be able to remove Input portions if Description is available in VCS portion...

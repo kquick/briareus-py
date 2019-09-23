@@ -68,6 +68,16 @@ class Repo__RspMsg(object):
 
 
 @attr.s
+class Repo_AltLoc_ReqMsg(object):
+    """Sends a Repo__ReqMsg but the target should handle it at an
+       alternate repository that is associated with the main reponame
+       but is not the main repo (e.g. a pullreq source repo).
+    """
+    api_repo_loc = attr.ib()   # API URL specification for alt repo
+    altloc_reqmsg = attr.ib()  # Repo__ReqMsg to send to the alt repo loc
+
+
+@attr.s
 class DeclareRepo(Repo__ReqMsg):        #             --> RepoDeclared
     repo_url = attr.ib()
 @attr.s

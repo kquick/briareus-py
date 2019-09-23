@@ -38,6 +38,13 @@ class GitExample1(ActorTypeDispatcher):
         self.send(sender, BranchPresent(msg.reponame, branch, chk))
 
     def receiveMsg_GitmodulesData(self, msg, sender):
+        self._gitmodules_data(msg, sender, '')
+
+    def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
+        assert isinstance(msg.altloc_reqmsg, GitmodulesData)
+        self._gitmodules_data(msg.altloc_reqmsg, sender, msg.api_repo_loc)
+
+    def _gitmodules_data(self, msg, sender, alt_repo_url):
         branch = msg.branch_name
         ### EXAMPLE-vvv
         rsub = {
@@ -58,14 +65,11 @@ class GitExample1(ActorTypeDispatcher):
         }[msg.reponame]
         rval = rsub.get(branch, [])  # KWQ: name is derived from URL, remove name?
         if msg.reponame == 'R1':
-            if branch == 'blah' and msg.alt_repo_url != 'remote_R1_b':
+            if branch == 'blah' and alt_repo_url != 'remote_R1_b':
                 # The blah gitmodules information only exists in the alternate repo
                 rval = rsub.get("master", [])
-            if branch != 'blah' and msg.alt_repo_url:
+            if branch != 'blah' and alt_repo_url:
                 # Otherwise if an alt_repo_url is specified, return nothing
                 rval = []
         ### EXAMPLE-^^^
-        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, rval,
-                                             alt_repo_url=("r1_blah_srcurl"
-                                                           if msg.reponame == 'R1' and branch == 'blah'
-                                                           else None)))
+        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, rval))
