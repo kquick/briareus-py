@@ -50,6 +50,7 @@ def run_logic_analysis(analysis_fname, facts, actor_system=None, verbose=False):
                           timeout=PROLOG_TIMEOUT,
             )
             cmdrslt = asys.ask(runner, cmd, PROLOG_TIMEOUT)
+            asys.tell(runner, ActorExitRequest())
             if isinstance(cmdrslt, CommandResult):
                 return cmdrslt.stdout.strip()
             raise RuntimeError('FAIL: ' + str(cmdrslt))
