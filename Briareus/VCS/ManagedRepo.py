@@ -11,7 +11,8 @@ def gather_repo_info(RL, BL, cachedir, repo_auth, actor_system = None):
     asys = actor_system or ActorSystem('multiprocTCPBase')  # use TCP base for ThespianWatch support.
     try:
         # Use a global name for this actor to re-connect to the existing "daemon"
-        rsp = asys.ask(asys.createActor(GatherRepoInfo, globalName='GatherRepoInfo'),
+        rsp = asys.ask(asys.createActor("Briareus.VCS.InternalOps.GatherRepoInfo",
+                                        globalName='GatherRepoInfo'),
                        GatherInfo(RL, BL, cachedir, repo_auth),
                        REPO_INFO_TIMEOUT)
         if rsp == None:

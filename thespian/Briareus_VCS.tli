@@ -1,5 +1,5 @@
 { 'Actors':
-  { 'Briareus.VCS.GatherRepoInfo':
+  { 'Briareus.VCS.InternalOps.GatherRepoInfo':
     { 'OnLoad': { 'GlobalName': 'GatherRepoInfo'
                 , 'Message': 'Start'
                 , 'Role': 'VCSRepoInfo'
