@@ -1,0 +1,12 @@
+#! /usr/bin/env nix-shell
+# -*- mode: python; -*-
+#! nix-shell -i bash -p openssl "python37.withPackages(pp: with pp; [ thespian setproctitle attrs requests ])"
+
+cd director
+export THESPIAN_DIRECTOR_DIR=$(pwd)
+python -m thespian.director gensrc \
+    Briareus_VCS $(pwd)/../briareus_key.pem ../.. \
+    version:date deps:$(pwd)/../deps \
+    tli:$(pwd)/../Briareus_VCS.tli \
+    ../../Briareus/__init__.py \
+    '../../Briareus/VCS/**/*.p[yl]'

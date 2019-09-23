@@ -1,0 +1,8 @@
+#!/bin/sh
+
+mkdir -p ${1}
+for f in *; do
+    if [ $f != install_to -a ! -d $f ] ; then
+        cp $f ${1}/
+    fi
+done
