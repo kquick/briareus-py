@@ -47,7 +47,6 @@ class GatherInfo(object):             #            --> GatheredInfo
     repolist = attr.ib(factory=list)    # array of RepoDesc
     repolocs = attr.ib(factory=list)    # array of RepoLoc
     branchlist = attr.ib(factory=list)  # array of BranchDesc
-    request_auth = attr.ib(default=None)  # interpreted by VCS/GitRepo
 @attr.s
 class GatheredInfo(object):           # GatherInfo -->
     info = attr.ib(factory=dict)
@@ -56,7 +55,6 @@ class GatheredInfo(object):           # GatherInfo -->
 @attr.s
 class VCSConfig(object):
     repolocs = attr.ib(factory=list)    # array of RepoLoc
-    request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 
 @attr.s
@@ -131,7 +129,6 @@ class SubRepoVers(object):
 @attr.s
 class RepoRemoteSpec(object):
     repo_api_loc = attr.ib()               # RepoAPI_Location for forge API
-    request_auth = attr.ib(default=None)   # interpreted by VCS/GitRepo
 
 
 @attr.s(frozen=True)

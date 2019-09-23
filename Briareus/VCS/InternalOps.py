@@ -60,7 +60,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # override the GetGitInfo instance below with a mocked
             # version appropriate to that test.
             self._get_git_info = self.createActor(GetGitInfo, globalName="GetGitInfo")
-            self.send(self._get_git_info, VCSConfig(self.RX, self.request_auth))
+            self.send(self._get_git_info, VCSConfig(self.RX))
         self.responses_pending += 1
         self._incr_stat("get_git")
         self.send(self._get_git_info, reqmsg)
@@ -120,7 +120,6 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.RL = msg.repolist
         self.RX = msg.repolocs
         self.BL = msg.branchlist
-        self.request_auth = msg.request_auth
         for repo in self.RL:
             self.get_info_for_a_repo(repo)
         self.got_response(False)
@@ -287,7 +286,7 @@ class GetGitInfo(ActorTypeDispatcher):
             self.gitinfo_actors[reponame] = suba
             self.gitinfo_actors_by_url[repourl] = suba
             apiloc = to_http_url(repourl, self.config.repolocs)
-            self.send(suba, RepoRemoteSpec(apiloc, request_auth=self.config.request_auth))
+            self.send(suba, RepoRemoteSpec(apiloc))
         return suba
 
     def receiveMsg_ActorExitRequest(self, msg, sender):

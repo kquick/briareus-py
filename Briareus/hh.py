@@ -7,7 +7,6 @@ from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
 import Briareus.Input.Operations as BInput
 import Briareus.BuildSys.Hydra as BldSys
-from requests.auth import HTTPBasicAuth
 import argparse
 import os
 import sys
@@ -23,7 +22,6 @@ class Params(object):
     reportfile = attr.ib(default=None)
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
-    repo_auth = attr.ib(default=None)
 
 def verbosely(params, *msgargs):
     if params.verbose:
@@ -40,7 +38,6 @@ def run_hh_gen(params, inp, prior_report):
 
     inp_desc, repo_info = BInput.input_desc_and_VCS_info(inp,
                                                          verbose=params.verbose,
-                                                         repo_auth=params.repo_auth,
                                                          actor_system=asys)
     bcgen = BCGen.BCGen(builder,
                         verbose=params.verbose,
@@ -214,8 +211,6 @@ def main():
               'printing the results to stdout (ignoring the -o argument). '
               'Valid ending points: %s' % UpTo.valid()))
     parser.add_argument(
-        '--auth', '-A', default=None, help='Repo authentication file')
-    parser.add_argument(
         '--stop-daemon', '-S', dest="stopdaemon", action='store_true',
         help=('Stop daemon processes on exit.  Normally Briareus leaves daemon '
               'processes running that can be used on subsequent runs to perform '
@@ -226,17 +221,13 @@ def main():
         'INPUT', default=None, nargs='?',
         help='Briareus input specification (file or URL or blank to read from stdin)')
     args = parser.parse_args()
-    auth = open(args.auth,'r').read().strip() if args.auth else None
-    if auth and ':' in auth:
-        auth = HTTPBasicAuth(*tuple(auth.split(':')))
     params = Params(builder_type=args.builder,
                     builder_conf=args.builder_conf,
                     builder_url=args.builder_url,
                     output=args.output,
                     reportfile=args.report,
                     verbose=args.verbose,
-                    up_to=args.up_to,
-                    repo_auth=auth)
+                    up_to=args.up_to)
     try:
         run_hh(args.INPUT, params)
     finally:

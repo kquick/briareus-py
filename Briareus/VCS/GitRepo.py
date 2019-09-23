@@ -43,14 +43,12 @@ class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo = None
-        self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None), None)
+        self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None))
 
     def receiveMsg_RepoRemoteSpec(self, msg, sender):
-        self._ghinfo = (GitHubInfo(msg.repo_api_loc,
-                                   request_auth=msg.request_auth)
+        self._ghinfo = (GitHubInfo(msg.repo_api_loc)
                         if 'github' in self.repospec.repo_api_loc.apiloc else
-                        (GitLabInfo(msg.repo_api_loc,
-                                    request_auth=msg.request_auth)
+                        (GitLabInfo(msg.repo_api_loc)
                          if 'gitlab' in self.repospec.repo_api_loc.apiloc else
                          None))
         if not self._ghinfo:
@@ -269,13 +267,10 @@ class GitLabInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, repo_api_location, request_auth=None):
+    def __init__(self, repo_api_location):
         super(GitLabInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
-        if isinstance(request_auth, str):
-            self._request_session.headers.update({'Private-Token': request_auth})
-        else:
-            if repo_api_location.apitoken:
-                self._request_session.headers.update({'Private-Token': repo_api_location.apitoken})
+        if repo_api_location.apitoken:
+            self._request_session.headers.update({'Private-Token': repo_api_location.apitoken})
 
     def get_api_url(self, url):
         parsed = urlparse(url)
@@ -323,14 +318,11 @@ class GitHubInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, repo_api_location, request_auth=None):
+    def __init__(self, repo_api_location):
         super(GitHubInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
-        if isinstance(request_auth, requests.auth.AuthBase):
-            self._request_session.auth = request_auth
-        else:
-            if repo_api_location.apitoken:
-                self._request_session.auth = requests.auth.HTTPBasicAuth(
-                    *tuple(repo_api_location.apitoken.split(':')))
+        if repo_api_location.apitoken:
+            self._request_session.auth = requests.auth.HTTPBasicAuth(
+                *tuple(repo_api_location.apitoken.split(':')))
 
     def get_api_url(self, url):
         """Converts a remote repository URL into a form that is useable for
