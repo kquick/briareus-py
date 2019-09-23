@@ -228,27 +228,29 @@ def main():
     parser.add_argument(
         '--builder', '-b', default='hydra',
         help=('Backend builder to generate build configurations for.  Valid builders '
-              'are: hydra.  The default is to use the hydra builder backend.'))
+              'are: hydra.  The default is to use the %(default)s builder backend.'))
     parser.add_argument(
         '--builder-config', '-B', default=None, dest="builder_conf",
         help="Configuration file for backend builder")
     parser.add_argument(
         '--builder-url', '-U', default=None, dest="builder_url",
-        help="URL of builder to obtain build results")
+        help="""URL of builder to obtain build results.  If not specified, no build
+                results will be available for reporting.""")
     parser.add_argument(
         '--verbose', '-v', action='store_true', help='Enable verbose output')
     parser.add_argument(
         '--up-to', '-u', default=None, dest="up_to", type=UpTo,
-        help=('For debugging: run hh up to the designated point and stop, '
-              'printing the results to stdout (ignoring the -o argument). '
-              'Valid ending points: %s' % UpTo.valid()))
+        help='''For debugging: run hh up to the designated point and stop, printing
+                the results to stdout (ignoring the -o argument).
+                Valid ending points: %s''' % UpTo.valid())
     parser.add_argument(
         '--stop-daemon', '-S', dest="stopdaemon", action='store_true',
-        help=('Stop daemon processes on exit.  Normally Briareus leaves daemon '
-              'processes running that can be used on subsequent runs to perform '
-              'GitHub queries (knowledge of previous results helps stay below '
-              'GitHub request limits).  This flag causes those processes to be '
-              'shutdown on exit (even if running from a previously issued command.'))
+        help='''Stop daemon processes on exit.  Normally Briareus leaves daemon
+                processes running that can be used on subsequent runs
+                to perform GitHub queries (knowledge of previous
+                results helps stay below GitHub request limits).  This
+                flag causes those processes to be shutdown on exit
+                (even if running from a previously issued command.''')
     parser.add_argument(
         '--input-url-and-path', '-I',
         help='''Specify an input URL from which the INPUT files (and

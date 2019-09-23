@@ -12,14 +12,7 @@ import os
 
 
 class GatherRepoInfo(ActorTypeDispatcher):
-    """Gathers information for the list of repos and branches provided in
-    the input GatherInfo message, sending the information back in the
-    GatheredInfo response message.
-
-    Uses sub-actors to get information, and recursively adds new
-    requests as new repositories, branches, and pull requests are
-    discovered during the information gathering.
-    """
+    "Main Actor for obtaining information from VCS repositories."
 
     def __init__(self, *args, **kw):
         super(GatherRepoInfo, self).__init__(*args, **kw)
@@ -34,7 +27,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
         elif msg == 'Deactivate' and self._get_git_info:
             # From the Director via the TLI file; offer our cached
             # information to our successor.
-            successor = self.createActor("Briareus.VCS.InternalOps.GatherRepoInfo", globalName='GatherRepoInfo')
+            successor = self.createActor("Briareus.VCS.InternalOps.GatherRepoInfo",
+                                         globalName='GatherRepoInfo')
             self.send(successor, 'HaveCachedInfo')
         elif msg == 'HaveCachedInfo' and sender != self.myAddress:
             # Ask send for their cached info...
@@ -123,6 +117,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.send(msg.req.requestor, self.prepareReply(msg))
 
     def receiveMsg_GatherInfo(self, msg, sender):
+        """Main entrypoint to gather information for the list of repos and
+           branches provided in the input GatherInfo message, sending
+           the information back in the GatheredInfo response message.
+
+           Uses sub-actors to get information, and recursively adds
+           new requests as new repositories, branches, and pull
+           requests are discovered during the information gathering.
+
+        """
         self._gatherInfo(msg, sender)
 
     def _gatherInfo(self, msg, sender, jsonReply=False):
@@ -149,6 +152,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self._pending_info[repo.repo_name] = repo
 
     def receiveMsg_RepoDeclared(self, msg, sender):
+        "Response message from the GetGitInfo actor to a DeclareRepo message"
         repo = self._pending_info.get(msg.reponame, None)
         if repo:
             del self._pending_info[msg.reponame]
@@ -158,6 +162,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='repo_declared')
 
     def receiveMsg_PullReqsData(self, msg, sender):
+        "Response message from the GetGitInfo actor to a GetPullReqs message"
         # A pull request references a branch in a different repo
         # where that branch exists; the branch does not exist in
         # the current repo.  For github, there is also a
@@ -226,6 +231,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.get_git_info(HasBranch(*curbr))
 
     def receiveMsg_BranchPresent(self, msg, sender):
+        "Response message from the GetGitInfo actor to a HasBranch message"
         if msg.branch_present:
             self.branches.add( (msg.reponame, msg.branch_name) )
             for repo in self.RL:
@@ -250,6 +256,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='branch_present')
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
+        "Response message from the GetGitInfo actor to a GitmodulesData message"
         for each in msg.gitmodules_repovers:
             named_submod_repo = ([r for r in (list(self.RL) + list(self.subrepos))
                                   if r.repo_name == each.subrepo_name] + [None])[0]
@@ -292,8 +299,9 @@ class GetGitInfo(ActorTypeDispatcher):
         suba = self.gitinfo_actors.get(reponame, None)
         if not suba:
             if not repourl:
-                raise RuntimeError('No URL for defined repo %s' % reponame)  # KWQ:
-            # make a message Optimization: sometimes different modules
+                raise RuntimeError('No URL for defined repo %s' % reponame)  # KWQ: make a message
+
+            # Optimization: sometimes different modules
             # share a repo (they are different subdirectories).  In
             # this case, the queries are at the repo level, so there's
             # no need to query multiple times.  If there is already an
