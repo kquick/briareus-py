@@ -1,5 +1,4 @@
 #! /usr/bin/env nix-shell
-# -*- mode: python; -*-
 #! nix-shell -i "python3.7 -u" -p git swiProlog "python37.withPackages(pp: with pp; [ thespian setproctitle attrs requests ])"
 
 import Briareus.AnaRep.Operations as AnaRep
