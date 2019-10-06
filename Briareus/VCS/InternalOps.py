@@ -149,6 +149,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.subrepos = set()
         self.branches = set()
         self.known_branches = set()
+        self.branches_check = {}
         self._pending_info = {}
 
         self.RL = msg.repolist
@@ -255,16 +256,44 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def check_for_branch(self, repo_name, branch_name):
         self._incr_stat('chk_for_branch')
+        if self.branches_check.get((repo_name, branch_name), False):
+            return
+        if self._branch_checked(repo_name, branch_name):
+            return
+        if self._branch_checked_shared_repo(repo_name, branch_name):
+            return
+        self._incr_stat('chk_for_branch_missed')
+        self.branches_check[(repo_name, branch_name)] = True
+        self.get_git_info(HasBranch(repo_name, branch_name))
+
+    def _branch_checked(self, repo_name, branch_name):
         curbr = (repo_name, branch_name)
         for br in self.branches:
             if curbr == br:
-                return
+                return True
         for br in self.known_branches:
             if curbr == br:
                 self.branches.add(br)
-                return
-        self._incr_stat('chk_for_branch_missed')
-        self.get_git_info(HasBranch(*curbr))
+                return True
+        return False
+
+    def _branch_checked_shared_repo(self, repo_name, branch_name):
+        tgt_repos = [r for r in self.RL if r.repo_name == repo_name]
+        if len(tgt_repos) != 1:
+            tgt_repos = [r for r in self.subrepos if r.repo_name == repo_name]
+            if len(tgt_repos) != 1:
+                return False
+        tgt_repo = tgt_repos[0]
+        for r in self.RL:
+            if r.repo_url == tgt_repo.repo_url and r.repo_name != tgt_repo.repo_name:
+                if self._branch_checked(r.repo_name, branch_name):
+                    return True
+        for r in self.subrepos:
+            if r.repo_url == tgt_repo.repo_url and r.repo_name != tgt_repo.repo_name:
+                if self._branch_checked(r.repo_name, branch_name):
+                    return True
+        return False
+
 
     def receiveMsg_BranchPresent(self, msg, sender):
         "Response message from the GetGitInfo actor to a HasBranch message"
@@ -284,10 +313,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
             if main_r:
                 # Set branches any other projects sharing this repo
                 for each in self.RL:
-                    if each.repo_url == main_r.repo_url:
+                    if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches.add( (each.repo_name, br) )
                 for each in self.subrepos:
-                    if each.repo_url == main_r.repo_url:
+                    if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches.add( (each.repo_name, br) )
         self.got_response(response_name='branch_present')
 
