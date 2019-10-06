@@ -296,9 +296,15 @@ class GitLabInfo(RemoteGit__Info):
         return urlunparse(
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
 
-    def _fix_subrepo_source_url(self, source_proj_id):
-        parsed = urlparse(self._url)
-        return urlunparse(parsed._replace(path='/api/v4/projects/%d'%source_proj_id))
+
+    def _src_repo_url(self, mergereq):
+        if 'source_project_url' in mergereq:
+            return mergereq['source_project_url']
+        # It's a source_project_id, but since it's on this gitlab
+        # forge, it's in this repo as a local branch.  The proper URL
+        # is not known here, only the forge API url, so defer the
+        # actual URL to the caller who does have that information.
+        return None
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/merge_requests')
@@ -308,10 +314,10 @@ class GitLabInfo(RemoteGit__Info):
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         preqs = [ PullReqInfo(pr["id"],   # for user reference
                               pr["title"],    # for user reference
-                              pr.get('source_project_url', None) or
-                              self._fix_subrepo_source_url(pr['source_project_id']),  # source repo URL
+                              self._src_repo_url(pr),  # source repo URL
                               pr["source_branch"],          # source repo branch
-                              pr["sha"])
+                              pr["sha"],
+                              None)
                   for pr in rsp if pr["state"] == "opened" and not pr["merged_at"] ]
         return PullReqsData(reponame, preqs)
 
@@ -362,6 +368,7 @@ class GitHubInfo(RemoteGit__Info):
                               pr["title"],    # for user reference
                               pr["head"]["repo"]["html_url"],  # source repo URL
                               pr["head"]["ref"],          # source repo branch
+                              None,  # probably available, not needed for github, can use branch ^
                               pr["merge_commit_sha"])
                   for pr in rsp if pr["state"] == "open" and not pr["merged_at"] ]
         return PullReqsData(reponame, preqs)

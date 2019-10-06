@@ -163,21 +163,23 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def receiveMsg_PullReqsData(self, msg, sender):
         "Response message from the GetGitInfo actor to a GetPullReqs message"
-        # A pull request references a branch in a different repo
-        # where that branch exists; the branch does not exist in
-        # the current repo.  For github, there is also a
-        # "pullreq_mergeref", which is a specific sha for a test
-        # merge commit for that repo; this is not used here
-        # because it is only available for automatic merges and
-        # represents a step not yet taken for the workflow.
+        # A pull request references a branch in a (possibly different)
+        # repo where that branch exists; the branch may not exist in
+        # the current repo (it does for gitlab, it does not for
+        # github).
         #
-        # Note that this branch probably does not exist on the
-        # main repo; if it does, it's considered to be different
-        # than the pull request, so don't compare it to a local
-        # branch (i.e. build both if specified).  By extension,
-        # there can be multiple PR's for the same branch name from
-        # two separate source repositories: again, these are
-        # distinct.
+        # For github, there is also a "pullreq_mergeref",
+        # which is a specific sha for a test merge commit for that
+        # repo; this is not used here because it is only available for
+        # automatic merges and represents a step not yet taken for the
+        # workflow.
+        #
+        # Note that this branch may not exist on the main repo; if it
+        # does, it's considered to be different than the pull request,
+        # so don't compare it to a local branch (i.e. build both if
+        # specified).  By extension, there can be multiple PR's for
+        # the same branch name from two separate source repositories:
+        # again, these are distinct.
         #
         # For compatibility with this PR, other repos might have a
         # branch or a PR with the same name (or both!).  Note that the
@@ -200,22 +202,45 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     break
             else:
                 for repo in (list(self.RL) + list(self.subrepos)):
-                    # don't bother to check the repo where the pullreq was found
-                    if repo.repo_name != msg.reponame:
-                        self.check_for_branch(repo.repo_name, p.pullreq_branch)
-                    elif repo.project_repo:
-                        self.get_git_info(
-                            Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
-                                               GitmodulesData(repo.repo_name,
-                                                              p.pullreq_branch)))
+                    self.check_for_branch(repo.repo_name, p.pullreq_branch)
+                    if repo.project_repo:
+                        # Get submodules information because the pr is
+                        # on the project repo and might have changed
+                        # the submodules configuration.  Note that the
+                        # gitmodules file should be retrieved with the
+                        # pullreq_ref (the commit sha) if possible
+                        # because Gitlab only supports file reading
+                        # via ref, not via branchname.
+                        if p.pullreq_srcurl:
+                            # Source for pull request is in a different repo
+                            self.get_git_info(
+                                Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
+                                                   GitmodulesData(repo.repo_name,
+                                                                  p.pullreq_ref or
+                                                                  p.pullreq_branch)))
+                        else:
+                            # Source for pull request is in this repo
+                            self.get_git_info(GitmodulesData(repo.repo_name,
+                                                             p.pullreq_ref or
+                                                             p.pullreq_branch))
 
-        self.pullreqs.update(set([PRInfo(pr_target_repo=msg.reponame,
-                                         pr_srcrepo_url=p.pullreq_srcurl,
-                                         pr_branch=p.pullreq_branch,
-                                         pr_ident=p.pullreq_number,
-                                         pr_title=p.pullreq_title)
-                                  for p in msg.pullreqs]))
+        self.pullreqs.update(set([
+            PRInfo(pr_target_repo=msg.reponame,
+                   pr_srcrepo_url=p.pullreq_srcurl or self._url_for_repo(msg.reponame),
+                   pr_branch=p.pullreq_branch,
+                   pr_ident=p.pullreq_number,
+                   pr_title=p.pullreq_title)
+            for p in msg.pullreqs]))
         self.got_response(response_name='pull_reqs_data')
+
+    def _url_for_repo(self, repo_name):
+        for each in self.RL:
+            if each.repo_name == repo_name:
+                return each.repo_url
+        for each in self.subrepos:
+            if each.repo_name == repo_name:
+                return each.repo_url
+        raise ValueError('Repo not known by name (for url): ' % repo_name)
 
     def check_for_branch(self, repo_name, branch_name):
         self._incr_stat('chk_for_branch')

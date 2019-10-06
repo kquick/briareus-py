@@ -112,6 +112,7 @@ class PullReqInfo(object):
     pullreq_title  = attr.ib()
     pullreq_srcurl = attr.ib()
     pullreq_branch = attr.ib()
+    pullreq_ref    = attr.ib()
     pullreq_mergeref = attr.ib(default=None) # if available
 
 @attr.s
