@@ -20,6 +20,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.top_requestor = None
         self._stats = {}
         self.responses_pending = 0
+        self.pending_requests = []
 
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
@@ -31,7 +32,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                          globalName='GatherRepoInfo')
             self.send(successor, 'HaveCachedInfo')
         elif msg == 'HaveCachedInfo' and sender != self.myAddress:
-            # Ask send for their cached info...
+            # Ask sender for their cached info...
             logging.critical('Get cached repo info from %s', sender)
             pass
         elif msg == 'Start':
@@ -40,13 +41,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
             pass
         else:
             objmsg = fromJSON(msg)
-            if isinstance(objmsg, GatherInfo):
-                self._gatherInfo(objmsg, sender, jsonReply=True)
-            elif isinstance(objmsg, ReadFileFromVCS):
-                objmsg.requestor = sender
-                self.read_vcs_file(objmsg, jsonReply=True)
-            else:
-                logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
+            self._dispatch(objmsg, sender, jsonReply=True)
+
+    def _dispatch(self, objmsg, sender, jsonReply=False):
+        if isinstance(objmsg, GatherInfo):
+            self._gatherInfo(objmsg, sender, jsonReply=jsonReply)
+        elif isinstance(objmsg, ReadFileFromVCS):
+            self.read_vcs_file(objmsg, sender, jsonReply=jsonReply)
+        else:
+            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
 
 
     def _incr_stat(self, stat_name):
@@ -63,58 +66,64 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.send(self._get_git_info, reqmsg)
 
 
+    def respond_to_requestor(self, response_msg):
+        if self.top_requestor:
+            self.send(self.top_requestor, response_msg)
+            self.top_requestor = None
+        if self.pending_requests:
+            self._dispatch(*self.pending_requests.pop(0))
+
+    def is_idle(self, newmsg, msg_sender, jsonReply):
+        if self.top_requestor is None:
+            return True
+        self.pending_requests.append( (newmsg, msg_sender, jsonReply) )
+        return False
+
     def got_response(self, got_a_response=True, response_name='unk'):
         self._incr_stat(response_name)
         if got_a_response and self.responses_pending:
             self.responses_pending -= 1
         if self.responses_pending == 0:
-            # Send results to requestor
-            if self.top_requestor:
-                self.send(self.top_requestor,
-                          self.prepareReply(
-                              GatheredInfo({ "pullreqs" : self.pullreqs,
-                                             "submodules": self.submodules,
-                                             "subrepos" : self.subrepos,
-                                             "branches" : self.branches
-                              })))
-            self.top_requestor = None
-
+            self.respond_to_requestor(
+                self.prepareReply(
+                    GatheredInfo({ "pullreqs" : self.pullreqs,
+                                   "submodules": self.submodules,
+                                "subrepos" : self.subrepos,
+                                   "branches" : self.branches
+                    })))
 
     def receiveMsg_ChildActorExited(self, msg, sender):
         if msg.childAddress == self._get_git_info:
             self._get_git_info = None
-            if self.top_requestor:
-                self.send(self.top_requestor,
-                          self.prepareReply(GatheredInfo(None, 'GitInfo actor exited')))
-                self.top_requestor = None
+            self.respond_to_requestor(self.prepareReply(GatheredInfo(None, 'GitInfo actor exited')))
 
     def receiveMsg_InvalidRepo(self, msg, sender):
-        if self.top_requestor:
-            self.send(self.top_requestor,
-                      self.prepareReply(
-                          GatheredInfo(None, 'Invalid %s repo "%s", remote %s (@ %s): %s' %
-                                       (msg.repo_type,
-                                        msg.reponame,
-                                        msg.repo_remote,
-                                        msg.repo_api_url,
-                                        msg.errorstr))))
-            self.top_requestor = None
+        self.respond_to_requestor(
+            self.prepareReply(
+                GatheredInfo(None, 'Invalid %s repo "%s", remote %s (@ %s): %s' %
+                             (msg.repo_type,
+                              msg.reponame,
+                              msg.repo_remote,
+                              msg.repo_api_url,
+                              msg.errorstr))))
 
     def receiveMsg_ReadFileFromVCS(self, msg, sender):
-        """Main entrypoint to reada a specific file from a repo at the
+        """Main entrypoint to read a specific file from a repo at the
            specified URL
         """
-        msg.requestor = sender
-        self.read_vcs_file(msg)
+        self.read_vcs_file(msg, sender)
 
-    def read_vcs_file(self, readfile_msg, jsonReply=False):
+    def read_vcs_file(self, readfile_msg, sender, jsonReply=False):
+        if not self.is_idle(readfile_msg, sender, jsonReply):
+            return
+        self.top_requestor = sender
         self.prepareReply = toJSON if jsonReply else (lambda x: x)
         self.get_git_info(Repo_AltLoc_ReqMsg(to_http_url(readfile_msg.repourl,
                                                          readfile_msg.repolocs),
                                              readfile_msg))
 
     def receiveMsg_FileReadData(self, msg, sender):
-        self.send(msg.req.requestor, self.prepareReply(msg))
+        self.respond_to_requestor(self.prepareReply(msg))
 
     def receiveMsg_GatherInfo(self, msg, sender):
         """Main entrypoint to gather information for the list of repos and
@@ -129,6 +138,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self._gatherInfo(msg, sender)
 
     def _gatherInfo(self, msg, sender, jsonReply=False):
+        if not self.is_idle(msg, sender, jsonReply):
+            return
         self.top_requestor = sender
         self.prepareReply = toJSON if jsonReply else (lambda x: x)
         self.responses_pending = 0
