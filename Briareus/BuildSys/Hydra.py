@@ -186,9 +186,9 @@ class HydraBuilder(BuilderBase.Builder):
             if not self._conf_file:
                 return 'Build results cannot be retrieved without builder configuration information.'
             input_cfg = json.loads(open(self._conf_file, 'r').read())
-            project_name = input_cfg.get('name', None)
+            project_name = input_cfg.get('project_name', None)
             if not project_name:
-                return 'Build results require a project name for querying Hydra'
+                return 'Build results require a project_name for querying Hydra'
             r = requests.get(self._builder_url + "/api/jobsets?project=" + project_name)
             if r.status_code == 404:
                 return 'No build results at specified target'
