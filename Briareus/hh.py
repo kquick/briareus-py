@@ -129,7 +129,7 @@ def run_hh_reporting_to(reportf, input_src, params, prior_report):
                               prior_report=prior_report)
     else:
         if params.input_url is not None and params.input_path is not None:
-            asys = ActorSystem('multiprocTCPBase', logDefs=logcfg)
+            asys = ActorSystem('multiprocTCPBase')
             upd_from_remote(params.input_url, params.input_path, input_src, [], asys)
             upd_from_remote(params.input_url, params.input_path, params.builder_conf, [], asys)
         if os.path.exists(input_src):
