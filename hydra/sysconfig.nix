@@ -71,7 +71,7 @@ let
              replace_json_if_newer () { # $1 = newfile, $2 = oldfile
                if ! ${pkgs.diffutils}/bin/cmp -s <(cat $2 | ${pkgs.jq}/bin/jq -S) <(cat $1 | ${pkgs.jq}/bin/jq -S)
                then
-                 mv $2 $2.old
+                 if [ -f $2 ] ; then mv $2 $2.old ; fi
                  cp $1 $2
                fi
              }
