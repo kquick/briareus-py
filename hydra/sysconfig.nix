@@ -79,7 +79,7 @@ let
              # Generate a new project config in case the input files would cause this to change
              if [ -r $(pwd)/${project.hhb} ]
              then
-               newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg ${name} $(pwd)/${project.hhb}")
+               newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg "${name}" $(pwd)/${project.hhb}")
                replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
              fi
 
