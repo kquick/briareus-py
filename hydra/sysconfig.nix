@@ -17,63 +17,20 @@ let
                  else "";
 
   briareus = pkgs.callPackage briareusSrc {
-  	       inherit thespian;
-	       inherit (pkgs."${pythonVer}Packages") setproctitle attrs requests;
-  	     };
+    inherit thespian;
+    inherit (pkgs."${pythonVer}Packages") setproctitle attrs requests;
+  };
 
   briareus_thespian_director = pkgs.callPackage (briareusSrc + "/thespian/director") {};
 
   briareus_outfile = projectname: "${briareus_rundir}/${projectname}.hhc";
 
-  slash_join = a: b:
-    # Joins a and b together with a single slash between them.
-    # Handles the cases where a ends with one or more slashes and b
-    # begins with one or more slashes; the result will always have
-    # only a single slash between a and b.
-    with builtins;
-    let len_a = stringLength a;
-    in if stringLength b == 0
-       then a
-       else
-         (if substring (len_a - 1) 1 a == "/"
-          then (if substring 0 1 b == "/"
-                then slash_join a (substring 0 1 b)
-                else a + b)
-          else (if substring 0 1 b == "/"
-                then a + b
-                else a + "/" + b));
-
-  retrieval_url = base: src_subdir: file:
-    # Given the base url, a subdirectory in that url target, returns a
-    # full URL to reference the target file at that URL path.  Handles
-    # some conversions of recognized URL's like github.com to get the
-    # raw file contents instead of the HTML page for that file.
-    #
-    # The base may also just be a local absolute filepath, in which
-    # case the result is an absolute filepath to the target file.
-    with builtins;
-    let github_base = "https://github.com/";
-        len_gh_base = stringLength github_base;
-        len_base = stringLength base;
-        rem_base = sub len_base len_gh_base;
-    in
-    if substring 0 1 base == "/"
-    then
-      ( # This is an absolute path, not a network path
-        slash_join (slash_join base src_subdir) file )
-    else (if substring 0 len_gh_base base == github_base
-          then
-            (slash_join
-              (slash_join
-                (slash_join ("https://raw.githubusercontent.com/" +
-                             (substring len_gh_base rem_base base))
-                  "/master/")
-                src_subdir)
-              file)
-          else
-            (slash_join
-              (slash_join
-                (slash_join base "/raw/master/") src_subdir) file));
+  dropExtension =
+    # Drops the filename extension (if any).  Only the last extension
+    # will be dropped if there are multiple, and any path component is
+    # unchanged.
+    n:  # filename to drop extension of
+    builtins.head (builtins.split "\\." n);
 
   mkBriareusProject =
     # Called to generate the NixOS Briareus support components for a
@@ -87,9 +44,8 @@ let
     #  project.hhd   = filename for Briareus input specification (in hhSrc)
     #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
 
-    let inp_hhd = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhd;
-        inp_hhb = retrieval_url project.hhSrc (project.hhSubdir or "") project.hhb;
-	name = (builtins.fromJSON (builtins.readFile (builtins.fetchurl inp_hhb))).name;
+    let inp_upd = project.hhSrc + "+" + (project.hhSubdir or "");
+        name = dropExtension project.hhd;
 
         # This script is run periodically to fetch the input Briareus
         # files for this project (in case they have changed) and
@@ -101,38 +57,24 @@ let
         run_script = ''
              set -x
              mkdir -p ${briareus_rundir};
-             pwd
              cd ${briareus_rundir};
-             pwd
 
-             fetch_briareus () {
-               case $1 in
-                 http*) ${pkgs.curl}/bin/curl -o $2 $1 ;;
-                 *)     cp $1 $2 ;;
-               esac
+             replace_json_if_newer () { # $1 = newfile, $2 = oldfile
+               if ! ${pkgs.diffutils}/bin/cmp -s <(cat $2 | ${pkgs.jq}/bin/jq -S) <(cat $1 | ${pkgs.jq}/bin/jq -S)
+               then
+                 mv $2 $2.old
+                 mv $1 $2
+               fi
              }
 
-	     replace_json_if_newer () { # $1 = newfile, $2 = oldfile
-	       if ! ${pkgs.diffutils}/bin/cmp -s <(cat $2 | ${pkgs.jq}/bin/jq -S) <(cat $1 | ${pkgs.jq}/bin/jq -S) ; then
-	         cp $1 $2
-	       fi
-	     }
-
-             # Fetch Briareus input file updates for this project
-             if fetch_briareus ${inp_hhd} ${project.hhd}.new && \
-                fetch_briareus ${inp_hhb} ${project.hhb}.new; then
-               # Successfully fetched, so install these as the new files to use
-               mv ${project.hhd}.new ${project.hhd}
-               mv ${project.hhb}.new ${project.hhb}
-               # Generate a new project config in case the input files would cause this to change
-	       newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
-	       replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
-             fi
+             # Generate a new project config in case the input files would cause this to change
+             newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
+             replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new
+             ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new -I ${inp_upd}
              if [ $? -eq 0 ] ; then
-	       replace_json_if_newer ${briareus_outfile name}.new ${briareus_outfile name}
+               replace_json_if_newer ${briareus_outfile name}.new ${briareus_outfile name}
              fi
              '';
 
