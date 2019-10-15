@@ -14,7 +14,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
 
     declare_facts = [ DeclareFact('repo/1'),
                       DeclareFact('project/1'),
-                      DeclareFact('branch/1'),
+                      DeclareFact('branchreq/2'),
                       DeclareFact('subrepo/1'),
                       DeclareFact('pullreq/3'),
                       DeclareFact('branch/2'),
@@ -25,7 +25,8 @@ def get_input_facts(RL, BL, VAR, repo_info):
 
     repo_facts    = [ Fact('repo("%s")'    % r.repo_name)   for r in RL ]
     project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]
-    branch_facts  = [ Fact('branch("%s")'  % b.branch_name) for b in BL ]
+    branch_facts  = [ Fact('branchreq("%s", "%s")'  % (r.repo_name, b.branch_name))
+                      for r in projects for b in BL ]
     subrepo_facts = [ Fact('subrepo("%s")' % r.repo_name)
                       for r in repo_info['subrepos'] ]
 

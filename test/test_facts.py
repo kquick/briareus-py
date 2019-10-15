@@ -66,7 +66,7 @@ expected_facts = sorted(filter(None, '''
 :- dynamic repo/1.
 :- dynamic subrepo/1.
 :- dynamic submodule/4.
-:- dynamic branch/1.
+:- dynamic branchreq/2.
 :- dynamic branch/2.
 :- dynamic pullreq/3.
 :- dynamic varname/1.
@@ -79,9 +79,9 @@ repo("R5").
 repo("R6").
 subrepo("R4").
 subrepo("R7").
-branch("master").
-branch("feat1").
-branch("dev").
+branchreq("R1", "master").
+branchreq("R1", "feat1").
+branchreq("R1", "dev").
 branch("R1", "master").
 branch("R1", "feat1").
 branch("R2", "bugfix9").
