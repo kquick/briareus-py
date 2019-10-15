@@ -87,7 +87,7 @@ def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
                                  BldRepoRev("R5","blah"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R7","r7_master_head^4", "Y")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -99,7 +99,7 @@ def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R5","blah"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R7","master")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -123,7 +123,7 @@ def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
                                  BldRepoRev("R5","bugfix9"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","bugfix9")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -135,7 +135,7 @@ def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R5","bugfix9"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","bugfix9")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -159,7 +159,7 @@ def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
                                  BldRepoRev("R5","master"),
                                  BldRepoRev("R6","feat1"),
                                  BldRepoRev("R4","r4_feat1_head^2")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -171,7 +171,7 @@ def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R5","master"),
                                  BldRepoRev("R6","feat1"),
                                  BldRepoRev("R4","feat1")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -183,7 +183,7 @@ def test_example_internal_master_regular_submodules(example_internal_bldconfigs)
                                  BldRepoRev("R5","master"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","r4_master_head^1")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -195,7 +195,7 @@ def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R5","master"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","master")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -207,7 +207,7 @@ def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
                                  BldRepoRev("R5","dev"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","r4_master_head^1")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         print(example_internal_bldconfigs)
         assert each in example_internal_bldconfigs.cfg_build_configs
@@ -220,7 +220,7 @@ def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R5","dev"),
                                  BldRepoRev("R6","master"),
                                  BldRepoRev("R4","master")],
-                                [BldVariable("ghcver", G), BldVariable("c_compiler", C)])
+                                [BldVariable("R1","ghcver", G), BldVariable("R1","c_compiler", C)])
                   for G in GS for C in CS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

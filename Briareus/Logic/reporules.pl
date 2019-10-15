@@ -9,23 +9,23 @@ has_gitmodules(R, B) :-
 
 all_repos_no_subs(ALLR) :- findall(R, repo(R), ALLR).
 all_repos(ALLR) :- findall(R, (repo(R) ; subrepo(R)), ALLR).
-all_vars(ALLV) :- findall(VN, varname(VN), ALLV).
+all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
 build_config(bldcfg(BranchType, Branch, Strategy, BLDS, VARS)) :-
     branch_type(BranchType, Branch),
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     all_repos(RL),
-    all_vars(VL),
-    varcombs(VL, VARS),
+    all_vars(ProjRepo, VL),
+    varcombs(ProjRepo, VL, VARS),
     reporevs(RL, ProjRepo, BranchType, Branch, Strategy, BLDS)
 .
 
-varcombs([], []).
-varcombs([VN|VNS], [var(VN,VVS)|VNSVS]) :-
-    varname(VN),
-    var(VN,VVS),
-    varcombs(VNS, VNSVS).
+varcombs(_, [], []).
+varcombs(ProjRepo, [VN|VNS], [var(ProjRepo,VN,VVS)|VNSVS]) :-
+    varname(ProjRepo, VN),
+    var(ProjRepo, VN,VVS),
+    varcombs(ProjRepo, VNS, VNSVS).
 
 branch_type(pullreq, B) :- pullreq(_, _, B).
 branch_type(regular,  B) :- branchreq(R, B), is_project_repo(R).

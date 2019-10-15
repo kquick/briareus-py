@@ -72,8 +72,8 @@ expected_facts = sorted(filter(None, '''
 :- dynamic branchreq/2.
 :- dynamic branch/2.
 :- dynamic pullreq/3.
-:- dynamic varname/1.
-:- dynamic var/2.
+:- dynamic varname/2.
+:- dynamic var/3.
 project("TheRepo").
 repo("TheRepo").
 branchreq("TheRepo", "master").

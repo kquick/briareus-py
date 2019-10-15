@@ -92,8 +92,8 @@ expected_facts = sorted(filter(None, '''
 :- dynamic branchreq/2.
 :- dynamic branch/2.
 :- dynamic pullreq/3.
-:- dynamic varname/1.
-:- dynamic var/2.
+:- dynamic varname/2.
+:- dynamic var/3.
 project("R1").
 repo("R1").
 repo("R2").
@@ -114,10 +114,10 @@ submodule("R1", "develop", "R4", "r4_master_head").
 submodule("R1", "master", "R2", "r2_master_head").
 submodule("R1", "master", "R3", "r3_master_head^3").
 submodule("R1", "master", "R4", "r4_master_head^1").
-varname("ghcver").
-var("ghcver", "ghc844").
-var("ghcver", "ghc865").
-var("ghcver", "ghc881").
+varname("R1", "ghcver").
+var("R1", "ghcver", "ghc844").
+var("R1", "ghcver", "ghc865").
+var("R1", "ghcver", "ghc881").
 '''.split('\n')))
 
 
@@ -130,7 +130,7 @@ def test_example_internal_regular_develop_submodules(example_internal_bldconfigs
                                  BldRepoRev("R2","r2_develop_head"),
                                  BldRepoRev("R3","r3_develop_head"),
                                  BldRepoRev("R4","r4_master_head")],
-                                [BldVariable("ghcver", G)])
+                                [BldVariable("R1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -140,7 +140,7 @@ def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R2","develop"),
                                  BldRepoRev("R3","develop"),
                                  BldRepoRev("R4","master")],
-                                [BldVariable("ghcver", G)])
+                                [BldVariable("R1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -150,7 +150,7 @@ def test_example_internal_regular_master_submodules(example_internal_bldconfigs)
                                  BldRepoRev("R2","r2_master_head"),
                                  BldRepoRev("R3","r3_master_head^3"),
                                  BldRepoRev("R4","r4_master_head^1")],
-                                [BldVariable("ghcver", G)])
+                                [BldVariable("R1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -160,7 +160,7 @@ def test_example_internal_regular_master_HEADs(example_internal_bldconfigs):
                                  BldRepoRev("R2","master"),
                                  BldRepoRev("R3","master"),
                                  BldRepoRev("R4","master")],
-                                [BldVariable("ghcver", G)])
+                                [BldVariable("R1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

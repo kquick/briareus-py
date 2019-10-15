@@ -23,6 +23,7 @@ class BldRepoRev(object):
 
 @attr.s(frozen=True)
 class BldVariable(object):
+    projrepo = attr.ib()
     varname = attr.ib()
     varvalue = attr.ib()
 

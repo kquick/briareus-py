@@ -63,11 +63,13 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # Specifies a variable that the user has declared to be of
         # interest.  Variables names are identified separately from
         # values to allow the variables to be easily enumerated.
-        DeclareFact('varname/1'),
+        # Format is: varname(ProjectRepo, VarName)
+        DeclareFact('varname/2'),
 
         # Specifies one possible value for a specified variable, as
-        # obtained from the user's input specification.
-        DeclareFact('var/2'),
+        # obtained from the user's input specification.  Format is:
+        # var(ProjectRepo, VarName, VarValue)
+        DeclareFact('var/3'),
     ]
 
     repo_facts    = [ Fact('repo("%s")'    % r.repo_name)   for r in RL ]
@@ -114,10 +116,12 @@ def get_input_facts(RL, BL, VAR, repo_info):
 
     varname_facts = []
     varval_facts = []
-    for var in VAR:
-        varname_facts.append( Fact('varname("%s")' % var.variable_name) )
-        varval_facts.extend( [ Fact('var("%s", "%s")' % (var.variable_name, val))
-                               for val in var.variable_values ] )
+    for r in projects:
+        for var in VAR:
+            varname_facts.append( Fact('varname("%s", "%s")' % (r.repo_name, var.variable_name)) )
+            varval_facts.extend( [ Fact('var("%s", "%s", "%s")' %
+                                        (r.repo_name, var.variable_name, val))
+                                   for val in var.variable_values ] )
 
     return (declare_facts +
             project_facts +
