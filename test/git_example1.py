@@ -47,7 +47,7 @@ class GitExample1(ActorTypeDispatcher):
     def _gitmodules_data(self, msg, sender, alt_repo_url):
         ref = msg.source_ref or msg.branch_name
         alt_url = alt_repo_url.apiloc if alt_repo_url else alt_repo_url
-        print('_gitmodules_data, branch %s, alt_repo_url %s' % (branch, alt_url) )
+        print('_gitmodules_data, branch %s, ref %s, alt_repo_url %s' % (msg.branch_name, ref, alt_url) )
         ### EXAMPLE-vvv
         rsub = {
             'R1': { "master":[SubRepoVers('R2', "r2_url", "r2_master_head"),
