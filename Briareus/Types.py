@@ -48,6 +48,13 @@ class BuilderResult(object):
 # ----------------------------------------------------------------------
 
 @attr.s(frozen=True)
+class ProjectSummary(object):
+    project_name = attr.ib()
+    bldcfg_count = attr.ib()  # int
+    subrepo_count = attr.ib()  # int
+    pullreq_count = attr.ib()  # int
+
+@attr.s(frozen=True)
 class StatusReport(object):
     status    = attr.ib()  # string "success" or "failed"
     project   = attr.ib()  # string name of project

@@ -2,7 +2,7 @@
 # configurations with build results (as available) and generates
 # output reports.
 
-from Briareus.Types import BuildResult, logic_result_expr
+from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
@@ -21,6 +21,9 @@ class AnaRep(object):
         # input_desc is 'first' returned from input_desc_and_VCS_info
         # repo_info is 'second' returned from input_desc_and_VCS_info
         # build_cfgs is BCGen.Generator.GeneratedConfigs
+
+        project_name = [r.repo_name for r in input_desc.RL if r.project_repo][0]
+
         if self.verbose:
             print('## AnaRep.report_on %d configs (%d subrepos, %d pullreqs)'
                   % (len(build_cfgs.cfg_build_configs),
@@ -59,7 +62,11 @@ class AnaRep(object):
             return (self._up_to, r)
 
         return ("report",
-                eval(r, globals(), logic_result_expr) if r else [])
+                [ProjectSummary(project_name=project_name,
+                                bldcfg_count=len(build_cfgs.cfg_build_configs),
+                                subrepo_count=len(build_cfgs.cfg_subrepos),
+                                pullreq_count=len(build_cfgs.cfg_pullreqs))] +
+                (eval(r, globals(), logic_result_expr) if r else []))
 
 
     def get_build_results(self, build_cfgs):
@@ -71,6 +78,7 @@ class AnaRep(object):
 def mk_prior_facts(prior_report):
     return (
         [ DeclareFact('prior_status/5'),
+          DeclareFact('prior_summary/4'),
         ] +
         [ prior_fact(p) for p in (prior_report or []) ])
 
@@ -81,6 +89,19 @@ def mk_built_facts(build_results):
         list(filter(None, [ built_fact(r) for r in build_results ])))
 
 def prior_fact(prior):
+    return { 'ProjectSummary': prior_fact_ProjectSummary,
+             'StatusReport': prior_fact_StatusReport,
+    }[prior.__class__.__name__](prior)
+
+def prior_fact_ProjectSummary(prior):
+    return Fact(('prior_summary("{p.project_name}"'
+                 ', {p.bldcfg_count}'
+                 ', {p.subrepo_count}'
+                 ', {p.pullreq_count}'
+                 ')'
+    ).format(p=prior))
+
+def prior_fact_StatusReport(prior):
     vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
              for v in prior.bldvars ]
     return Fact(
