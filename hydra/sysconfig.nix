@@ -2,7 +2,7 @@
 , briareus_rundir ? "/var/run/briareus"
 , thespian_director_dir ? briareus_rundir + "/thespian"
 , pkgs ? import <nixpkgs> {}
-, briareusPeriod ? 30  # Period between briareus runs for a project (in minutes)
+, briareusPeriod ? 10  # Period between briareus runs for a project (in minutes)
 , pythonVer ? "python"
 , thespian ? pkgs."${pythonVer}Packages".thespian
 }:
