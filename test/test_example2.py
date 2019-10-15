@@ -10,9 +10,9 @@ import pytest
 
 input_spec = '''
 {
-  "Repos" : [ ("R1", "r1_url"),
-              ("R2", "r2_url"),
-              ("R3", "r3_url"),
+  "Repos" : [ ("Repo1", "r1_url"),
+              ("Repo2", "r2_url"),
+              ("Repo3", "r3_url"),
             ]
 , "Branches" : [ "master", "develop" ]
 , "Variables" : {
@@ -94,30 +94,30 @@ expected_facts = sorted(filter(None, '''
 :- dynamic pullreq/3.
 :- dynamic varname/2.
 :- dynamic var/3.
-project("R1").
-repo("R1").
-repo("R2").
-repo("R3").
-subrepo("R4").
-branchreq("R1", "master").
-branchreq("R1", "develop").
-branch("R3", "develop").
-branch("R4", "master").
-branch("R1", "develop").
-branch("R2", "master").
-branch("R3", "master").
-branch("R2", "develop").
-branch("R1", "master").
-submodule("R1", "develop", "R2", "r2_develop_head").
-submodule("R1", "develop", "R3", "r3_develop_head").
-submodule("R1", "develop", "R4", "r4_master_head").
-submodule("R1", "master", "R2", "r2_master_head").
-submodule("R1", "master", "R3", "r3_master_head^3").
-submodule("R1", "master", "R4", "r4_master_head^1").
-varname("R1", "ghcver").
-var("R1", "ghcver", "ghc844").
-var("R1", "ghcver", "ghc865").
-var("R1", "ghcver", "ghc881").
+project("Repo1").
+repo("Repo1").
+repo("Repo2").
+repo("Repo3").
+subrepo("Repo4").
+branchreq("Repo1", "master").
+branchreq("Repo1", "develop").
+branch("Repo3", "develop").
+branch("Repo4", "master").
+branch("Repo1", "develop").
+branch("Repo2", "master").
+branch("Repo3", "master").
+branch("Repo2", "develop").
+branch("Repo1", "master").
+submodule("Repo1", "develop", "Repo2", "r2_develop_head").
+submodule("Repo1", "develop", "Repo3", "r3_develop_head").
+submodule("Repo1", "develop", "Repo4", "r4_master_head").
+submodule("Repo1", "master", "Repo2", "r2_master_head").
+submodule("Repo1", "master", "Repo3", "r3_master_head^3").
+submodule("Repo1", "master", "Repo4", "r4_master_head^1").
+varname("Repo1", "ghcver").
+var("Repo1", "ghcver", "ghc844").
+var("Repo1", "ghcver", "ghc865").
+var("Repo1", "ghcver", "ghc881").
 '''.split('\n')))
 
 
@@ -126,41 +126,41 @@ def test_example_internal_count(example_internal_bldconfigs):
 
 def test_example_internal_regular_develop_submodules(example_internal_bldconfigs):
     for each in [ BldConfig("regular", "develop", "submodules",
-                                [BldRepoRev("R1","develop"),
-                                 BldRepoRev("R2","r2_develop_head"),
-                                 BldRepoRev("R3","r3_develop_head"),
-                                 BldRepoRev("R4","r4_master_head")],
-                                [BldVariable("R1","ghcver", G)])
+                                [BldRepoRev("Repo1","develop"),
+                                 BldRepoRev("Repo2","r2_develop_head"),
+                                 BldRepoRev("Repo3","r3_develop_head"),
+                                 BldRepoRev("Repo4","r4_master_head")],
+                                [BldVariable("Repo1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
     for each in [ BldConfig("regular", "develop", "HEADs",
-                                [BldRepoRev("R1","develop"),
-                                 BldRepoRev("R2","develop"),
-                                 BldRepoRev("R3","develop"),
-                                 BldRepoRev("R4","master")],
-                                [BldVariable("R1","ghcver", G)])
+                                [BldRepoRev("Repo1","develop"),
+                                 BldRepoRev("Repo2","develop"),
+                                 BldRepoRev("Repo3","develop"),
+                                 BldRepoRev("Repo4","master")],
+                                [BldVariable("Repo1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_submodules(example_internal_bldconfigs):
     for each in [ BldConfig("regular", "master", "submodules",
-                                [BldRepoRev("R1","master"),
-                                 BldRepoRev("R2","r2_master_head"),
-                                 BldRepoRev("R3","r3_master_head^3"),
-                                 BldRepoRev("R4","r4_master_head^1")],
-                                [BldVariable("R1","ghcver", G)])
+                                [BldRepoRev("Repo1","master"),
+                                 BldRepoRev("Repo2","r2_master_head"),
+                                 BldRepoRev("Repo3","r3_master_head^3"),
+                                 BldRepoRev("Repo4","r4_master_head^1")],
+                                [BldVariable("Repo1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_HEADs(example_internal_bldconfigs):
     for each in [ BldConfig("regular", "master", "HEADs",
-                                [BldRepoRev("R1","master"),
-                                 BldRepoRev("R2","master"),
-                                 BldRepoRev("R3","master"),
-                                 BldRepoRev("R4","master")],
-                                [BldVariable("R1","ghcver", G)])
+                                [BldRepoRev("Repo1","master"),
+                                 BldRepoRev("Repo2","master"),
+                                 BldRepoRev("Repo3","master"),
+                                 BldRepoRev("Repo4","master")],
+                                [BldVariable("Repo1","ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

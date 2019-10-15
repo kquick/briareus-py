@@ -18,10 +18,10 @@ class GitExample2(ActorTypeDispatcher):
         branch = msg.branch_name
         ### EXAMPLE-vvv
         repo_branches = {
-            'R1': [ 'develop', 'misc', 'stuff/here' ],
-            'R2': [ 'develop', 'humdrum' ],
-            'R3': [ 'develop' ],
-            'R4': [ ],
+            'Repo1': [ 'develop', 'misc', 'stuff/here' ],
+            'Repo2': [ 'develop', 'humdrum' ],
+            'Repo3': [ 'develop' ],
+            'Repo4': [ ],
         }[msg.reponame] + ['master']
         # All repos have a master branch
         chk = branch in repo_branches
@@ -33,16 +33,16 @@ class GitExample2(ActorTypeDispatcher):
         branch = msg.branch_name
         ### EXAMPLE-vvv
         rsub = {
-            'R1': { "master":[SubRepoVers('R2', "r2_url", "r2_master_head"),
-                              SubRepoVers('R3', "r3_url", "r3_master_head^3"),
-                              SubRepoVers('R4', "r4_url", "r4_master_head^1")],
-                    'develop':[SubRepoVers('R2', "r2_url", "r2_develop_head"),
-                               SubRepoVers('R3', "r3_url", "r3_develop_head"),
-                               SubRepoVers('R4', "r4_url", "r4_master_head")],
+            'Repo1': { "master":[SubRepoVers('Repo2', "r2_url", "r2_master_head"),
+                              SubRepoVers('Repo3', "r3_url", "r3_master_head^3"),
+                              SubRepoVers('Repo4', "r4_url", "r4_master_head^1")],
+                    'develop':[SubRepoVers('Repo2', "r2_url", "r2_develop_head"),
+                               SubRepoVers('Repo3', "r3_url", "r3_develop_head"),
+                               SubRepoVers('Repo4', "r4_url", "r4_master_head")],
             },
         }[msg.reponame]
         rval = rsub.get(branch, [])
-        if msg.reponame == 'R1':
+        if msg.reponame == 'Repo1':
             # If a pull req, might have different repos that only
             # exist in submodules from that pull req; see git_example1.
             pass
