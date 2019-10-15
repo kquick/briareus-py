@@ -80,7 +80,7 @@ def test_example_internal_count(example_internal_bldconfigs):
     assert len(GS) * len(CS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
 
 def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
-    for each in [ BldConfig("pullreq", "blah", "submodules",
+    for each in [ BldConfig("R1", "pullreq", "blah", "submodules",
                                 [BldRepoRev("R1","blah", "X"),
                                  BldRepoRev("R2","r2_master_head^22"),
                                  BldRepoRev("R3","r3_master_head"),
@@ -92,7 +92,7 @@ def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("pullreq", "blah", "HEADs",
+    for each in [ BldConfig("R1", "pullreq", "blah", "HEADs",
                                 [BldRepoRev("R1","blah", "ignored"),
                                  BldRepoRev("R2","master", 9999),
                                  BldRepoRev("R3","blah"),
@@ -116,7 +116,7 @@ def test_example_internal_no_blah_regular_HEADs(example_internal_bldconfigs):
                     each.strategy == "HEADs")
 
 def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
-    for each in [ BldConfig("pullreq", "bugfix9", "submodules",
+    for each in [ BldConfig("R1", "pullreq", "bugfix9", "submodules",
                                 [BldRepoRev("R1","master", "X"),
                                  BldRepoRev("R2","bugfix9"),
                                  BldRepoRev("R3","r3_master_head^3"),
@@ -128,7 +128,7 @@ def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("pullreq", "bugfix9", "HEADs",
+    for each in [ BldConfig("R1", "pullreq", "bugfix9", "HEADs",
                                 [BldRepoRev("R1","master"),
                                  BldRepoRev("R2","bugfix9"),
                                  BldRepoRev("R3","master"),
@@ -152,7 +152,7 @@ def test_example_internal_no_bugfix9_regular_HEADs(example_internal_bldconfigs):
                     each.strategy == "HEADs")
 
 def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "feat1", "submodules",
+    for each in [ BldConfig("R1", "regular", "feat1", "submodules",
                                 [BldRepoRev("R1","feat1"),
                                  BldRepoRev("R2","r2_master_head^1"),
                                  BldRepoRev("R3","r3_master_head"),
@@ -164,7 +164,7 @@ def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "feat1", "HEADs",
+    for each in [ BldConfig("R1", "regular", "feat1", "HEADs",
                                 [BldRepoRev("R1","feat1"),
                                  BldRepoRev("R2","master"),
                                  BldRepoRev("R3","master"),
@@ -176,7 +176,7 @@ def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_submodules(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "master", "submodules",
+    for each in [ BldConfig("R1", "regular", "master", "submodules",
                                 [BldRepoRev("R1","master"),
                                  BldRepoRev("R2","r2_master_head"),
                                  BldRepoRev("R3","r3_master_head^3"),
@@ -188,7 +188,7 @@ def test_example_internal_master_regular_submodules(example_internal_bldconfigs)
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "master", "HEADs",
+    for each in [ BldConfig("R1", "regular", "master", "HEADs",
                                 [BldRepoRev("R1","master"),
                                  BldRepoRev("R2","master"),
                                  BldRepoRev("R3","master"),
@@ -200,7 +200,7 @@ def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "dev", "submodules",
+    for each in [ BldConfig("R1", "regular", "dev", "submodules",
                                 [BldRepoRev("R1","master"),
                                  BldRepoRev("R2","r2_master_head"),
                                  BldRepoRev("R3","r3_master_head^3"),
@@ -213,7 +213,7 @@ def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "dev", "HEADs",
+    for each in [ BldConfig("R1", "regular", "dev", "HEADs",
                                 [BldRepoRev("R1","master"),
                                  BldRepoRev("R2","master"),
                                  BldRepoRev("R3","master"),

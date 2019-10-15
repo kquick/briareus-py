@@ -125,7 +125,7 @@ def test_example_internal_count(example_internal_bldconfigs):
     assert len(GS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
 
 def test_example_internal_regular_develop_submodules(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "develop", "submodules",
+    for each in [ BldConfig("Repo1", "regular", "develop", "submodules",
                                 [BldRepoRev("Repo1","develop"),
                                  BldRepoRev("Repo2","r2_develop_head"),
                                  BldRepoRev("Repo3","r3_develop_head"),
@@ -135,7 +135,7 @@ def test_example_internal_regular_develop_submodules(example_internal_bldconfigs
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "develop", "HEADs",
+    for each in [ BldConfig("Repo1", "regular", "develop", "HEADs",
                                 [BldRepoRev("Repo1","develop"),
                                  BldRepoRev("Repo2","develop"),
                                  BldRepoRev("Repo3","develop"),
@@ -145,7 +145,7 @@ def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_submodules(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "master", "submodules",
+    for each in [ BldConfig("Repo1", "regular", "master", "submodules",
                                 [BldRepoRev("Repo1","master"),
                                  BldRepoRev("Repo2","r2_master_head"),
                                  BldRepoRev("Repo3","r3_master_head^3"),
@@ -155,7 +155,7 @@ def test_example_internal_regular_master_submodules(example_internal_bldconfigs)
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_HEADs(example_internal_bldconfigs):
-    for each in [ BldConfig("regular", "master", "HEADs",
+    for each in [ BldConfig("Repo1", "regular", "master", "HEADs",
                                 [BldRepoRev("Repo1","master"),
                                  BldRepoRev("Repo2","master"),
                                  BldRepoRev("Repo3","master"),

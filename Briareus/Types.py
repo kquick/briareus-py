@@ -4,6 +4,7 @@ import attr
 
 @attr.s(frozen=True)
 class BldConfig(object):
+    projectname = attr.ib()
     branchtype = attr.ib(default="regular")
     branchname = attr.ib(default="master")
     strategy   = attr.ib(default="main")

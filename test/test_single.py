@@ -111,11 +111,11 @@ def skiptest_single_raw_build_config():
         asys.shutdown()
 
 expected_raw_build_config = '''[
-bldcfg(pullreq,"frog",main,[bld("TheRepo","frog",brr(3))],[]),
-bldcfg(pullreq,"toad",main,[bld("TheRepo","toad",brr(3))],[]),
-bldcfg(regular,"dev",main,[bld("TheRepo","master",brr(2))],[]),
-bldcfg(regular,"feat1",main,[bld("TheRepo","feat1",brr(1))],[]),
-bldcfg(regular,"master",main,[bld("TheRepo","master",brr(1))],[])
+bldcfg("TheRepo",pullreq,"frog",main,[bld("TheRepo","frog",brr(3))],[]),
+bldcfg("TheRepo",pullreq,"toad",main,[bld("TheRepo","toad",brr(3))],[]),
+bldcfg("TheRepo",regular,"dev",main,[bld("TheRepo","master",brr(2))],[]),
+bldcfg("TheRepo",regular,"feat1",main,[bld("TheRepo","feat1",brr(1))],[]),
+bldcfg("TheRepo",regular,"master",main,[bld("TheRepo","master",brr(1))],[])
 ]'''.replace('\n','')
 
 @pytest.fixture(scope="module")
@@ -140,21 +140,21 @@ def test_single_internal_count(single_internal_bldconfigs):
     assert 5 == len(single_internal_bldconfigs.cfg_build_configs)
 
 def test_single_internal_master(single_internal_bldconfigs):
-    expected = BldConfig("regular", "master", "main", [BldRepoRev("TheRepo","master")], [])
+    expected = BldConfig("TheRepo", "regular", "master", "main", [BldRepoRev("TheRepo","master")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_feat1(single_internal_bldconfigs):
-    expected = BldConfig("regular", "feat1", "main", [BldRepoRev("TheRepo","feat1")], [])
+    expected = BldConfig("TheRepo", "regular", "feat1", "main", [BldRepoRev("TheRepo","feat1")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_dev(single_internal_bldconfigs):
-    expected = BldConfig("regular", "dev", "main", [BldRepoRev("TheRepo","master")], [])
+    expected = BldConfig("TheRepo", "regular", "dev", "main", [BldRepoRev("TheRepo","master")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_toad(single_internal_bldconfigs):
-    expected = BldConfig("pullreq", "toad", "main", [BldRepoRev("TheRepo","toad")], [])
+    expected = BldConfig("TheRepo", "pullreq", "toad", "main", [BldRepoRev("TheRepo","toad")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs
 
 def test_single_internal_frog(single_internal_bldconfigs):
-    expected = BldConfig("pullreq", "frog", "main", [BldRepoRev("TheRepo","frog")], [])
+    expected = BldConfig("TheRepo", "pullreq", "frog", "main", [BldRepoRev("TheRepo","frog")], [])
     assert expected in single_internal_bldconfigs.cfg_build_configs

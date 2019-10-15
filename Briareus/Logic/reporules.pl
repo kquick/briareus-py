@@ -11,7 +11,7 @@ all_repos_no_subs(ALLR) :- findall(R, repo(R), ALLR).
 all_repos(ALLR) :- findall(R, (repo(R) ; subrepo(R)), ALLR).
 all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
-build_config(bldcfg(BranchType, Branch, Strategy, BLDS, VARS)) :-
+build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     branch_type(BranchType, Branch),
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
