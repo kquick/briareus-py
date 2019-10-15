@@ -79,7 +79,7 @@ let
              # Generate a new project config in case the input files would cause this to change
              if [ -r $(pwd)/${project.hhb} ]
              then
-               newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
+               newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg ${name} $(pwd)/${project.hhb}")
                replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
              fi
 
@@ -170,7 +170,8 @@ rec {
     # does not need to be used, and the declarative config can be
     # supplied by other means, but this is a convenience to get a
     # config that is compatible with importing Briareus build_configs.
-    inpfile:  # Specifies the Briareus Hydra configuration
+    project_name:   # Name of the project (in Hydra and for output file name)
+    inpfile:        # Specifies the Briareus Hydra configuration
     #  inpfile.name = a name given to this project (used for printing only)
     #  inpfile.project = project-specific overrides
     let
@@ -217,5 +218,5 @@ rec {
 
       cfg = projcfg_overrides inpfile;
 
-    in projcfg_file (cfg.name or "project") (cfg.project or {});
+    in projcfg_file project_name (cfg.project or {});
 }
