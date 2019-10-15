@@ -54,6 +54,15 @@ let
         # changes).  Hydra will then see these changes and update the
         # jobsets for this project automatically.
 
+        # run_script notes:
+        #
+        # Assumes replace_json_if_newer oldfile ($2) is in writeable
+        # location, but newfile ($1) may not be: specifically it may
+        # be in the /nix/store (see nix eval below) and so it must be
+        # copied instead of moved in case it is (a) on a different
+        # filesystem and (b) the source filesystem is read-only
+        # (e.g. /nix/store)
+
         run_script = ''
              set -x
              mkdir -p ${briareus_rundir};
@@ -63,7 +72,7 @@ let
                if ! ${pkgs.diffutils}/bin/cmp -s <(cat $2 | ${pkgs.jq}/bin/jq -S) <(cat $1 | ${pkgs.jq}/bin/jq -S)
                then
                  mv $2 $2.old
-                 mv $1 $2
+                 cp $1 $2
                fi
              }
 
