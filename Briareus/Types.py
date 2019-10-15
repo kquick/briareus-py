@@ -84,7 +84,10 @@ logic_result_expr = {
     "var": lambda *args: BldVariable(*args),
 
     "status_report": StatusReport,
-    "success": "success",
+    "prior_status": PriorStatus,
+    "succeeded": "succeeded",
     "failed": "failed",
+    "fixed": "fixed",
+    "initial_success": "initial_success",
     "project": lambda n: n,
 }

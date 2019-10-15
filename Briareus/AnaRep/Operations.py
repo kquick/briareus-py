@@ -85,6 +85,12 @@ def mk_prior_facts(prior_report):
 def mk_built_facts(build_results):
     return (
         [ DeclareFact('bldres/10'),
+          DeclareFact('report/1'),
+          DeclareFact('status_report/5'),
+          DeclareFact('succeeded/0'),
+          DeclareFact('failed/0'),
+          DeclareFact('initial_success/0'),
+          DeclareFact('fixed/0'),
         ] +
         list(filter(None, [ built_fact(r) for r in build_results ])))
 
@@ -114,7 +120,7 @@ def prior_fact_StatusReport(prior):
          ).format(p=prior, vars='[ ' + ', '.join(vars) + ' ]'))
 
 def built_fact(result):
-    vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
+    vars = [ 'var("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)
              for v in result.bldconfig.bldvars ]
     if isinstance(result.results, str):
         # Builder returned a failure / warning message and not an
