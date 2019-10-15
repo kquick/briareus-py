@@ -68,8 +68,11 @@ let
              }
 
              # Generate a new project config in case the input files would cause this to change
-             newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
-             replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
+             if [ -r $(pwd)/${project.hhb} ]
+             then
+               newprojcfg=$(${pkgs.nix}/bin/nix eval --raw "(import ${briareus}/hydra/sysconfig.nix { briareusSrc = ${briareusSrc}; }).mkProjectCfg $(pwd)/${project.hhb}")
+               replace_json_if_newer $newprojcfg ${briareus_rundir}/${name}-hydra-project-config.json
+             fi
 
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -v ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new -I ${inp_upd}
