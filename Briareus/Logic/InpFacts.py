@@ -12,15 +12,62 @@ def get_input_facts(RL, BL, VAR, repo_info):
         raise AssertionError("only one 'project' allowed in input specification.")
     project = projects[0] if projects else None
 
-    declare_facts = [ DeclareFact('repo/1'),
-                      DeclareFact('project/1'),
-                      DeclareFact('branchreq/2'),
-                      DeclareFact('subrepo/1'),
-                      DeclareFact('pullreq/3'),
-                      DeclareFact('branch/2'),
-                      DeclareFact('submodule/4'),
-                      DeclareFact('varname/1'),
-                      DeclareFact('var/2'),
+    declare_facts = [
+
+        # Identifies a repository (by name, not URL, so
+        # forks are all assumed to be identical
+        # repositories.)
+        DeclareFact('repo/1'),
+
+        # Identifies the repo that is the "Project"
+        # repo.  The "Project" repo is the only one
+        # where submodules are looked up, and the
+        # "Project" also serves as the "top-level"
+        # identification of the group of repositories
+        # (there may be multiple Projects under
+        # consideration).
+        DeclareFact('project/1'),
+
+        # Specifies a branch that the user would like to have built.
+        # The branch request is associated with the Project
+        # specification from which it came: branchreq(ProjectRepo,
+        # BranchName)
+        DeclareFact('branchreq/2'),
+
+        # Identifies a repository found by checking the submodules
+        # specification of the Project repo; this repository was not
+        # explicitly identified by the user.  The only real difference
+        # is that identified repositories may be changed in different
+        # branches of the Project repo, but primary repositories are
+        # always considered for all build configurations.
+        DeclareFact('subrepo/1'),
+
+        # Identifies a pull request that was found by probing the VCS.
+        # The format is: pullreq(Repo, PR_Ident, PR_Branch).  The
+        # PR_Branch may be used to correlate against branches in other
+        # repositories (whether or not they have an active pullreq for
+        # that branch).  The PR_Ident serves only to identify this PR
+        # (relative to the Repo) and is otherwise "free-form".
+        DeclareFact('pullreq/3'),
+
+        # Specifies the existence of a branch in a repository by
+        # probing the VCS.  The format is: branch(Repo, BranchName).
+        DeclareFact('branch/2'),
+
+        # Specifies the existence of a submodule specification.  The
+        # format is: submodule(ProjectRepo, BranchName, SubmoduleRepo,
+        # SubmoduleRef).  The SubmoduleRef is the explicit VCS
+        # reference that the submodule refers to.
+        DeclareFact('submodule/4'),
+
+        # Specifies a variable that the user has declared to be of
+        # interest.  Variables names are identified separately from
+        # values to allow the variables to be easily enumerated.
+        DeclareFact('varname/1'),
+
+        # Specifies one possible value for a specified variable, as
+        # obtained from the user's input specification.
+        DeclareFact('var/2'),
     ]
 
     repo_facts    = [ Fact('repo("%s")'    % r.repo_name)   for r in RL ]
