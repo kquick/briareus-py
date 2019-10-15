@@ -228,11 +228,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
                             self.get_git_info(
                                 Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
                                                    GitmodulesData(repo.repo_name,
+                                                                  p.pullreq_branch,
                                                                   p.pullreq_ref or
                                                                   p.pullreq_branch)))
                         else:
                             # Source for pull request is in this repo
                             self.get_git_info(GitmodulesData(repo.repo_name,
+                                                             p.pullreq_branch,
                                                              p.pullreq_ref or
                                                              p.pullreq_branch))
 
@@ -304,7 +306,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # This is a branch on the project repo, so see if
                     # there is any submodule information on that
                     # branch.
-                    self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name))
+                    self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name, None))
         main_r = ([ r for r in self.RL if r.repo_name == msg.reponame ] +
                   [ r for r in self.subrepos if r.repo_name == msg.reponame ] +
                   [ None ])[0]

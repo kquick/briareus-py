@@ -127,6 +127,7 @@ class BranchPresent(Repo__RspMsg):      # HasBranch -->
 @attr.s
 class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers
     branch_name = attr.ib()
+    source_ref = attr.ib()  # explicit ref for src (e.g. for Gitlab)
 @attr.s
 class GitmodulesRepoVers(Repo__RspMsg): # GitmodulesData -->
     branch_name = attr.ib()

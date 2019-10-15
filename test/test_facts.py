@@ -84,6 +84,7 @@ branch("feat1").
 branch("dev").
 branch("R1", "master").
 branch("R1", "feat1").
+branch("R2", "bugfix9").
 branch("R2", "master").
 branch("R3", "master").
 branch("R5", "master").
