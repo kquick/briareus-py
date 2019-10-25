@@ -168,15 +168,15 @@ def example_hydra_results():
         ]
         prior = [
             StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-                         buildname='master.submodules-ghc844',
+                         strategy='submodules', buildname='master.submodules-ghc844',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                          ]),
             StatusReport(status='failed', project='Repo1', projrepo='Repo1',
-                         buildname='master.HEADs-ghc865',
+                         strategy='HEADs', buildname='master.HEADs-ghc865',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                          ]),
             StatusReport(status='succeeded', project='Repo1', projrepo='Repo1',
-                         buildname='master.HEADs-ghc881',
+                         strategy='HEADs', buildname='master.HEADs-ghc881',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                          ]),
 
@@ -313,59 +313,59 @@ def test_example_report(example_hydra_results):
                           bldcfg_count=12, subrepo_count=1, pullreq_count=0) in reps
 
     assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-                        buildname='develop.HEADs-ghc844',
+                        strategy='HEADs', buildname='develop.HEADs-ghc844',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
     # This one is pending:
     # assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-    #                     buildname='develop.HEADs-ghc865',
+    #                     strategy='HEADs', buildname='develop.HEADs-ghc865',
     #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
     #                     ]) in reps
     assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
-                        buildname='develop.HEADs-ghc881',
+                        strategy='HEADs', buildname='develop.HEADs-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     # This one has an error message (configInvalid)
     # assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-    #                     buildname='develop.submodules-ghc844',
+    #                     strategy='submodules', buildname='develop.submodules-ghc844',
     #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
     #                     ]) in reps
     assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-                        buildname='develop.submodules-ghc865',
+                        strategy='submodules', buildname='develop.submodules-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
     assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
-                        buildname='develop.submodules-ghc881',
+                        strategy='submodules', buildname='develop.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-                        buildname='master.HEADs-ghc844',
+                        strategy='HEADs', buildname='master.HEADs-ghc844',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
     # This one had a prior failure
     assert StatusReport(status='fixed', project='Repo1', projrepo='Repo1',
-                        buildname='master.HEADs-ghc865',
+                        strategy='HEADs', buildname='master.HEADs-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
     # This one had a prior success
     assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
-                        buildname='master.HEADs-ghc881',
+                        strategy='HEADs', buildname='master.HEADs-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     # This one has a prior success
     assert StatusReport(status='succeeded', project='Repo1', projrepo='Repo1',
-                        buildname='master.submodules-ghc844',
+                        strategy='submodules', buildname='master.submodules-ghc844',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
     assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
-                        buildname='master.submodules-ghc865',
+                        strategy='submodules', buildname='master.submodules-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
     assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
-                        buildname='master.submodules-ghc881',
+                        strategy='submodules', buildname='master.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 

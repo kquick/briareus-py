@@ -114,10 +114,11 @@ def prior_fact_StatusReport(prior):
         ('prior_status({p.status}'
          ', project("{p.project}")'
          ', "{p.projrepo}"'
+         ', {strategy}'
          ', "{p.buildname}"'
          ', {vars}'
          ')'
-         ).format(p=prior, vars='[ ' + ', '.join(vars) + ' ]'))
+         ).format(p=prior, strategy=prior.strategy.lower(), vars='[ ' + ', '.join(vars) + ' ]'))
 
 def built_fact(result):
     vars = [ 'varvalue("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)

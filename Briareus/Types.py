@@ -60,6 +60,7 @@ class StatusReport(object):
     status    = attr.ib()  # string "success" or "failed"
     project   = attr.ib()  # string name of project
     projrepo  = attr.ib()  # string project repository reference
+    strategy  = attr.ib()  # string: submodules, heads, main
     buildname = attr.ib()  # string name of build on builder
     bldvars   = attr.ib()  # list of BldVariable
 
