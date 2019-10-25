@@ -27,16 +27,16 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varvalue(ProjRepo, VN,VVS),
     varcombs(ProjRepo, VNS, VNSVS).
 
-branch_type(pullreq, B) :- pullreq(_, _, B).
-branch_type(regular,  B) :- branchreq(R, B), is_project_repo(R).
+branch_type(pullreq, B) :- setof(X, R^I^pullreq(R, I, X), XS), member(B, XS).
+branch_type(regular, B) :- branchreq(R, B), \+pullreq(_, _, B), is_project_repo(R).
 
-strategy(submodules, R, B) :-    branch(R, B), has_gitmodules(R, B).
-strategy(heads,      R, B) :-    branch(R, B), has_gitmodules(R, B).
-strategy(submodules, R, B) :- \+ branch(R, B), has_gitmodules(R, "master").
-strategy(heads,      R, B) :- \+ branch(R, B), has_gitmodules(R, "master").
-strategy(submodules, R, B) :-    pullreq(_, _, B), has_gitmodules(R, "master").
-strategy(heads,      R, B) :-    pullreq(_, _, B), has_gitmodules(R, "master").
-strategy(main,       R, B) :- \+ strategy(heads, R, B).
+useable_submodules(R, B) :- (branch(R, B), has_gitmodules(R, B));
+                            (has_gitmodules(R, "master"), \+ branch(R, B)).  % KWQ: this doesn't work if reversed.
+
+strategy(submodules, R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
+strategy(heads,      R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
+strategy(main,       R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), \+ useable_submodules(R, B).
+
 
 %% if pullreq changes submodules, don't have that data available
 %% defaulting to master if unknown, but should default to origin of branch
