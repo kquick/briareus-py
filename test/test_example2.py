@@ -1,5 +1,7 @@
+import Briareus.AnaRep.Operations as AnaRep
 import Briareus.BCGen.Operations as BCGen
-from Briareus.Types import BldConfig, BldRepoRev, BldVariable
+from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
+                            ProjectSummary, StatusReport, VarFailure)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
@@ -54,6 +56,134 @@ def example_hydra_jobsets():
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
         output = bcgen.generate(inp_desc, repo_info)
         yield output[0]
+        asys.shutdown()
+        asys = None
+    finally:
+        if asys:
+            asys.shutdown()
+
+@pytest.fixture(scope="module")
+def example_hydra_results():
+    asys = ActorSystem('simpleSystemBase', transientUnique=True)
+    try:
+        # Generate canned info instead of actually doing git operations
+        asys.createActor(GitExample2, globalName="GetGitInfo")
+        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                             actor_system=asys,
+                                                             verbose=True)
+        builder = BldSys.HydraBuilder(None)
+        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
+        config_results = bcgen.generate(inp_desc, repo_info)
+        builder_cfgs, build_cfgs = config_results
+        anarep = AnaRep.AnaRep(builder, verbose=True, actor_system=asys)
+        # n.b. the name values for build_results come from
+        # builder._jobset_name, which is revealed by this print loop.
+        for each in build_cfgs.cfg_build_configs:
+            print(builder._jobset_name(each))
+        builder._build_results = [
+            { "name" : "develop.HEADs-ghc844",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "develop.HEADs-ghc865",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 0,
+              "nrscheduled": 1,
+              "haserrormsg": False,
+            },
+            { "name" : "develop.HEADs-ghc881",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 1,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "develop.submodules-ghc844",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": True,
+            },
+            { "name" : "develop.submodules-ghc865",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "develop.submodules-ghc881",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 1,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.HEADs-ghc844",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.HEADs-ghc865",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.HEADs-ghc881",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 1,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.submodules-ghc844",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.submodules-ghc865",
+              "nrtotal" : 4,
+              "nrsucceeded": 4,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "master.submodules-ghc881",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 1,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+        ]
+        prior = [
+            StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+                         buildname='master.submodules-ghc844',
+                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
+                         ]),
+            StatusReport(status='failed', project='Repo1', projrepo='Repo1',
+                         buildname='master.HEADs-ghc865',
+                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                         ]),
+            StatusReport(status='succeeded', project='Repo1', projrepo='Repo1',
+                         buildname='master.HEADs-ghc881',
+                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                         ]),
+
+        ]
+        report = anarep.report_on(inp_desc, repo_info, build_cfgs, prior)
+        assert report[0] == 'report'
+        yield (builder_cfgs, report[1])
         asys.shutdown()
         asys = None
     finally:
@@ -170,3 +300,75 @@ def test_example_hydra_count(example_hydra_jobsets):
     print('##### OUTPUT:')
     print(example_hydra_jobsets)
     assert len(GS) * len(top_level) == len(json.loads(example_hydra_jobsets))
+
+
+def test_example_report(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+
+    for each in reps:
+        print('')
+        print(each)
+
+    assert ProjectSummary(project_name='Repo1',
+                          bldcfg_count=12, subrepo_count=1, pullreq_count=0) in reps
+
+    assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+                        buildname='develop.HEADs-ghc844',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
+                        ]) in reps
+    # This one is pending:
+    # assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+    #                     buildname='develop.HEADs-ghc865',
+    #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+    #                     ]) in reps
+    assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
+                        buildname='develop.HEADs-ghc881',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        ]) in reps
+
+    # This one has an error message (configInvalid)
+    # assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+    #                     buildname='develop.submodules-ghc844',
+    #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
+    #                     ]) in reps
+    assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+                        buildname='develop.submodules-ghc865',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        ]) in reps
+    assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
+                        buildname='develop.submodules-ghc881',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        ]) in reps
+
+    assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+                        buildname='master.HEADs-ghc844',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
+                        ]) in reps
+    # This one had a prior failure
+    assert StatusReport(status='fixed', project='Repo1', projrepo='Repo1',
+                        buildname='master.HEADs-ghc865',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        ]) in reps
+    # This one had a prior success
+    assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
+                        buildname='master.HEADs-ghc881',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        ]) in reps
+
+    # This one has a prior success
+    assert StatusReport(status='succeeded', project='Repo1', projrepo='Repo1',
+                        buildname='master.submodules-ghc844',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
+                        ]) in reps
+    assert StatusReport(status='initial_success', project='Repo1', projrepo='Repo1',
+                        buildname='master.submodules-ghc865',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        ]) in reps
+    assert StatusReport(status='failed', project='Repo1', projrepo='Repo1',
+                        buildname='master.submodules-ghc881',
+                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        ]) in reps
+
+    assert VarFailure(BldVariable('Repo1', 'ghcver', 'ghc881')) in reps
+
+    assert 14 - 2 == len(reps)

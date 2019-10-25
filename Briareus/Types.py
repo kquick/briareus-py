@@ -63,6 +63,10 @@ class StatusReport(object):
     buildname = attr.ib()  # string name of build on builder
     bldvars   = attr.ib()  # list of BldVariable
 
+@attr.s(frozen=True)
+class VarFailure(object):
+    varsetting = attr.ib() # BldVariable
+
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
 # operation, so define some terms to re-ify the eval'd string into
@@ -84,5 +88,7 @@ logic_result_expr = {
     "failed": "failed",
     "fixed": "fixed",
     "initial_success": "initial_success",
+    "var_failure": lambda *args: VarFailure(*args),
+
     "project": lambda n: n,
 }
