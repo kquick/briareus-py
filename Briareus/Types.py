@@ -62,7 +62,7 @@ class StatusReport(object):
     projrepo  = attr.ib()  # string project repository reference
     strategy  = attr.ib()  # string: submodules, heads, main
     buildname = attr.ib()  # string name of build on builder
-    bldvars   = attr.ib()  # list of BldVariable
+    bldvars   = attr.ib(converter=sorted)  # list of BldVariable
 
 @attr.s(frozen=True)
 class VarFailure(object):
