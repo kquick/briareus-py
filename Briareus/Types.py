@@ -65,8 +65,7 @@ class StatusReport(object):
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
 
 @attr.s(frozen=True)
-class VarFailure(object):
-    varsetting = attr.ib() # BldVariable
+class VarFailure(BldVariable): pass
 
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"

@@ -33,8 +33,8 @@ def example_hydra_results():
         builder._build_results = [
             { "name": n,
               "nrtotal" : 10,
-              "nrsucceeded": 10,
-              "nrfailed": 0,
+              "nrsucceeded": 8 if '-clang-' in n else 10,
+              "nrfailed": 2 if '-clang-' in n else 0,
               "nrscheduled": 0,
               "haserrormsg": False,
             }
@@ -108,9 +108,9 @@ def example_hydra_results():
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
             StatusReport(status='failed', project='R1', projrepo='R1',
-                         strategy="HEADs", buildname='master.HEADs-clang-ghc844',
-                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
-                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
+                         strategy="HEADs", buildname='master.HEADs-gnucc-ghc865',
+                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc865'),
+                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
             StatusReport(status='succeeded', project='R1', projrepo='R1',
                          strategy="HEADs", buildname='master.HEADs-gnucc-ghc844',
@@ -140,7 +140,7 @@ def test_example_report(example_hydra_results):
                           bldcfg_count=60, subrepo_count=2, pullreq_count=3) in reps
 
     # Check for a single entry
-    assert StatusReport(status='initial_success', project='R1', projrepo='R1',
+    assert StatusReport(status='failed', project='R1', projrepo='R1',
                         strategy="HEADs", buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
@@ -159,9 +159,11 @@ def test_example_report(example_hydra_results):
                         status=('succeeded'
                                 if C == 'gnucc' and G == 'ghc844' and S == 'submodules' and B == 'master'
                                 else 'fixed'
-                                if C == 'clang' and G == 'ghc844' and S == 'HEADs' and B == 'master'
+                                if C == 'gnucc' and G == 'ghc865' and S == 'HEADs' and B == 'master'
                                 else 'succeeded'
                                 if C == 'gnucc' and G == 'ghc844' and S == 'HEADs' and B == 'master'
+                                else 'failed'
+                                if C == 'clang'
                                 else 'initial_success'),
                         project='R1', projrepo='R1',
                         strategy=S,
@@ -171,7 +173,7 @@ def test_example_report(example_hydra_results):
                         ]) in reps
 
 
-    # assert VarFailure(BldVariable('Repo1', 'ghcver', 'ghc881')) in reps
+    assert VarFailure('R1', 'c_compiler', 'clang') in reps
 
     # Verify that there are no unexpected additional entries
-    assert (len(CS) * len(GS) * len(SS) * len(BS) + 1) == len(reps)
+    assert (len(CS) * len(GS) * len(SS) * len(BS) + 2) == len(reps)

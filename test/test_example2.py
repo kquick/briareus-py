@@ -369,6 +369,6 @@ def test_example_report(example_hydra_results):
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
-    assert VarFailure(BldVariable('Repo1', 'ghcver', 'ghc881')) in reps
+    assert VarFailure('Repo1', 'ghcver', 'ghc881') in reps
 
-    assert 14 - 2 == len(reps)
+    assert (14 - 2) == len(reps)

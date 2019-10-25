@@ -43,9 +43,10 @@ report(status_report(failed, project(R), ProjRepo, Strategy, Bldcfg, Vars)) :-
     bldres(BranchType, Branch, Strategy, Vars, Bldcfg, _, _, N, 0, configValid),
     N > 0.
 
-report(var_failure(V)) :-
-    var_failures(VFS),
-    member(V, VFS).
-
-var_failures(Res) :-
-    setof(X, (S^R^P^B^T^(report(status_report(S,P,R,T,B,[X|_])), \+ good_status(S))), Res).
+report(var_failure(ProjRepo, N, V)) :-
+    varvalue(ProjRepo, N, V),
+    findall(X, (report(status_report(S,_,ProjRepo,_,X,Vars)),
+                good_status(S),
+                member(varvalue(ProjRepo, N, V), Vars)),
+            Res),
+    length(Res, 0).
