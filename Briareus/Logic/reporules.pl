@@ -22,9 +22,9 @@ build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
 .
 
 varcombs(_, [], []).
-varcombs(ProjRepo, [VN|VNS], [var(ProjRepo,VN,VVS)|VNSVS]) :-
+varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varname(ProjRepo, VN),
-    var(ProjRepo, VN,VVS),
+    varvalue(ProjRepo, VN,VVS),
     varcombs(ProjRepo, VNS, VNSVS).
 
 branch_type(pullreq, B) :- pullreq(_, _, B).

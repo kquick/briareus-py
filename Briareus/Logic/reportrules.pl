@@ -1,6 +1,6 @@
 %% input facts are VCS facts plus build results:
 %%
-%% bldres(ProjRepo, branchtype, "branchname", strategy, [var("ProjRepo", "varname", "varvalue"), ...], builderCfgName, njobs, nsucceeded, nfailed, nscheduled, cfgstatus)
+%% bldres(ProjRepo, branchtype, "branchname", strategy, [varvalue("ProjRepo", "vname", "value"), ...], builderCfgName, njobs, nsucceeded, nfailed, nscheduled, cfgstatus)
 %%   cfgstatus = configValid | configError
 
 report(status_report(succeeded, project(R), ProjRepo, Bldcfg, Vars)) :-

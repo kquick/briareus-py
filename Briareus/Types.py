@@ -81,7 +81,7 @@ logic_result_expr = {
     "bldcfg": lambda *args: BldConfig(*args),
     "bld": lambda *args: BldRepoRev(*args),
     "brr": lambda n: n,
-    "var": lambda *args: BldVariable(*args),
+    "varvalue": lambda *args: BldVariable(*args),
 
     "status_report": StatusReport,
     "prior_status": PriorStatus,

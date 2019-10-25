@@ -108,7 +108,7 @@ def prior_fact_ProjectSummary(prior):
     ).format(p=prior))
 
 def prior_fact_StatusReport(prior):
-    vars = [ 'var("{v.varname}", "{v.varvalue}")'.format(v=v)
+    vars = [ 'varvalue("{v.projrepo}", "{v.varname}", "{v.varvalue}")'.format(v=v)
              for v in prior.bldvars ]
     return Fact(
         ('prior_status({p.status}'
@@ -120,7 +120,7 @@ def prior_fact_StatusReport(prior):
          ).format(p=prior, vars='[ ' + ', '.join(vars) + ' ]'))
 
 def built_fact(result):
-    vars = [ 'var("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)
+    vars = [ 'varvalue("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)
              for v in result.bldconfig.bldvars ]
     if isinstance(result.results, str):
         # Builder returned a failure / warning message and not an

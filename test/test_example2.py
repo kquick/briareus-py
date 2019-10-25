@@ -93,7 +93,7 @@ expected_facts = sorted(filter(None, '''
 :- dynamic branch/2.
 :- dynamic pullreq/3.
 :- dynamic varname/2.
-:- dynamic var/3.
+:- dynamic varvalue/3.
 project("Repo1").
 repo("Repo1").
 repo("Repo2").
@@ -115,9 +115,9 @@ submodule("Repo1", "master", "Repo2", "r2_master_head").
 submodule("Repo1", "master", "Repo3", "r3_master_head^3").
 submodule("Repo1", "master", "Repo4", "r4_master_head^1").
 varname("Repo1", "ghcver").
-var("Repo1", "ghcver", "ghc844").
-var("Repo1", "ghcver", "ghc865").
-var("Repo1", "ghcver", "ghc881").
+varvalue("Repo1", "ghcver", "ghc844").
+varvalue("Repo1", "ghcver", "ghc865").
+varvalue("Repo1", "ghcver", "ghc881").
 '''.split('\n')))
 
 

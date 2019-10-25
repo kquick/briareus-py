@@ -70,7 +70,7 @@ expected_facts = sorted(filter(None, '''
 :- dynamic branch/2.
 :- dynamic pullreq/3.
 :- dynamic varname/2.
-:- dynamic var/3.
+:- dynamic varvalue/3.
 project("R1").
 repo("R1").
 repo("R2").
@@ -111,12 +111,12 @@ submodule("R1", "blah", "R3", "r3_master_head").
 submodule("R1", "blah", "R7", "r7_master_head^4").
 varname("R1", "ghcver").
 varname("R1", "c_compiler").
-var("R1", "ghcver", "ghc844").
-var("R1", "ghcver", "ghc865").
-var("R1", "ghcver", "ghc881").
-var("R1", "c_compiler", "gnucc").
-var("R1", "c_compiler", "clang").
-var("R1", "c_compiler", "MSVC").
+varvalue("R1", "ghcver", "ghc844").
+varvalue("R1", "ghcver", "ghc865").
+varvalue("R1", "ghcver", "ghc881").
+varvalue("R1", "c_compiler", "gnucc").
+varvalue("R1", "c_compiler", "clang").
+varvalue("R1", "c_compiler", "MSVC").
 '''.split('\n')))
 
 # Note: the above does not contain branch("R2", "bugfix9").  This is
