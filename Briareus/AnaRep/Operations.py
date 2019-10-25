@@ -80,7 +80,7 @@ def mk_prior_facts(prior_report):
         [ DeclareFact('prior_status/6'),
           DeclareFact('prior_summary/4'),
         ] +
-        [ prior_fact(p) for p in (prior_report or []) ])
+        list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
 
 def mk_built_facts(build_results):
     return (
@@ -97,6 +97,7 @@ def mk_built_facts(build_results):
 def prior_fact(prior):
     return { 'ProjectSummary': prior_fact_ProjectSummary,
              'StatusReport': prior_fact_StatusReport,
+             'VarFailure': prior_fact_VarFailure,
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):
@@ -119,6 +120,9 @@ def prior_fact_StatusReport(prior):
          ', {vars}'
          ')'
          ).format(p=prior, strategy=prior.strategy.lower(), vars='[ ' + ', '.join(vars) + ' ]'))
+
+def prior_fact_VarFailure(prior):
+    return None
 
 def built_fact(result):
     vars = [ 'varvalue("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)
