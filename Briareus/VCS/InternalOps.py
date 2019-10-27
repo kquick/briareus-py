@@ -6,6 +6,7 @@ from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
 from urllib.parse import urlparse, urlunparse
+from collections import defaultdict
 import attr
 import logging
 import os
@@ -148,7 +149,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.submodules = set()
         self.subrepos = set()
         self.branches = set()
-        self.known_branches = set()
+        self.known_branches = defaultdict(set)
         self.branches_check = {}
         self._pending_info = {}
 
@@ -258,10 +259,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def check_for_branch(self, repo_name, branch_name):
         self._incr_stat('chk_for_branch')
         if self.branches_check.get((repo_name, branch_name), False):
+            # This branch has a pending request already
             return
         if self._branch_checked(repo_name, branch_name):
+            # This branch status is already known
             return
         if self._branch_checked_shared_repo(repo_name, branch_name):
+            # This branch status is already known from a repo sharing the same location
             return
         self._incr_stat('chk_for_branch_missed')
         self.branches_check[(repo_name, branch_name)] = True
@@ -272,13 +276,20 @@ class GatherRepoInfo(ActorTypeDispatcher):
         for br in self.branches:
             if curbr == br:
                 return True
-        for br in self.known_branches:
-            if curbr == br:
-                self.branches.add(br)
-                return True
+        if repo_name in self.known_branches and self.known_branches[repo_name]:
+            # Have known_branches for this repo, so presumably *all*
+            # branches for this repo are known without needing to
+            # issue a query.
+            for br in self.known_branches[repo_name]:
+                if branch_name == br:
+                    self.branches.add(curbr)
+                    return True
         return False
 
     def _branch_checked_shared_repo(self, repo_name, branch_name):
+        # Some repos have different names but are essentially
+        # different subdirs in the same actual repo, so the branch is
+        # valid there as well.
         tgt_repos = [r for r in self.RL if r.repo_name == repo_name]
         if len(tgt_repos) != 1:
             tgt_repos = [r for r in self.subrepos if r.repo_name == repo_name]
@@ -306,12 +317,12 @@ class GatherRepoInfo(ActorTypeDispatcher):
                   [ r for r in self.subrepos if r.repo_name == msg.reponame ] +
                   [ None ])[0]
         for br in msg.known_branches:
-            self.known_branches.add( (msg.reponame, br) )
+            self.known_branches[msg.reponame].add(br)
             if main_r:
                 # Set branches any other projects sharing this repo
                 for each in self._all_repos():
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
-                        self.known_branches.add( (each.repo_name, br) )
+                        self.known_branches[each.repo_name].add(br)
         self.got_response(response_name='branch_present')
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
