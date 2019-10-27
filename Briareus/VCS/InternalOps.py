@@ -163,6 +163,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.get_git_info(DeclareRepo(repo.repo_name, repo.repo_url, self.RX))
         self._pending_info[repo.repo_name] = repo
 
+    def _all_repos(self): return list(self.RL) + list(self.subrepos)
+
     def receiveMsg_RepoDeclared(self, msg, sender):
         "Response message from the GetGitInfo actor to a DeclareRepo message"
         repo = self._pending_info.get(msg.reponame, None)
@@ -213,7 +215,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 if p.pullreq_branch == pr.pr_branch:
                     break
             else:
-                for repo in (list(self.RL) + list(self.subrepos)):
+                for repo in self._all_repos():
                     self.check_for_branch(repo.repo_name, p.pullreq_branch)
                     if repo.project_repo:
                         # Get submodules information because the pr is
@@ -248,10 +250,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='pull_reqs_data')
 
     def _url_for_repo(self, repo_name):
-        for each in self.RL:
-            if each.repo_name == repo_name:
-                return each.repo_url
-        for each in self.subrepos:
+        for each in self._all_repos():
             if each.repo_name == repo_name:
                 return each.repo_url
         raise ValueError('Repo not known by name (for url): ' % repo_name)
@@ -286,11 +285,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             if len(tgt_repos) != 1:
                 return False
         tgt_repo = tgt_repos[0]
-        for r in self.RL:
-            if r.repo_url == tgt_repo.repo_url and r.repo_name != tgt_repo.repo_name:
-                if self._branch_checked(r.repo_name, branch_name):
-                    return True
-        for r in self.subrepos:
+        for r in self._all_repos():
             if r.repo_url == tgt_repo.repo_url and r.repo_name != tgt_repo.repo_name:
                 if self._branch_checked(r.repo_name, branch_name):
                     return True
@@ -314,10 +309,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             self.known_branches.add( (msg.reponame, br) )
             if main_r:
                 # Set branches any other projects sharing this repo
-                for each in self.RL:
-                    if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
-                        self.known_branches.add( (each.repo_name, br) )
-                for each in self.subrepos:
+                for each in self._all_repos():
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches.add( (each.repo_name, br) )
         self.got_response(response_name='branch_present')
@@ -335,13 +327,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # Add the submodule specification for this submodule repo
             # and any other modules that share the same repo
             nsr_url = to_http_url(named_submod_repo.repo_url, self.RX).apiloc
-            for r in self.RL:
-                if r.repo_url == nsr_url or r.repo_url == named_submod_repo.repo_url:
-                    self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
-                                                       sm_branch=msg.branch_name,
-                                                       sm_sub_name=r.repo_name,
-                                                       sm_sub_vers=each.subrepo_vers) )
-            for r in self.subrepos:
+            for r in self._all_repos():
                 if r.repo_url == nsr_url or r.repo_url == named_submod_repo.repo_url:
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
