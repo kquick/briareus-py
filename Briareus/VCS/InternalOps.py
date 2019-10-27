@@ -158,6 +158,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.BL = msg.branchlist
         for repo in self.RL:
             self.get_info_for_a_repo(repo)
+        # In case there were no repos, this is the "I am done" check:
         self.got_response(False)
 
     def get_info_for_a_repo(self, repo):

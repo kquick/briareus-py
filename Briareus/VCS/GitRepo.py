@@ -1,4 +1,35 @@
-# Interaction with a Git repository
+'''Manages interaction with a Git repository via a forge access,
+either as Github or Gitlab.
+
+There are various small differences between the API interactions of
+github and gitlab.
+
+Functionally, there is a big differences between a Github Pull Request
+and a Gitlab Merge Request.
+
+ * For a Github Pull request, the PR is an element fetched from the
+   main (destination) repository, and the source is identified as a
+   specific branch in a separate (forked) repo.
+
+ * For a Gitlab Merge Request, the MR is an element fetched from the
+   main (destination) repository, and the source is identified by
+   explicit sha reference in a source_project_id, so there is no
+   namespace collision concern.
+
+      { "id": 339,
+        "project_id": 413,
+        "target_branch": "master",
+        "source_branch": "master",
+        "source_project_id": 414,
+        "target_project_id": 413,
+        "sha": "33865bc...b1fd8",
+        "upvotes": 0,
+        "downvotes": 0,
+        "work_in_progress": false,
+        ...
+      }
+
+'''
 
 import os
 import logging
@@ -280,6 +311,19 @@ class RemoteGit__Info(object):
         return GitmodulesRepoVers(reponame, branch, ret)
 
 # ----------------------------------------------------------------------
+#
+# Gitlab access
+#
+# Examples:
+#
+# $ CURL="curl -H 'Content-type: application/json' -H 'Private-token: TOKVAL' -L -v"
+# $ ${CURL} https://gitlab.mycompany.com/api/v4/groups
+# $ ${CURL} https://gitlab.mycompany.com/api/v4/groups/239
+# $ ${CURL} https://gitlab.mycompany.com/api/v4/projects
+# $ ${CURL} https://gitlab.mycompany.com/api/v4/projects/32
+#     look at _links in response for other options
+# $ ${CURL} https://gitlab.mycompany.com/api/v4/projects/32/merge_requests
+
 
 class GitLabInfo(RemoteGit__Info):
     """Retrieve information from gitlab via API with cacheing.  Note that
@@ -308,10 +352,9 @@ class GitLabInfo(RemoteGit__Info):
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/merge_requests')
-        # May want to filter on ["state"] == "open"
-        # May want to echo either ["number"] or ["title"]
-        # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
-        # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
+        # Gather {"upvotes": 0, "downvotes": 0, "approvals_before_merge": 0} for analysis phase
+        # Use {"work_in_progress": true} to ignore the PR
+        # Use {"merge_status": "can_be_merged"} for analysis phase?
         preqs = [ PullReqInfo(pr["id"],   # for user reference
                               pr["title"],    # for user reference
                               self._src_repo_url(pr),  # source repo URL
@@ -337,6 +380,9 @@ class GitLabInfo(RemoteGit__Info):
 
 
 # ----------------------------------------------------------------------
+#
+# Github access
+
 
 class GitHubInfo(RemoteGit__Info):
     """Retrieve information from github via API with cacheing.  Note that
@@ -363,6 +409,10 @@ class GitHubInfo(RemoteGit__Info):
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/pulls')
+        # May want to filter on ["state"] == "open"
+        # May want to echo either ["number"] or ["title"]
+        # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
+        # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(pr["number"],   # for user reference
                               pr["title"],    # for user reference
