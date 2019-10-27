@@ -77,6 +77,47 @@ Briareus can support
 Briareus is developed under Linux, but it should be system independent
 and useable on MacOS/X Darwin or Windows systems as well.
 
+** Build Configurations
+
+Briareus will generate several build configurations based on the
+information in the input file and the results of querying the VCS
+forges (e.g. Github or Gitlab) for the repositories specified.  The
+actual build configurations may be updated over time (and are
+controlled by logic rules in the ~reporules.pl~ Prolog file), but at
+this time, consist of the following:
+
+ * A build of every branch requested in the input configuration file.
+   This branch preference is applied to *every* repo, with a fallback
+   to "master" if that branch doesn't exist.
+
+   The default if no branches are requested is just "master".
+
+ * A build of every pull request or merge request ("PR") identified by
+   querying the VCS forge for *every* repo.
+
+   If there is PR in one repo for a particular branch name, and a
+   branch in another repo with the same name (whether it is also a
+   pull request or not) then that branch will be used for both repos
+   in the build configuration.  This facilitates a workflow where a PR
+   is created in Repo1, then a build problem is discovered in
+   downstream Repo2 when building Repo2 against that PR in Repo1, so a
+   similarly-named branch in Repo2 can be created and that branch in
+   both repos are built together to allow the Repo2 branch to update
+   and fix Repo2 for the PR-related changes in Repo1.
+
+ * For each branch and PR as described above, a build configuration is
+   generated for every combination of variable values.
+
+   Variables are converted to Hydra input strings (for the Hydra backend builder) and are made available to the build nix script.
+
+   Variables can be used for any user-desired purpose, including:
+     * selecting compiler versions
+     * specifying debug or production builds
+     * specifying the system on which the build should occur:
+       #+BEGIN_EXAMPLE
+       "Variables": { "system" : [ "x86_64-linux", "x86_64-darwin" ] }
+       #+END_EXAMPLE
+
 ** Primary Example
 
 Given:
