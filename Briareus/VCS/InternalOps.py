@@ -283,7 +283,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             for br in self.known_branches[repo_name]:
                 if branch_name == br:
                     self.branches.add(curbr)
-                    return True
+            return True
         return False
 
     def _branch_checked_shared_repo(self, repo_name, branch_name):
