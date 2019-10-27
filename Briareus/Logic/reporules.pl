@@ -28,7 +28,7 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varcombs(ProjRepo, VNS, VNSVS).
 
 branch_type(pullreq, B) :- setof(X, R^I^pullreq(R, I, X), XS), member(B, XS).
-branch_type(regular, B) :- branchreq(R, B), \+pullreq(_, _, B), is_project_repo(R).
+branch_type(regular, B) :- branchreq(R, B), is_project_repo(R).
 
 useable_submodules(R, B) :- (branch(R, B), has_gitmodules(R, B));
                             (has_gitmodules(R, "master"), \+ branch(R, B)).  % KWQ: this doesn't work if reversed.
