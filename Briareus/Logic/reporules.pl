@@ -18,8 +18,28 @@ build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     all_repos(RL),
     all_vars(ProjRepo, VL),
     varcombs(ProjRepo, VL, VARS),
+
+    % If submodules and not master branch and the branch doesn't exist
+    % in master, don't generate the configuration because the
+    % submodules dictate all configurations so there's no way the
+    % indicated branch can be referenced.
+    (Branch == "master";
+     BranchType == pullreq;
+     Strategy == heads;
+     Strategy == main;
+     (Branch \== "master",
+      BranchType==regular,
+      Strategy == submodules,
+      all_repos_no_subs(TLR),
+      branch_in_any(TLR, Branch)
+     )),
+
     reporevs(RL, ProjRepo, BranchType, Branch, Strategy, BLDS)
 .
+
+branch_in_any([], _Branch) :- false.
+branch_in_any([R|RL], Branch) :-
+    branch(R, Branch) ; branch_in_any(RL, Branch).
 
 varcombs(_, [], []).
 varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
