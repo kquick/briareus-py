@@ -94,11 +94,6 @@ def run_hh_on_inpfile(reportf, inp_fname, params, prior_report):
                               prior_report=prior_report)
 
 
-def upd_file_atomically(srcf, data):
-    with open(srcf + '_upd', 'w') as updf:
-        updf.write(data)
-    os.rename(srcf + '_upd', srcf)
-
 def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
     fpath = os.path.join(src_path, os.path.basename(fname))
     try:
@@ -111,7 +106,7 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
               file=sys.stderr)
     else:
         if data.file_data:
-            upd_file_atomically(fname, data.file_data)
+            atomic_write_to(fname, lambda f: f.write(data.file_data))
         else:
             print('No contents obtained for %s @ %s'
                   % (fpath, src_url))
