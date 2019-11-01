@@ -2,45 +2,86 @@
 # configurations with build results (as available) and generates
 # output reports.
 
+import attr
+import functools
 from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
 
+@attr.s
+class ResultSet(object):
+
+    # At present, the builder is used by reporting to get the build
+    # results, so any builder will suffice.  In the future, all
+    # builders should be the same, and the first generated should be
+    # threaded through, or the builder map should be passed to AnaRep
+    # for consuting project-specific builders for results.
+    builder = attr.ib(default=None)
+
+    # inp_desc is an array of Briareus.Input.Description.InputDesc
+    # object.  These are kept separate so that the set of input logic
+    # facts are consistent to each inp_desc.
+    inp_desc = attr.ib(default=None)
+
+    # repo_info is a dictionary gathered from the remote repositories.
+    # Assume that the dictionaries can simply be combined and that any
+    # duplicates are identical.  This might not be true if the same
+    # name were chosen for different repositories, but we currently
+    # deem that a bad input configuration.
+    repo_info = attr.ib(default=None)
+
+    # build_cfgs is the internal build configs,
+    # Briareus.BCGen.Generator.GeneratedConfigs
+    build_cfgs = attr.ib(default=None)
+
+
 class AnaRep(object):
-    def __init__(self, bldsys,
+    def __init__(self,
                  actor_system=None,
                  verbose=False,
                  up_to=None):
-        self._bldsys = bldsys
         self._actor_system = actor_system
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def report_on(self, input_desc, repo_info, build_cfgs, prior_report=[]):
-        # input_desc is 'first' returned from input_desc_and_VCS_info
-        # repo_info is 'second' returned from input_desc_and_VCS_info
-        # build_cfgs is BCGen.Generator.GeneratedConfigs
+    def report_on(self, result_sets, prior_report):
+        # result_sets is an array of ResultSet from hh.py, each containing:
+        #   builder is the builder for the results
+        #   input_descs is an array of the 'first' returned from input_desc_and_VCS_info
+        #   repo_info is 'second' returned from input_desc_and_VCS_info
+        #   build_cfgs is BCGen.Generator.GeneratedConfigs
 
-        project_name = [r.repo_name for r in input_desc.RL if r.project_repo][0]
+
+        summary = ProjectSummary(
+            project_name='+'.join([r.repo_name
+                                   for e in result_sets
+                                   for r in e.inp_desc.RL
+                                   if r.project_repo]),
+            bldcfg_count = sum([len(e.build_cfgs.cfg_build_configs) for e in result_sets]),
+            subrepo_count = sum([len(e.build_cfgs.cfg_subrepos) for e in result_sets]),
+            pullreq_count = sum([len(e.build_cfgs.cfg_pullreqs) for e in result_sets]))
 
         if self.verbose:
             print('## AnaRep.report_on %d configs (%d subrepos, %d pullreqs)'
-                  % (len(build_cfgs.cfg_build_configs),
-                     len(build_cfgs.cfg_subrepos),
-                     len(build_cfgs.cfg_pullreqs)))
+                  % (summary.bldcfg_count, summary.subrepo_count, summary.pullreq_count))
 
-        build_results = self.get_build_results(build_cfgs)
+        build_results = functools.reduce(
+            lambda bres, e: bres + self.get_build_results(e.builder, e.build_cfgs),
+            result_sets, [])
 
         if self.verbose:
             print('## CORRELATED BUILD RESULTS:')
             for each in build_results:
                 print('**',each)
 
-        input_facts = get_input_facts(input_desc.RL,
-                                      input_desc.BL,
-                                      input_desc.VAR,
-                                      repo_info)
+        input_facts = functools.reduce(
+            lambda facts, e: facts + get_input_facts(e.inp_desc.RL,
+                                                     e.inp_desc.BL,
+                                                     e.inp_desc.VAR,
+                                                     e.repo_info),
+            result_sets, [])
+
         prior_facts = mk_prior_facts(prior_report)
         built_facts = mk_built_facts(build_results)
         facts = input_facts + prior_facts + built_facts
@@ -62,17 +103,12 @@ class AnaRep(object):
             return (self._up_to, r)
 
         return ("report",
-                [ProjectSummary(project_name=project_name,
-                                bldcfg_count=len(build_cfgs.cfg_build_configs),
-                                subrepo_count=len(build_cfgs.cfg_subrepos),
-                                pullreq_count=len(build_cfgs.cfg_pullreqs))] +
+                [summary] +
                 (eval(r, globals(), logic_result_expr) if r else []))
 
 
-    def get_build_results(self, build_cfgs):
-
-        return [ BuildResult(build,
-                             self._bldsys.get_build_result(build))
+    def get_build_results(self, buildsys, build_cfgs):
+        return [ BuildResult(build, buildsys.get_build_result(build))
                  for build in build_cfgs.cfg_build_configs ]
 
 def mk_prior_facts(prior_report):

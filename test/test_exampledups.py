@@ -93,7 +93,7 @@ def example_hydra_results():
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
         config_results = bcgen.generate(inp_desc, repo_info)
         builder_cfgs, build_cfgs = config_results
-        anarep = AnaRep.AnaRep(builder, verbose=True, actor_system=asys)
+        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
         # n.b. the name values for build_results come from
         # builder._jobset_name, which is revealed by this print loop.
         for each in build_cfgs.cfg_build_configs:
@@ -188,7 +188,7 @@ def example_hydra_results():
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                          ]),
         ]
-        report = anarep.report_on(inp_desc, repo_info, build_cfgs, prior)
+        report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
         assert report[0] == 'report'
         yield (builder_cfgs, report[1])
         asys.shutdown()
@@ -223,15 +223,15 @@ def test_example_facts():
 
 
 expected_facts = sorted(filter(None, '''
-:- dynamic project/1.
-:- dynamic repo/1.
-:- dynamic subrepo/1.
-:- dynamic submodule/4.
-:- dynamic branchreq/2.
-:- dynamic branch/2.
-:- dynamic pullreq/3.
-:- dynamic varname/2.
-:- dynamic varvalue/3.
+:- discontiguous project/1.
+:- discontiguous repo/1.
+:- discontiguous subrepo/1.
+:- discontiguous submodule/4.
+:- discontiguous branchreq/2.
+:- discontiguous branch/2.
+:- discontiguous pullreq/3.
+:- discontiguous varname/2.
+:- discontiguous varvalue/3.
 project("Repo1").
 repo("Repo1").
 repo("Repo2").

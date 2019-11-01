@@ -23,7 +23,12 @@ class DeclareFact(object):
     fact_and_arity = attr.ib()
 
     # Specific str representation for prolog consumption
-    def __str__(self): return ':- dynamic ' + self.fact_and_arity + '.'
+    def __str__(self):
+        return '\n'.join([':- ' + s + ' ' + self.fact_and_arity + '.'
+                          for s in [
+                                  # 'dynamic',
+                                  'discontiguous',
+                          ]])
 
 
 def run_logic_analysis(analysis_fname, facts, actor_system=None, verbose=False):

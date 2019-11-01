@@ -25,7 +25,7 @@ def example_hydra_results():
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
         config_results = bcgen.generate(inp_desc, repo_info)
         builder_cfgs, build_cfgs = config_results
-        anarep = AnaRep.AnaRep(builder, verbose=True, actor_system=asys)
+        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
         # n.b. the name values for build_results come from
         # builder._jobset_name, which is revealed by this print loop.
         for each in build_cfgs.cfg_build_configs:
@@ -118,7 +118,7 @@ def example_hydra_results():
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
         ]
-        report = anarep.report_on(inp_desc, repo_info, build_cfgs, prior)
+        report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
         assert report[0] == 'report'
         yield (builder_cfgs, report[1])
         asys.shutdown()

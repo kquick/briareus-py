@@ -62,15 +62,15 @@ expected_inp = D.InputDesc(
 
 
 expected_facts = sorted(filter(None, '''
-:- dynamic project/1.
-:- dynamic repo/1.
-:- dynamic subrepo/1.
-:- dynamic submodule/4.
-:- dynamic branchreq/2.
-:- dynamic branch/2.
-:- dynamic pullreq/3.
-:- dynamic varname/2.
-:- dynamic varvalue/3.
+:- discontiguous project/1.
+:- discontiguous repo/1.
+:- discontiguous subrepo/1.
+:- discontiguous submodule/4.
+:- discontiguous branchreq/2.
+:- discontiguous branch/2.
+:- discontiguous pullreq/3.
+:- discontiguous varname/2.
+:- discontiguous varvalue/3.
 project("R1").
 repo("R1").
 repo("R2").

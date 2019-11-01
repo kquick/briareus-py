@@ -9,6 +9,7 @@ import Briareus.BuildSys.Hydra as BldSys
 from Briareus.VCS.ManagedRepo import get_updated_file
 import argparse
 import os
+import os.path
 import sys
 from thespian.actors import ActorSystem
 import attr
@@ -22,6 +23,13 @@ class InpConfig(object):
     builder_conf = attr.ib(default=None)
     builder_url  = attr.ib(default=None)
     output_file = attr.ib(default=None)
+
+    def fixup(self):
+        expand_filerefs = lambda v: os.path.normpath(os.path.expanduser(os.path.expandvars(v)))
+        self.hhd = expand_filerefs(self.hhd)
+        self.builder_conf = expand_filerefs(self.builder_conf)
+        self.output_file = expand_filerefs(self.output_file)
+
 
 @attr.s
 class Params(object):
@@ -40,49 +48,54 @@ def verbosely(params, *msgargs):
 @attr.s
 class GenResult(object):
     actor_system = attr.ib()
-    builder = attr.ib(default=None)
-    inp_desc = attr.ib(default=None)
-    repo_info = attr.ib(default=None)
-    build_cfgs = attr.ib(default=None)
-    builder_cfgs = attr.ib(default=None)
+    result_sets = attr.ib(factory=list) # list of AnaRep.ResultSet
+
+    def add_results(self, builder, inp_desc, repo_info, build_cfgs):
+        self.result_sets.append(AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs))
 
 
-def run_hh_gen(params, inpcfg, inp):
-    result = GenResult(actor_system=ActorSystem('multiprocTCPBase', logDefs=logcfg))
+def run_hh_gen(params, inpcfg, inp, prev_gen_result=None):
+    verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
+    result = (prev_gen_result or
+              GenResult(actor_system=ActorSystem('multiprocTCPBase', logDefs=logcfg)))
     if inpcfg.builder_type == 'hydra':
-        result.builder = BldSys.HydraBuilder(inpcfg.builder_conf,
-                                             builder_url=inpcfg.builder_url)
+        builder = BldSys.HydraBuilder(inpcfg.builder_conf,
+                                      builder_url=inpcfg.builder_url)
     else:
         raise RuntimeError('Unknown builder (known: %s), specified: %s' %
                            (', '.join(['hydra']), inpcfg.builder_type))
 
-    result.inp_desc, result.repo_info = \
+    inp_desc, repo_info = \
         BInput.input_desc_and_VCS_info(inp,
                                        verbose=params.verbose,
                                        actor_system=result.actor_system)
-    bcgen = BCGen.BCGen(result.builder,
+
+    bcgen = BCGen.BCGen(builder,
                         verbose=params.verbose,
                         up_to=params.up_to,
                         actor_system=result.actor_system)
-    config_results = bcgen.generate(result.inp_desc, result.repo_info)
+    config_results = bcgen.generate(inp_desc, repo_info)
     if params.up_to and not params.up_to.enough('builder_configs'):
         return config_results
 
-    result.builder_cfgs, result.build_cfgs = config_results
+    builder_cfgs, build_cfgs = config_results
     # builder_cfgs : string to send to the builder
     # build_cfgs : Generator.GeneratedConfigs
+
+    result.add_results(builder, inp_desc, repo_info, build_cfgs)
+
     if params.up_to == 'builder_configs':
         return result
 
-    return result
+    return result, builder_cfgs
 
 
 def run_hh_report(params, gen_result, prior_report):
-    anarep = AnaRep.AnaRep(gen_result.builder,
-                           verbose=params.verbose,
+    verbosely(params, 'Generating Analysis/Report')
+    anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=gen_result.actor_system)
-    report = anarep.report_on(gen_result.inp_desc, gen_result.repo_info, gen_result.build_cfgs, prior_report)
+    report = anarep.report_on(gen_result.result_sets, prior_report)
 
     assert report[0] == 'report'
     return report[1]
@@ -90,14 +103,15 @@ def run_hh_report(params, gen_result, prior_report):
 
 # ----------------------------------------------------------------------
 
-def run_hh_gen_with_files(inp, inpcfg, outputf, params):
-    gen_result = run_hh_gen(params, inpcfg, inp)
+def run_hh_gen_with_files(inp, inpcfg, outputf, params, prev_gen_result=None):
+    gen_result, builder_cfgs = run_hh_gen(params, inpcfg, inp,
+                                          prev_gen_result=prev_gen_result)
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
-        outputf.write(gen_result.builder_cfgs)
+        outputf.write(builder_cfgs)
     return gen_result
 
 
-def run_hh_gen_on_inpfile(inp_fname, params, inpcfg):
+def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
     inp_parts = os.path.split(inp_fname)
     outfname = (inpcfg.output_file or
                 os.path.join(os.getcwd(),
@@ -107,9 +121,13 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg):
             verbosely(params, 'hh <',inp_fname,'>',outfname)
             return atomic_write_to(
                 outfname,
-                lambda outf: run_hh_gen_with_files(inpf.read(), inpcfg, outf, params=params))
+                lambda outf: run_hh_gen_with_files(inpf.read(), inpcfg, outf,
+                                                   params=params,
+                                                   prev_gen_result=prev_gen_result))
         verbosely(params, 'hh partial run, no output')
-        return run_hh_gen_with_files(inpf.read(), inpcfg, None, params=params)
+        return run_hh_gen_with_files(inpf.read(), inpcfg, None,
+                                     params=params,
+                                     prev_gen_result=prev_gen_result)
 
 
 def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
@@ -130,9 +148,10 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
                   % (fpath, src_url))
 
 
-def run_hh_on_inpcfg(inpcfg, params):
+def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
     if inpcfg.input_url is not None and inpcfg.input_path is not None:
-        asys = ActorSystem('multiprocTCPBase')
+        asys = ((prev_gen_result.actor_system if prev_gen_result else None)
+                or ActorSystem('multiprocTCPBase'))
         upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
         upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
     ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
@@ -141,7 +160,20 @@ def run_hh_on_inpcfg(inpcfg, params):
     if not ifile:
         raise RuntimeError('Input specification not found (in %s): %s' %
                            (os.getcwd(), inpcfg.hhd))
-    return run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg)
+    return run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg, prev_gen_result=prev_gen_result)
+
+
+def read_inpcfgs_from(inputArg):
+    if inputArg is None:
+        inp = input('Briareus input configurations? ')
+    else:
+        with open(inputArg) as inpf:
+            inp = inpf.read()
+    # A parser we already have, although it's dangerous...
+    inpConfigs = eval(inp)
+    for each in inpConfigs:
+        each.fixup()
+    return inpConfigs
 
 
 def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_report=None):
@@ -155,6 +187,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
         inpcfgs = read_inpcfgs_from(inputArg)
         if not inpcfgs:
             raise ValueError('No input configurations specified')
+        gen_result = None
         for inpcfg in inpcfgs:
             gen_result = run_hh_on_inpcfg(inpcfg, params, prev_gen_result=gen_result)
 
