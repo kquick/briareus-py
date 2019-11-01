@@ -76,15 +76,17 @@ class AnaRep(object):
                 print('**',each)
 
         input_facts = functools.reduce(
-            lambda facts, e: facts + get_input_facts(e.inp_desc.RL,
-                                                     e.inp_desc.BL,
-                                                     e.inp_desc.VAR,
-                                                     e.repo_info),
-            result_sets, [])
+            lambda facts, e: facts.union(get_input_facts(e.inp_desc.RL,
+                                                         e.inp_desc.BL,
+                                                         e.inp_desc.VAR,
+                                                         e.repo_info)),
+            result_sets, set())
 
         prior_facts = mk_prior_facts(prior_report)
         built_facts = mk_built_facts(build_results)
-        facts = input_facts + prior_facts + built_facts
+        facts = (sorted(list(input_facts), key=str) +
+                 sorted(list(prior_facts), key=str) +
+                 sorted(list(built_facts), key=str))
 
         if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
@@ -112,14 +114,14 @@ class AnaRep(object):
                  for build in build_cfgs.cfg_build_configs ]
 
 def mk_prior_facts(prior_report):
-    return (
+    return set(
         [ DeclareFact('prior_status/5'),
           DeclareFact('prior_summary/4'),
         ] +
         list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
 
 def mk_built_facts(build_results):
-    return (
+    return set(
         [ DeclareFact('bldres/11'),
           DeclareFact('report/1'),
           DeclareFact('status_report/5'),

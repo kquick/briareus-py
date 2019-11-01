@@ -10,7 +10,7 @@ local_path = os.path.dirname(os.path.abspath(sys.modules['Briareus.Logic'].__fil
 
 PROLOG_TIMEOUT = timedelta(minutes=2,seconds=61)
 
-@attr.s(str=False)
+@attr.s(str=False, frozen=True)
 class Fact(object):
     fact = attr.ib()
 
@@ -18,7 +18,7 @@ class Fact(object):
     def __str__(self): return self.fact + '.'
 
 
-@attr.s(str=False)
+@attr.s(str=False, frozen=True)
 class DeclareFact(object):
     fact_and_arity = attr.ib()
 
