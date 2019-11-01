@@ -89,7 +89,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 self.prepareReply(
                     GatheredInfo({ "pullreqs" : self.pullreqs,
                                    "submodules": self.submodules,
-                                "subrepos" : self.subrepos,
+                                   "subrepos" : self.subrepos,
                                    "branches" : self.branches
                     })))
 
@@ -203,6 +203,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         # handled by the pullreqs retrievals, so just check for
         # branches.
         for p in msg.pullreqs:
+
             # If this pull request is against the master of the source
             # repo, there is no branch association to be made since
             # all repos have a master.
@@ -331,6 +332,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches[each.repo_name].add(br)
         self.got_response(response_name='branch_present')
+
 
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
         "Response message from the GetGitInfo actor to a GitmodulesData message"
