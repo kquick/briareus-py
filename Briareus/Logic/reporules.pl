@@ -128,6 +128,13 @@ reporev(R, ProjRepo, regular, B, submodules, RepoRev) :-
 reporev(R, ProjRepo, regular, B, heads, RepoRev) :-
     \+ submodule(ProjRepo, B, R, _),
     submodule(ProjRepo, "master", R, _),
+    branch(R, B),
+    bldwith(RepoRev, R, B, brr(15)),
+    !.
+
+reporev(R, ProjRepo, regular, B, heads, RepoRev) :-
+    \+ submodule(ProjRepo, B, R, _),
+    submodule(ProjRepo, "master", R, _),
     \+ branch(R, B),
     bldwith(RepoRev, R, "master", brr(14)),
     !.
