@@ -57,7 +57,7 @@ class GenResult(object):
 def run_hh_gen(params, inpcfg, inp, prev_gen_result=None):
     verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
     result = (prev_gen_result or
-              GenResult(actor_system=ActorSystem('multiprocTCPBase', logDefs=logcfg)))
+              GenResult(actor_system=ActorSystem('multiprocTCPBase')))
     if inpcfg.builder_type == 'hydra':
         builder = BldSys.HydraBuilder(inpcfg.builder_conf,
                                       builder_url=inpcfg.builder_url)
