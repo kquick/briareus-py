@@ -102,17 +102,17 @@ def example_hydra_results():
             ]
         ]
         prior = [
-            StatusReport(status='initial_success', project='R1', projrepo='R1',
+            StatusReport(status='initial_success', project='R1',
                          strategy="submodules", buildname='master.submodules-gnucc-ghc844',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
-            StatusReport(status='failed', project='R1', projrepo='R1',
+            StatusReport(status='failed', project='R1',
                          strategy="HEADs", buildname='master.HEADs-gnucc-ghc865',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc865'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
-            StatusReport(status='succeeded', project='R1', projrepo='R1',
+            StatusReport(status='succeeded', project='R1',
                          strategy="HEADs", buildname='master.HEADs-gnucc-ghc844',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
@@ -140,7 +140,7 @@ def test_example_report(example_hydra_results):
                           bldcfg_count=60, subrepo_count=2, pullreq_count=3) in reps
 
     # Check for a single entry
-    assert StatusReport(status='failed', project='R1', projrepo='R1',
+    assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
@@ -165,7 +165,7 @@ def test_example_report(example_hydra_results):
                                 else 'failed'
                                 if C == 'clang'
                                 else 'initial_success'),
-                        project='R1', projrepo='R1',
+                        project='R1',
                         strategy=S,
                         buildname='-'.join(['.'.join([B,S]),C,G]),
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),

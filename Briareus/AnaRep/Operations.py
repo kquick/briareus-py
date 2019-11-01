@@ -77,7 +77,7 @@ class AnaRep(object):
 
 def mk_prior_facts(prior_report):
     return (
-        [ DeclareFact('prior_status/6'),
+        [ DeclareFact('prior_status/5'),
           DeclareFact('prior_summary/4'),
         ] +
         list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
@@ -86,7 +86,7 @@ def mk_built_facts(build_results):
     return (
         [ DeclareFact('bldres/10'),
           DeclareFact('report/1'),
-          DeclareFact('status_report/6'),
+          DeclareFact('status_report/5'),
           DeclareFact('succeeded/0'),
           DeclareFact('failed/0'),
           DeclareFact('initial_success/0'),
@@ -114,7 +114,6 @@ def prior_fact_StatusReport(prior):
     return Fact(
         ('prior_status({p.status}'
          ', project("{p.project}")'
-         ', "{p.projrepo}"'
          ', {strategy}'
          ', "{p.buildname}"'
          ', {vars}'
