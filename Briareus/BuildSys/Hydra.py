@@ -25,6 +25,8 @@ class HydraBuilder(BuilderBase.Builder):
           }
     """
 
+    builder_type = 'hydra'
+
     def output_build_configurations(self, input_desc, bldcfgs):
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
