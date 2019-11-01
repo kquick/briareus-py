@@ -14,84 +14,102 @@ from thespian.actors import ActorSystem
 import attr
 
 @attr.s
-class Params(object):
+class InpConfig(object):
+    hhd = attr.ib()  # Can be None to read from stdin
+    input_url = attr.ib(default=None)
+    input_path = attr.ib(default=None)
     builder_type = attr.ib(default=None)
     builder_conf = attr.ib(default=None)
     builder_url  = attr.ib(default=None)
-    output = attr.ib(default=None)
-    reportfile = attr.ib(default=None)
+    output_file = attr.ib(default=None)
+
+@attr.s
+class Params(object):
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
-    input_url = attr.ib(default=None)
-    input_path = attr.ib(default=None)
+    report_file = attr.ib(default=None)
 
 
 def verbosely(params, *msgargs):
     if params.verbose:
         print(*msgargs)
 
-def run_hh_gen(params, inp, prior_report):
-    asys = ActorSystem('multiprocTCPBase')
-    if params.builder_type == 'hydra':
-        builder = BldSys.HydraBuilder(params.builder_conf,
-                                      builder_url=params.builder_url)
+# ----------------------------------------------------------------------
+# Actual generation and reporting functions
+
+@attr.s
+class GenResult(object):
+    actor_system = attr.ib()
+    builder = attr.ib(default=None)
+    inp_desc = attr.ib(default=None)
+    repo_info = attr.ib(default=None)
+    build_cfgs = attr.ib(default=None)
+    builder_cfgs = attr.ib(default=None)
+
+
+def run_hh_gen(params, inpcfg, inp):
+    result = GenResult(actor_system=ActorSystem('multiprocTCPBase', logDefs=logcfg))
+    if inpcfg.builder_type == 'hydra':
+        result.builder = BldSys.HydraBuilder(inpcfg.builder_conf,
+                                             builder_url=inpcfg.builder_url)
     else:
         raise RuntimeError('Unknown builder (known: %s), specified: %s' %
-                           (', '.join(['hydra']), params.builder))
+                           (', '.join(['hydra']), inpcfg.builder_type))
 
-    inp_desc, repo_info = BInput.input_desc_and_VCS_info(inp,
-                                                         verbose=params.verbose,
-                                                         actor_system=asys)
-    bcgen = BCGen.BCGen(builder,
+    result.inp_desc, result.repo_info = \
+        BInput.input_desc_and_VCS_info(inp,
+                                       verbose=params.verbose,
+                                       actor_system=result.actor_system)
+    bcgen = BCGen.BCGen(result.builder,
                         verbose=params.verbose,
                         up_to=params.up_to,
-                        actor_system=asys)
-    config_results = bcgen.generate(inp_desc, repo_info)
+                        actor_system=result.actor_system)
+    config_results = bcgen.generate(result.inp_desc, result.repo_info)
     if params.up_to and not params.up_to.enough('builder_configs'):
-        return config_results, []
+        return config_results
 
-    builder_cfgs, build_cfgs = config_results
+    result.builder_cfgs, result.build_cfgs = config_results
     # builder_cfgs : string to send to the builder
     # build_cfgs : Generator.GeneratedConfigs
     if params.up_to == 'builder_configs':
-        return builder_cfgs, []
+        return result
 
-    anarep = AnaRep.AnaRep(builder,
+    return result
+
+
+def run_hh_report(params, gen_result, prior_report):
+    anarep = AnaRep.AnaRep(gen_result.builder,
                            verbose=params.verbose,
                            up_to=params.up_to,
-                           actor_system=asys)
-    report = anarep.report_on(inp_desc, repo_info, build_cfgs, prior_report)
-
-    if params.up_to and not params.up_to.enough('report'):
-        return builder_cfgs, []
+                           actor_system=gen_result.actor_system)
+    report = anarep.report_on(gen_result.inp_desc, gen_result.repo_info, gen_result.build_cfgs, prior_report)
 
     assert report[0] == 'report'
-    return builder_cfgs, report[1]
+    return report[1]
 
 
-def run_hh_with_files(inp, outputf, reportf, params, prior_report):
-    cfgs, report = run_hh_gen(params, inp, prior_report=prior_report)
+# ----------------------------------------------------------------------
+
+def run_hh_gen_with_files(inp, inpcfg, outputf, params):
+    gen_result = run_hh_gen(params, inpcfg, inp)
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
-        outputf.write(cfgs)
-    if reportf and (not params.up_to or params.up_to.enough('report')):
-        write_report_output(reportf, report)
+        outputf.write(gen_result.builder_cfgs)
+    return gen_result
 
-def run_hh_on_inpfile(reportf, inp_fname, params, prior_report):
+
+def run_hh_gen_on_inpfile(inp_fname, params, inpcfg):
     inp_parts = os.path.split(inp_fname)
-    outfname = params.output or os.path.join(os.getcwd(),
-                                             os.path.splitext(inp_parts[-1])[0] + '.hhc')
+    outfname = (inpcfg.output_file or
+                os.path.join(os.getcwd(),
+                             os.path.splitext(inp_parts[-1])[0] + '.hhc'))
     with open(inp_fname) as inpf:
         if not params.up_to or params.up_to.enough('builder_configs'):
             verbosely(params, 'hh <',inp_fname,'>',outfname)
-            atomic_write_to(
+            return atomic_write_to(
                 outfname,
-                lambda outf: run_hh_with_files(inpf.read(), outf, reportf,
-                                               params=params,
-                                               prior_report=prior_report))
-        else:
-            verbosely(params, 'hh partial run, no output')
-            run_hh_with_files(inpf.read(), None, reportf, params=params,
-                              prior_report=prior_report)
+                lambda outf: run_hh_gen_with_files(inpf.read(), inpcfg, outf, params=params))
+        verbosely(params, 'hh partial run, no output')
+        return run_hh_gen_with_files(inpf.read(), inpcfg, None, params=params)
 
 
 def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
@@ -112,57 +130,70 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
                   % (fpath, src_url))
 
 
-def run_hh_reporting_to(reportf, input_src, params, prior_report):
-    if not input_src:
+def run_hh_reporting_to(reportf, params, inpcfg, prior_report=None):
+    if not inpcfg.hhd:
         inp = input('Briareus input spec? ')
-        if params.output:
-            with open(params.output, 'w') as outf:
-                run_hh_with_files(inp, outf, reportf,
-                                  params=params, prior_report=prior_report)
+        if inpcfg.output_file:
+            with open(inpcfg.output_file, 'w') as outf:
+                gen_result = run_hh_gen_with_files(inp, inpcfg, outf,
+                                                   params=params,
+                                                   inpcfg=inpcfg)
         else:
-            run_hh_with_files(inp, sys.stdout, reportf, params=params,
-                              prior_report=prior_report)
+            gen_result = run_hh_gen_with_files(inp, inpcfg, sys.stdout,
+                                               params=params,
+                                               inpcfg=inpcfg)
     else:
-        if params.input_url is not None and params.input_path is not None:
+        if inpcfg.input_url is not None and inpcfg.input_path is not None:
             asys = ActorSystem('multiprocTCPBase')
-            upd_from_remote(params.input_url, params.input_path, input_src, [], asys)
-            upd_from_remote(params.input_url, params.input_path, params.builder_conf, [], asys)
-        if os.path.exists(input_src):
-            run_hh_on_inpfile(reportf, input_src, params=params,
-                              prior_report=prior_report)
-        elif os.path.exists(input_src + '.hhd'):
-            run_hh_on_inpfile(reportf, input_src + '.hhd', params=params,
-                              prior_report=prior_report)
-        else:
+            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
+            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
+        ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
+                 else ((inpcfg.hhd + '.hhd') if os.path.exists(inpcfg.hhd + '.hhd')
+                       else None))
+        if not ifile:
             raise RuntimeError('Input specification not found (in %s): %s' %
-                               (os.getcwd(), input_src))
+                               (os.getcwd(), inpcfg.hhd))
+        gen_result = run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg)
+
+    # Generator cycle done, now do any reporting
+
+    if params.up_to and not params.up_to.enough('report'):
+        return
+
+    report = run_hh_report(params, gen_result, prior_report)
+    if reportf and (not params.up_to or params.up_to.enough('report')):
+        write_report_output(reportf, report)
 
 
 def atomic_write_to(outfname, gen_output):
     tryout = os.path.join(os.path.dirname(outfname),
                           '.' + os.path.basename(outfname) + '.new')
     with open(tryout, 'w') as outf:
-        gen_output(outf)
+        r = gen_output(outf)
     os.rename(tryout, outfname)
+    return r
 
 
-def run_hh(input_src, params):
+def run_hh(params, inpcfg):
     verbosely(params, 'Running hh')
-    verbosely(params, 'input from:', input_src)
-    if params.reportfile and (not params.up_to or params.up_to.enough('report')):
-        if os.path.exists(params.reportfile):
-            verbosely(params, 'Reporting updates to', params.reportfile)
-            prior_report = get_prior_report(params.reportfile)
+    verbosely(params, 'input from:', inpcfg.hhd)
+    if params.report_file and (not params.up_to or params.up_to.enough('report')):
+        if os.path.exists(params.report_file):
+            verbosely(params, 'Reporting updates to', params.report_file)
+            prior_report = get_prior_report(params.report_file)
         else:
-            verbosely(params, 'Reporting to', params.reportfile)
+            verbosely(params, 'Reporting to', params.report_file)
             prior_report = None
         atomic_write_to(
-            params.reportfile,
-            lambda rep_fd: run_hh_reporting_to(rep_fd, input_src, params, prior_report))
+            params.report_file,
+            lambda rep_fd: run_hh_reporting_to(rep_fd, params,
+                                               inpcfg=inpcfg,
+                                               prior_report=prior_report))
     else:
         verbosely(params, 'No reporting')
-        run_hh_reporting_to(None, input_src, params, None)
-    verbosely(params,'hh',('completed up to: ' + str(params.up_to)) if params.up_to else 'done')
+        run_hh_reporting_to(None, params, inpcfg=inpcfg)
+    verbosely(params,'hh',('completed up to: ' + str(params.up_to))
+              if params.up_to else 'done')
 
 
 class UpTo(object):
@@ -267,17 +298,18 @@ def main():
         help='Briareus input specification (file or URL or blank to read from stdin)')
     args = parser.parse_args()
     input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
-    params = Params(builder_type=args.builder,
-                    builder_conf=args.builder_conf,
-                    builder_url=args.builder_url,
-                    input_url=input_url,
-                    input_path=input_path,
-                    output=args.output,
-                    reportfile=args.report,
-                    verbose=args.verbose,
-                    up_to=args.up_to)
+    params = Params(verbose=args.verbose,
+                    up_to=args.up_to,
+                    report_file=args.report)
+    inpcfg = InpConfig(hhd=args.INPUT,
+                       input_url=input_url,
+                       input_path=input_path,
+                       builder_type=args.builder,
+                       builder_conf=args.builder_conf,
+                       builder_url=args.builder_url,
+                       output_file=args.output)
     try:
-        run_hh(args.INPUT, params)
+        run_hh(params, inpcfg=inpcfg)
     finally:
         if args.stopdaemon:
             ActorSystem().shutdown()
