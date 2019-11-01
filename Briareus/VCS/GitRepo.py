@@ -418,7 +418,7 @@ class GitHubInfo(RemoteGit__Info):
                               pr["title"],    # for user reference
                               pr["head"]["repo"]["html_url"],  # source repo URL
                               pr["head"]["ref"],          # source repo branch
-                              None,  # probably available, not needed for github, can use branch ^
+                              pr["head"]["sha"],         # for github, can also use branch ^
                               pr["merge_commit_sha"])
                   for pr in rsp if pr["state"] == "open" and not pr["merged_at"] ]
         return PullReqsData(reponame, preqs)
