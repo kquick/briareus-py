@@ -130,30 +130,48 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
                   % (fpath, src_url))
 
 
-def run_hh_reporting_to(reportf, params, inpcfg, prior_report=None):
-    if not inpcfg.hhd:
-        inp = input('Briareus input spec? ')
-        if inpcfg.output_file:
-            with open(inpcfg.output_file, 'w') as outf:
-                gen_result = run_hh_gen_with_files(inp, inpcfg, outf,
+def run_hh_on_inpcfg(inpcfg, params):
+    if inpcfg.input_url is not None and inpcfg.input_path is not None:
+        asys = ActorSystem('multiprocTCPBase')
+        upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
+        upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
+    ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
+                 else ((inpcfg.hhd + '.hhd') if os.path.exists(inpcfg.hhd + '.hhd')
+                       else None))
+    if not ifile:
+        raise RuntimeError('Input specification not found (in %s): %s' %
+                           (os.getcwd(), inpcfg.hhd))
+    return run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg)
+
+
+def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_report=None):
+    """Runs the Briareus operation, writing the output to reportf if not
+       None. If inpcfg is set, then this is for that single
+       configuration, otherwise the input configurations are read from
+       inputArg (stdin if inputArg is None).
+
+    """
+    if inpcfg is None:
+        inpcfgs = read_inpcfgs_from(inputArg)
+        if not inpcfgs:
+            raise ValueError('No input configurations specified')
+        for inpcfg in inpcfgs:
+            gen_result = run_hh_on_inpcfg(inpcfg, params, prev_gen_result=gen_result)
+
+    else:
+        if not inpcfg.hhd:
+            inp = input('Briareus input spec? ')
+            if inpcfg.output_file:
+                with open(inpcfg.output_file, 'w') as outf:
+                    gen_result = run_hh_gen_with_files(inp, inpcfg, outf,
+                                                       params=params,
+                                                       inpcfg=inpcfg)
+            else:
+                gen_result = run_hh_gen_with_files(inp, inpcfg, sys.stdout,
                                                    params=params,
                                                    inpcfg=inpcfg)
         else:
-            gen_result = run_hh_gen_with_files(inp, inpcfg, sys.stdout,
-                                               params=params,
-                                               inpcfg=inpcfg)
-    else:
-        if inpcfg.input_url is not None and inpcfg.input_path is not None:
-            asys = ActorSystem('multiprocTCPBase')
-            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
-            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
-        ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
-                 else ((inpcfg.hhd + '.hhd') if os.path.exists(inpcfg.hhd + '.hhd')
-                       else None))
-        if not ifile:
-            raise RuntimeError('Input specification not found (in %s): %s' %
-                               (os.getcwd(), inpcfg.hhd))
-        gen_result = run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg)
+            gen_result = run_hh_on_inpcfg(inpcfg, params)
 
     # Generator cycle done, now do any reporting
 
@@ -174,9 +192,12 @@ def atomic_write_to(outfname, gen_output):
     return r
 
 
-def run_hh(params, inpcfg):
+def run_hh(params, inpcfg=None, inputArg=None):
     verbosely(params, 'Running hh')
-    verbosely(params, 'input from:', inpcfg.hhd)
+    if inpcfg is None:
+        verbosely(params, 'multiple input configs from:', inputArg or 'stdin')
+    else:
+        verbosely(params, 'input from:', inpcfg.hhd)
     if params.report_file and (not params.up_to or params.up_to.enough('report')):
         if os.path.exists(params.report_file):
             verbosely(params, 'Reporting updates to', params.report_file)
@@ -187,11 +208,12 @@ def run_hh(params, inpcfg):
         atomic_write_to(
             params.report_file,
             lambda rep_fd: run_hh_reporting_to(rep_fd, params,
+                                               inputArg=inputArg,
                                                inpcfg=inpcfg,
                                                prior_report=prior_report))
     else:
         verbosely(params, 'No reporting')
-        run_hh_reporting_to(None, params, inpcfg=inpcfg)
+        run_hh_reporting_to(None, params, inputArg=inputArg, inpcfg=inpcfg)
     verbosely(params,'hh',('completed up to: ' + str(params.up_to))
               if params.up_to else 'done')
 
@@ -278,6 +300,18 @@ def main():
                 flag causes those processes to be shutdown on exit
                 (even if running from a previously issued command.''')
     parser.add_argument(
+        '--cfg-input', '-C', dest='cfginput', action='store_true',
+        help='''Input file specifies a python list of InpConfig values describing
+                multiple projects to process.  This flag is
+                incompatible with the -U, -B, -b, -I, and -o
+                flags, and changes the interpretation of the input
+                file from a single Briareus input specification to a
+                list of InpConfig structures, each describing a
+                Briareus project.  This mode is used when the Analysis
+                and Reporting (AnaRep) phase should consider the
+                results of all projects instead of just a single
+                project.''')
+    parser.add_argument(
         '--input-url-and-path', '-I',
         help='''Specify an input URL from which the INPUT files (and
                 builder-config, if specified) should be updated
@@ -297,19 +331,27 @@ def main():
         'INPUT', default=None, nargs='?',
         help='Briareus input specification (file or URL or blank to read from stdin)')
     args = parser.parse_args()
-    input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
     params = Params(verbose=args.verbose,
                     up_to=args.up_to,
                     report_file=args.report)
-    inpcfg = InpConfig(hhd=args.INPUT,
-                       input_url=input_url,
-                       input_path=input_path,
-                       builder_type=args.builder,
-                       builder_conf=args.builder_conf,
-                       builder_url=args.builder_url,
-                       output_file=args.output)
+    if args.cfginput:
+        if args.builder_url or args.builder_conf or \
+           args.input_url_and_path or args.output:
+            raise ValueError('Cannot use -C with any of: -U, -B, -b, -I, or -o')
+        inpcfg = None
+        inputArg = args.INPUT
+    else:
+        input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
+        inpcfg = InpConfig(hhd=args.INPUT,
+                           input_url=input_url,
+                           input_path=input_path,
+                           builder_type=args.builder,
+                           builder_conf=args.builder_conf,
+                           builder_url=args.builder_url,
+                           output_file=args.output)
+        inputArg = None
     try:
-        run_hh(params, inpcfg=inpcfg)
+        run_hh(params, inpcfg=inpcfg, inputArg=inputArg)
     finally:
         if args.stopdaemon:
             ActorSystem().shutdown()
