@@ -33,6 +33,7 @@ class GitExample1(ActorTypeDispatcher):
                 'R5': [ 'bugfix9', 'blah', 'dev' ],
                 'R6': [ 'feat1' ],
                 'R7': [],
+                'R10': [],
             }[msg.reponame]
         ### EXAMPLE-^^^
         self.send(sender, BranchPresent(msg.reponame, branch, chk))
@@ -64,6 +65,9 @@ class GitExample1(ActorTypeDispatcher):
                               SubRepoVers('R4', "r4_url", 'r4_master_head^16'),
                               SubRepoVers('R5', "r5_url", 'r5_master_head^25')],
             },
+            'R10': { 'master':[SubRepoVers('R3', 'r3_url', 'r3_master_head^9'),
+                               SubRepoVers('R4', 'r4_url', 'r4_master_head^1'),
+                               ],},
         }[msg.reponame]
         rval = rsub.get(msg.branch_name, [])
         if msg.reponame == 'R1':
