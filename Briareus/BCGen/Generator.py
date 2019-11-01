@@ -8,9 +8,9 @@ import attr
 
 @attr.s(frozen=True)
 class GeneratedConfigs(object):
-    cfg_build_configs = attr.ib()
-    cfg_subrepos = attr.ib(factory=set)
-    cfg_pullreqs = attr.ib(factory=set)
+    cfg_build_configs = attr.ib()  # This is a list of InpFacts BldConfig objects
+    cfg_subrepos = attr.ib(factory=set)  # repo_info['subrepos']
+    cfg_pullreqs = attr.ib(factory=set)  # repo_info['pullreqs']
 
 
 class Generator(object):
