@@ -206,41 +206,47 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # If this pull request is against the master of the source
             # repo, there is no branch association to be made since
             # all repos have a master.
-            if p.pullreq_branch == "master":
-                continue
-            # If this is a new pull request branch, and that branch
-            # has not already been probed for the target repo, check
-            # to see if the branch exists (and if it is confirmed to
-            # exist and it's the project repo, also get any submodule
-            # data on that branch).
-            for pr in self.pullreqs:
-                if p.pullreq_branch == pr.pr_branch:
-                    break
-            else:
-                for repo in self._all_repos():
-                    self.check_for_branch(repo.repo_name, p.pullreq_branch)
-                    if repo.project_repo:
-                        # Get submodules information because the pr is
-                        # on the project repo and might have changed
-                        # the submodules configuration.  Note that the
-                        # gitmodules file should be retrieved with the
-                        # pullreq_ref (the commit sha) if possible
-                        # because Gitlab only supports file reading
-                        # via ref, not via branchname.
-                        if p.pullreq_srcurl:
-                            # Source for pull request is in a different repo
-                            self.get_git_info(
-                                Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
-                                                   GitmodulesData(repo.repo_name,
-                                                                  p.pullreq_branch,
-                                                                  p.pullreq_ref or
-                                                                  p.pullreq_branch)))
-                        else:
-                            # Source for pull request is in this repo
-                            self.get_git_info(GitmodulesData(repo.repo_name,
-                                                             p.pullreq_branch,
-                                                             p.pullreq_ref or
-                                                             p.pullreq_branch))
+            if p.pullreq_branch != "master":
+                # If this is a new pull request branch, and that branch
+                # has not already been probed for the target repo, check
+                # to see if the branch exists (and if it is confirmed to
+                # exist and it's the project repo, also get any submodule
+                # data on that branch).
+                for pr in self.pullreqs:
+                    if p.pullreq_branch == pr.pr_branch:
+                        break
+                else:
+                    # Have not previously queried for this branch, so
+                    # check various repos for this branch now.
+                    for repo in self._all_repos():
+                        self.check_for_branch(repo.repo_name, p.pullreq_branch)
+
+            # If this PR is for the project repo, check the gitmodules
+            # in the source because the PR might be changing the
+            # gitmodule list/references.
+            for repo in self.RL:
+                if repo.project_repo and repo.repo_name == msg.reponame:
+                    # Get submodules information because the pr is
+                    # on the project repo and might have changed
+                    # the submodules configuration.  Note that the
+                    # gitmodules file should be retrieved with the
+                    # pullreq_ref (the commit sha) if possible
+                    # because Gitlab only supports file reading
+                    # via ref, not via branchname.
+                    if p.pullreq_srcurl:
+                        # Source for pull request is in a different repo
+                        self.get_git_info(
+                            Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
+                                               GitmodulesData(repo.repo_name,
+                                                              p.pullreq_branch,
+                                                              p.pullreq_ref or
+                                                              p.pullreq_branch)))
+                    else:
+                        # Source for pull request is in this repo
+                        self.get_git_info(GitmodulesData(repo.repo_name,
+                                                         p.pullreq_branch,
+                                                         p.pullreq_ref or
+                                                         p.pullreq_branch))
 
         self.pullreqs.update(set([
             PRInfo(pr_target_repo=msg.reponame,
