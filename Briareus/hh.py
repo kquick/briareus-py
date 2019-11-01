@@ -104,8 +104,11 @@ def run_hh_report(params, gen_result, prior_report):
 # ----------------------------------------------------------------------
 
 def run_hh_gen_with_files(inp, inpcfg, outputf, params, prev_gen_result=None):
-    gen_result, builder_cfgs = run_hh_gen(params, inpcfg, inp,
-                                          prev_gen_result=prev_gen_result)
+    r = run_hh_gen(params, inpcfg, inp, prev_gen_result=prev_gen_result)
+    if r is None:
+        # Probably an --up-to prevented the full generation
+        return None
+    gen_result, builder_cfgs = r
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
         outputf.write(builder_cfgs)
     return gen_result
