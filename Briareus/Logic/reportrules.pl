@@ -14,7 +14,7 @@ report(status_report(succeeded, project(ProjRepo), Strategy, Bldcfg, Vars)) :-
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch),
-    bldres(BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
     prior_status(Status, project(ProjRepo), Strategy, Bldcfg, PriorVars),
     good_status(Status),
     listcmp(Vars, PriorVars).
@@ -23,7 +23,7 @@ report(status_report(fixed, project(ProjRepo), Strategy, Bldcfg, Vars)) :-
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch),
-    bldres(BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
     prior_status(failed, project(ProjRepo), Strategy, Bldcfg, PriorVars),
     listcmp(Vars, PriorVars).
 
@@ -31,7 +31,7 @@ report(status_report(initial_success, project(ProjRepo), Strategy, Bldcfg, Vars)
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch),
-    bldres(BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, N, N, 0, 0, configValid),
     findall(S, (prior_status(S, project(ProjRepo), Strategy, Bldcfg, PriorVars),
                 listcmp(Vars, PriorVars)), PS),
     length(PS, 0).
@@ -40,7 +40,7 @@ report(status_report(failed, project(ProjRepo), Strategy, Bldcfg, Vars)) :-
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch),
-    bldres(BranchType, Branch, Strategy, Vars, Bldcfg, _, _, N, 0, configValid),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, N, 0, configValid),
     N > 0.
 
 report(var_failure(ProjRepo, N, V)) :-

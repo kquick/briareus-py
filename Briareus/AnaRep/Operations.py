@@ -84,7 +84,7 @@ def mk_prior_facts(prior_report):
 
 def mk_built_facts(build_results):
     return (
-        [ DeclareFact('bldres/10'),
+        [ DeclareFact('bldres/11'),
           DeclareFact('report/1'),
           DeclareFact('status_report/5'),
           DeclareFact('succeeded/0'),
@@ -131,7 +131,8 @@ def built_fact(result):
         # actual list of results.
         return None
     return Fact(
-        ('bldres({r.bldconfig.branchtype}'
+        ('bldres("{r.bldconfig.projectname}"'
+         ', {r.bldconfig.branchtype}'
          ', "{r.bldconfig.branchname}"'
          ', {strategy}'
          ', {vars}'
