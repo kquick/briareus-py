@@ -321,8 +321,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # there is any submodule information on that
                     # branch.
                     self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name, None))
-        main_r = ([ r for r in self.RL if r.repo_name == msg.reponame ] +
-                  [ r for r in self.subrepos if r.repo_name == msg.reponame ] +
+        main_r = ([ r for r in self._all_repos() if r.repo_name == msg.reponame ] +
                   [ None ])[0]
         for br in msg.known_branches:
             self.known_branches[msg.reponame].add(br)
@@ -336,7 +335,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def receiveMsg_GitmodulesRepoVers(self, msg, sender):
         "Response message from the GetGitInfo actor to a GitmodulesData message"
         for each in msg.gitmodules_repovers:
-            named_submod_repo = ([r for r in (list(self.RL) + list(self.subrepos))
+            named_submod_repo = ([r for r in self._all_repos()
                                   if r.repo_name == each.subrepo_name] + [None])[0]
             if not named_submod_repo:
                 # Note: assumes a subrepo URL doesn't change across parent branches
