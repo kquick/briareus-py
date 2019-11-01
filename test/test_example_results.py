@@ -103,17 +103,20 @@ def example_hydra_results():
         ]
         prior = [
             StatusReport(status='initial_success', project='R1',
-                         strategy="submodules", buildname='master.submodules-gnucc-ghc844',
+                         strategy="submodules", branchtype="regular", branch="master",
+                         buildname='master.submodules-gnucc-ghc844',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
             StatusReport(status='failed', project='R1',
-                         strategy="HEADs", buildname='master.HEADs-gnucc-ghc865',
+                         strategy="HEADs", branchtype="regular", branch="master",
+                         buildname='master.HEADs-gnucc-ghc865',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc865'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
             StatusReport(status='succeeded', project='R1',
-                         strategy="HEADs", buildname='master.HEADs-gnucc-ghc844',
+                         strategy="HEADs", branchtype="regular", branch="master",
+                         buildname='master.HEADs-gnucc-ghc844',
                          bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                   BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                          ]),
@@ -141,7 +144,8 @@ def test_example_report(example_hydra_results):
 
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
-                        strategy="HEADs", buildname='PR-blah.HEADs-clang-ghc844',
+                        strategy="HEADs", branchtype="pullreq", branch="blah",
+                        buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
@@ -167,6 +171,8 @@ def test_example_report(example_hydra_results):
                                 else 'initial_success'),
                         project='R1',
                         strategy=S,
+                        branchtype="pullreq" if B.startswith('PR-') else "regular",
+                        branch=B[3:] if B.startswith('PR-') else B,
                         buildname='-'.join(['.'.join([B,S]),C,G]),
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),

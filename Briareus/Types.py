@@ -60,6 +60,8 @@ class StatusReport(object):
     status    = attr.ib()  # string "success" or "failed"
     project   = attr.ib()  # string name of project
     strategy  = attr.ib()  # string: submodules, heads, main
+    branchtype= attr.ib()  # string: regular, pullreq
+    branch    = attr.ib()  # string: branch name
     buildname = attr.ib()  # string name of build on builder
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
 

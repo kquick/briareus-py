@@ -172,19 +172,23 @@ def example_hydra_results():
         ]
         prior = [
             StatusReport(status='initial_success', project='Repo1',
-                         strategy='main', buildname='PR-foo.main-ghc881',
+                         strategy='main', branchtype="pullreq", branch="foo",
+                         buildname='PR-foo.main-ghc881',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                          ]),
             StatusReport(status='initial_success', project='Repo1',
-                         strategy='main', buildname='PR-foo.main-ghc865',
+                         strategy='main', branchtype="pullreq", branch="foo",
+                         buildname='PR-foo.main-ghc865',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                          ]),
             StatusReport(status='failed', project='Repo1',
-                         strategy='main', buildname='PR-master.main-ghc865',
+                         strategy='main', branchtype="pullreq", branch="master",
+                         buildname='PR-master.main-ghc865',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                          ]),
             StatusReport(status='succeeded', project='Repo1',
-                         strategy='main', buildname='master.main-ghc881',
+                         strategy='main', branchtype="regular", branch="master",
+                         buildname='master.main-ghc881',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                          ]),
         ]
@@ -342,53 +346,63 @@ def test_example_report(example_hydra_results):
 
     # This one has a bad configuration
     # assert StatusReport(status='failed', project='Repo1',
-    #                     strategy='main', buildname='PR-develop.main-ghc865',
+    #                     strategy='main', branchtype="pullreq", branch="develop",
+    #                     buildname='PR-develop.main-ghc865',
     #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
     #                     ]) in reps
 
     assert StatusReport(status='failed', project='Repo1',
-                        strategy='main', buildname='PR-develop.main-ghc881',
+                        strategy='main', branchtype="pullreq", branch="develop",
+                        buildname='PR-develop.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='failed', project='Repo1',
-                        strategy='main', buildname='PR-foo.main-ghc881',
+                        strategy='main', branchtype="pullreq", branch="foo",
+                        buildname='PR-foo.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='failed', project='Repo1',
-                        strategy='main', buildname='PR-master.main-ghc881',
+                        strategy='main', branchtype="pullreq", branch="master",
+                        buildname='PR-master.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='failed', project='Repo1',
-                        strategy='main', buildname='develop.main-ghc881',
+                        strategy='main', branchtype="regular", branch="develop",
+                        buildname='develop.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='failed', project='Repo1',
-                        strategy='main', buildname='master.main-ghc881',
+                        strategy='main', branchtype="regular", branch="master",
+                        buildname='master.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
     assert StatusReport(status='fixed', project='Repo1',
-                        strategy='main', buildname='PR-master.main-ghc865',
+                        strategy='main', branchtype="pullreq", branch="master",
+                        buildname='PR-master.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
     assert StatusReport(status='initial_success', project='Repo1',
-                        strategy='main', buildname='master.main-ghc865',
+                        strategy='main', branchtype="regular", branch="master",
+                        buildname='master.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
     assert StatusReport(status='succeeded', project='Repo1',
-                        strategy='main', buildname='PR-foo.main-ghc865',
+                        strategy='main', branchtype="pullreq", branch="foo",
+                        buildname='PR-foo.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
     # This one is in-progress
     # assert StatusReport(status='succeeded', project='Repo1',
-    #                     strategy='main', buildname='develop.main-ghc865',
+    #                     strategy='main', branchtype="regular", branch="develop",
+    #                     buildname='develop.main-ghc865',
     #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
     #                     ]) in reps
 
