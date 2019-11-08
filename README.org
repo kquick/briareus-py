@@ -68,14 +68,14 @@ User specification ---------->| Briareus |--->| Build   |--->| Builder |-+
         R5     }
 #+END_EXAMPLE
 
-Briareus can support 
-  * multiple VCS types (currently github, gitlab),
-  * multiple Builders (currently Hydra, with [[https://github.com/kquick/devnix][devnix]]-based configurations
+Briareus can support
+  * multiple VCS types (currently Github, Gitlab),
+  * multiple Builders (currently Hydra, with [[https://github.com/kquick/devnix][devnix]]-based configurations)
   * email notifications
-  * mattermost notifications
+  * Mattermost notifications
 
 Briareus is developed under Linux, but it should be system independent
-and useable on MacOS/X Darwin or Windows systems as well.
+and usable on MacOS/X Darwin or Windows systems as well.
 
 ** Build Configurations
 
@@ -130,7 +130,7 @@ Return the following:
   BCD: dictionary of build configurations, indexed by BL-based name (BL name, BL"-latest" name)
 
   where a build configuration is the RL, enhanced by submodules,
-  with revisions and sha hashes for each revision.
+  with revisions and SHA hashes for each revision.
 
 For example, given:
    * R1, R2, R3, R4, R5, R6, and R7 are repositories
@@ -371,7 +371,7 @@ This BCD represents the different jobsets that will be built for the project:
 
 Briareus has two primary functional areas:
   1. Determining build configurations based on available inputs
-  2. Analsys/reporting of results of the builds done for those build configurations.
+  2. Analysis/reporting of results of the builds done for those build configurations.
 
 In the first functional area (BCGen), Briareus will use various
 user-supplied inputs, along with dynamically gathered information from
@@ -430,13 +430,13 @@ utilization of other build systems in the future.
 ** Concerned more with build configurations that the build process
    * Generate build configurations
    * Interpret results
-   * Runs as a front-end to a conventional build system (hydra, travis?, jenkins?)
+   * Runs as a front-end to a conventional build system (Hydra, Travis?, Jenkins?)
 
 ** Extensible via plugins?
 
-** Has its own DB, uses conventional build system's HTTP/REST api for interaction?
+** Has its own DB, uses conventional build system's HTTP/REST API for interaction?
 
-** Has a DSL for prolog-style evaluation of results, including notification strategies, etc.
+** Has a DSL for Prolog-style evaluation of results, including notification strategies, etc.
 
 * TBD issues
 
