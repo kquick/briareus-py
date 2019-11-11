@@ -334,7 +334,7 @@ def test_example_hydra_count(example_hydra_jobsets):
     assert len(GS) * len(top_level) == len(json.loads(example_hydra_jobsets))
 
 
-def test_example_report(example_hydra_results):
+def test_example_report_summary(example_hydra_results):
     bldcfgs, reps = example_hydra_results
 
     for each in reps:
@@ -344,68 +344,92 @@ def test_example_report(example_hydra_results):
     assert ProjectSummary(project_name='Repo1',
                           bldcfg_count=10, subrepo_count=0, pullreq_count=3) in reps
 
-    # This one has a bad configuration
-    # assert StatusReport(status='failed', project='Repo1',
-    #                     strategy='main', branchtype="pullreq", branch="develop",
-    #                     buildname='PR-develop.main-ghc865',
-    #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
-    #                     ]) in reps
+# def test_example_report_status1(example_hydra_results):
+#     bldcfgs, reps = example_hydra_results
+#     # This one has a bad configuration
+#     assert StatusReport(status='failed', project='Repo1',
+#                         strategy='main', branchtype="pullreq", branch="develop",
+#                         buildname='PR-develop.main-ghc865',
+#                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+#                         ]) in reps
 
+def test_example_report_status2(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="develop",
                         buildname='PR-develop.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status3(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="foo",
                         buildname='PR-foo.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status4(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="master",
                         buildname='PR-master.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status5(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="regular", branch="develop",
                         buildname='develop.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status6(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="regular", branch="master",
                         buildname='master.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status7(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='fixed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="master",
                         buildname='PR-master.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
+def test_example_report_status8(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='main', branchtype="regular", branch="master",
                         buildname='master.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
+def test_example_report_status9(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='succeeded', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="foo",
                         buildname='PR-foo.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
-    # This one is in-progress
-    # assert StatusReport(status='succeeded', project='Repo1',
-    #                     strategy='main', branchtype="regular", branch="develop",
-    #                     buildname='develop.main-ghc865',
-    #                     bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
-    #                     ]) in reps
+# def test_example_report_status10(example_hydra_results):
+#     bldcfgs, reps = example_hydra_results
+#     # This one is in-progress
+#     assert StatusReport(status='succeeded', project='Repo1',
+#                         strategy='main', branchtype="regular", branch="develop",
+#                         buildname='develop.main-ghc865',
+#                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+#                         ]) in reps
 
+def test_example_report_varfailure(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert VarFailure('Repo1', 'ghcver', 'ghc881') in reps
 
+def test_example_report_length(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert (len(GS) * len(top_level) - 2 + 2) == len(reps)

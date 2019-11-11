@@ -131,7 +131,7 @@ def example_hydra_results():
             asys.shutdown()
 
 
-def test_example_report(example_hydra_results):
+def test_example_report_summary(example_hydra_results):
     bldcfgs, reps = example_hydra_results
 
     for each in reps:
@@ -142,6 +142,8 @@ def test_example_report(example_hydra_results):
     assert ProjectSummary(project_name='R1',
                           bldcfg_count=60, subrepo_count=2, pullreq_count=3) in reps
 
+def test_example_report_status1(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
@@ -150,11 +152,14 @@ def test_example_report(example_hydra_results):
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
 
+CS = [ 'clang', 'gnucc' ]
+GS = [ 'ghc844', 'ghc865', 'ghc881' ]
+SS = [ 'HEADs', 'submodules' ]
+BS = [ 'PR-blah', 'PR-bugfix9', "feat1", "master", "dev",]
+
+def test_example_report_statusMany(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
-    CS = [ 'clang', 'gnucc' ]
-    GS = [ 'ghc844', 'ghc865', 'ghc881' ]
-    SS = [ 'HEADs', 'submodules' ]
-    BS = [ 'PR-blah', 'PR-bugfix9', "feat1", "master", "dev",]
     for C in CS:
         for G in GS:
             for S in SS:
@@ -179,7 +184,11 @@ def test_example_report(example_hydra_results):
                         ]) in reps
 
 
+def test_example_report_varfailure(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert VarFailure('R1', 'c_compiler', 'clang') in reps
 
+def test_example_report_length(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Verify that there are no unexpected additional entries
     assert (len(CS) * len(GS) * len(SS) * len(BS) + 2) == len(reps)
