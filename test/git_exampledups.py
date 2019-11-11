@@ -16,6 +16,8 @@ class GitExample(ActorTypeDispatcher):
                 # as the main branch.  This should co-exist with the
                 # master build.
                 PullReqInfo(1, 'pr#mastermask', 'remote_Repo1', 'master', 'r1_master_maskref'),
+                # This PR should be built with the corresponding dog PR in Repo3
+                PullReqInfo("Req8", 'pr8 is great', 'Repo1_Remote8', 'dog', 'r1_r8_f32'),
             ],
             'Repo3': [
                 # This PR is for develop, but it should co-exist with
@@ -32,6 +34,8 @@ class GitExample(ActorTypeDispatcher):
                 # built with other PR's on similar branches (notably
                 # Repo1, PR1).
                 PullReqInfo(9, 'pr#master3', 'remote_repo3_other', 'master', 'r3_master_2'),
+                # This PR should be built with the corresponding dog PR in Repo1
+                PullReqInfo(101, 'start changes', 'Repo3_r3', 'dog', 'r3_r3^7'),
             ],
         }.get(msg.reponame, [])
         ### EXAMPLE-^^^
