@@ -5,7 +5,7 @@ from os import path
 
 setup(
     name = "briareus",
-    version = "0.1",
+    version = "0.2",
     description = 'Build configuration generator',
     # long_description = ...,
     # long_description_content_type = 'text/markdown',

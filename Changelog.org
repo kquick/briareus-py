@@ -1,0 +1,5 @@
+* Changelog for Briareus
+
+** v0.2 -- 2019.11.11
+
+  First tracked release.
