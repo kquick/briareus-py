@@ -451,8 +451,8 @@ def _changeloc(url, repolocs):
     parsed = urlparse(url)
     for each in repolocs:
         if parsed.netloc == each.repo_loc:
-            return urlunparse(parsed._replace(netloc=each.api_host)), each.api_host
-    return url, parsed.netloc
+            return urlunparse(parsed._replace(netloc=each.api_host)), each.api_host, parsed.netloc
+    return url, parsed.netloc, parsed.netloc
 
 def to_http_url(url, repolocs):
     """Converts git clone access specification
@@ -473,13 +473,25 @@ def to_http_url(url, repolocs):
         spl = trimmed_url.split(':')
         return to_http_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])), repolocs)
 
-    returl, for_remote = _changeloc(_remove_trailer(url, '.git'), repolocs)
+    returl, for_remote, orig_remote_spec = _changeloc(_remove_trailer(url, '.git'), repolocs)
 
     patspec = os.getenv('BRIAREUS_PAT')
     if patspec is None:
         return RepoAPI_Location(returl, None)
-    # The BRIAREUS_PAT format: remote=user:token;...
+    # The BRIAREUS_PAT format: "remote=PATSPEC;...", where PATSPEC
+    # varies by the type of forge.  For Github, the PATSPEC is
+    # "user:token".  For Gitlab, the PATSPEC is simply "token".
     patlist = patspec.split(';')
+
+    # First try finding a PAT using the original target specification,
+    # in case there is a specific PAT associated with a specific
+    # remote.
+    for pat in patlist:
+        if pat.startswith(orig_remote_spec + '='):
+            patval = pat[len(for_remote)+1:]
+            return RepoAPI_Location(returl, patval)
+
+    # Now try with the target remote to get a general translation
     for pat in patlist:
         if pat.startswith(for_remote + '='):
             patval = pat[len(for_remote)+1:]
