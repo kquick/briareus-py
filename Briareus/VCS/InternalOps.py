@@ -255,7 +255,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             PRInfo(pr_target_repo=msg.reponame,
                    pr_srcrepo_url=p.pullreq_srcurl or self._url_for_repo(msg.reponame),
                    pr_branch=p.pullreq_branch,
-                   pr_ident=p.pullreq_number,
+                   pr_ident=str(p.pullreq_number),  # PR idents must be strings
                    pr_title=p.pullreq_title)
             for p in msg.pullreqs]))
         self.got_response(response_name='pull_reqs_data')
