@@ -93,11 +93,11 @@ def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
                             branchtype="pullreq",
                             branchname="bugfix9",
                             strategy="submodules",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","r3_master_head^9"),
-                                  BldRepoRev("R4","bugfix9"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "r3_master_head^9", "project_primary"),
+                                  BldRepoRev("R4", "bugfix9", "8192"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -106,11 +106,11 @@ def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
                             branchtype="pullreq",
                             branchname="bugfix9",
                             strategy="HEADs",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","master"),
-                                  BldRepoRev("R4","bugfix9"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "master", "project_primary"),
+                                  BldRepoRev("R4", "bugfix9", "8192"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -142,11 +142,11 @@ def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
                             branchtype="regular",
                             branchname="feat1",
                             strategy="HEADs",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","master"),
-                                  BldRepoRev("R4","feat1"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "master", "project_primary"),
+                                  BldRepoRev("R4", "feat1", "project_primary"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -155,11 +155,11 @@ def test_example_internal_master_regular_submodules(example_internal_bldconfigs)
                             branchtype="regular",
                             branchname="master",
                             strategy="submodules",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","r3_master_head^9"),
-                                  BldRepoRev("R4","r4_master_head^1"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "r3_master_head^9", "project_primary"),
+                                  BldRepoRev("R4", "r4_master_head^1", "project_primary"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -168,11 +168,11 @@ def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
                             branchtype="regular",
                             branchname="master",
                             strategy="HEADs",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","master"),
-                                  BldRepoRev("R4","master"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "master", "project_primary"),
+                                  BldRepoRev("R4", "master", "project_primary"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -193,11 +193,11 @@ def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
                             branchtype="regular",
                             branchname="dev",
                             strategy="HEADs",
-                            blds=[BldRepoRev("R10","master"),
-                                  BldRepoRev("R3","master"),
-                                  BldRepoRev("R4","master"),
+                            blds=[BldRepoRev("R10", "master", "project_primary"),
+                                  BldRepoRev("R3", "master", "project_primary"),
+                                  BldRepoRev("R4", "master", "project_primary"),
                             ],
-                            bldvars=[BldVariable("R10","ghcver", G)])
+                            bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -397,7 +397,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR-bugfix9.submodules-%s" % (G), {
+        ( "PR8192-bugfix9.submodules-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr11:R3, PR8192-brr10:R4, ghcver=%s" % (G),
             "emailoverride": "",
@@ -444,7 +444,7 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
     expected = dict([
-        ( "PR-bugfix9.HEADs-%s" % (G), {
+        ( "PR8192-bugfix9.HEADs-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr12:R3, PR8192-brr10:R4, ghcver=%s" % (G),
              "emailoverride": "",

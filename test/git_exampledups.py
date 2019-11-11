@@ -27,6 +27,11 @@ class GitExample(ActorTypeDispatcher):
                 # ID from the Repo1 PR; verify that these don't get
                 # confused/combined.
                 PullReqInfo(1, 'pr#foo', 'remote_Repo3_2', 'foo', 'r3_foo_pr3'),
+                # This PR is on master in the source repo, but because
+                # master is the default branch, it should *not* be
+                # built with other PR's on similar branches (notably
+                # Repo1, PR1).
+                PullReqInfo(9, 'pr#master3', 'remote_repo3_other', 'master', 'r3_master_2'),
             ],
         }.get(msg.reponame, [])
         ### EXAMPLE-^^^

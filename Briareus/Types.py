@@ -13,14 +13,15 @@ class BldConfig(object):
 
 @attr.s(frozen=True)
 class BldRepoRev(object):
-    reponame = attr.ib()
-    repover  = attr.ib()
+    reponame   = attr.ib()
+    repover    = attr.ib()
+    pullreq_id = attr.ib()  # project_primary or the PR ID
       # srcident identifies the source loc in the Logic rules and is
       # used for debugging the ruleset.  As a result, it is ignored
       # for comparisons since a specific repo revision build
       # instruction is effective in the builder regardless of which
       # logic statement generated it.
-    srcident = attr.ib(default="unk", cmp=False)
+    srcident   = attr.ib(default="unk", cmp=False)
 
 @attr.s(frozen=True)
 class BldVariable(object):
@@ -79,6 +80,7 @@ logic_result_expr = {
     "heads": "HEADs",
     "regular": "regular",
     "main": "main",
+    "project_primary": "project_primary",
     "bldcfg": lambda *args: BldConfig(*args),
     "bld": lambda *args: BldRepoRev(*args),
     "brr": lambda n: n,

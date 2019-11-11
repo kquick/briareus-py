@@ -39,30 +39,30 @@ def example_hydra_results():
               "haserrormsg": False,
             }
             for n in [
-                    "PR-blah.HEADs-clang-ghc844",
-                    "PR-blah.HEADs-gnucc-ghc844",
-                    "PR-blah.HEADs-clang-ghc865",
-                    "PR-blah.HEADs-gnucc-ghc865",
-                    "PR-blah.HEADs-clang-ghc881",
-                    "PR-blah.HEADs-gnucc-ghc881",
-                    "PR-blah.submodules-clang-ghc844",
-                    "PR-blah.submodules-gnucc-ghc844",
-                    "PR-blah.submodules-clang-ghc865",
-                    "PR-blah.submodules-gnucc-ghc865",
-                    "PR-blah.submodules-clang-ghc881",
-                    "PR-blah.submodules-gnucc-ghc881",
-                    "PR-bugfix9.HEADs-clang-ghc844",
-                    "PR-bugfix9.HEADs-gnucc-ghc844",
-                    "PR-bugfix9.HEADs-clang-ghc865",
-                    "PR-bugfix9.HEADs-gnucc-ghc865",
-                    "PR-bugfix9.HEADs-clang-ghc881",
-                    "PR-bugfix9.HEADs-gnucc-ghc881",
-                    "PR-bugfix9.submodules-clang-ghc844",
-                    "PR-bugfix9.submodules-gnucc-ghc844",
-                    "PR-bugfix9.submodules-clang-ghc865",
-                    "PR-bugfix9.submodules-gnucc-ghc865",
-                    "PR-bugfix9.submodules-clang-ghc881",
-                    "PR-bugfix9.submodules-gnucc-ghc881",
+                    "PR1-blah.HEADs-clang-ghc844",
+                    "PR1-blah.HEADs-gnucc-ghc844",
+                    "PR1-blah.HEADs-clang-ghc865",
+                    "PR1-blah.HEADs-gnucc-ghc865",
+                    "PR1-blah.HEADs-clang-ghc881",
+                    "PR1-blah.HEADs-gnucc-ghc881",
+                    "PR1-blah.submodules-clang-ghc844",
+                    "PR1-blah.submodules-gnucc-ghc844",
+                    "PR1-blah.submodules-clang-ghc865",
+                    "PR1-blah.submodules-gnucc-ghc865",
+                    "PR1-blah.submodules-clang-ghc881",
+                    "PR1-blah.submodules-gnucc-ghc881",
+                    "PR23-PR8192-bugfix9.HEADs-clang-ghc844",
+                    "PR23-PR8192-bugfix9.HEADs-gnucc-ghc844",
+                    "PR23-PR8192-bugfix9.HEADs-clang-ghc865",
+                    "PR23-PR8192-bugfix9.HEADs-gnucc-ghc865",
+                    "PR23-PR8192-bugfix9.HEADs-clang-ghc881",
+                    "PR23-PR8192-bugfix9.HEADs-gnucc-ghc881",
+                    "PR23-PR8192-bugfix9.submodules-clang-ghc844",
+                    "PR23-PR8192-bugfix9.submodules-gnucc-ghc844",
+                    "PR23-PR8192-bugfix9.submodules-clang-ghc865",
+                    "PR23-PR8192-bugfix9.submodules-gnucc-ghc865",
+                    "PR23-PR8192-bugfix9.submodules-clang-ghc881",
+                    "PR23-PR8192-bugfix9.submodules-gnucc-ghc881",
                     "dev.HEADs-clang-ghc844",
                     "dev.HEADs-gnucc-ghc844",
                     "dev.HEADs-clang-ghc865",
@@ -147,7 +147,7 @@ def test_example_report_status1(example_hydra_results):
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
-                        buildname='PR-blah.HEADs-clang-ghc844',
+                        buildname='PR1-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
@@ -155,7 +155,7 @@ def test_example_report_status1(example_hydra_results):
 CS = [ 'clang', 'gnucc' ]
 GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
-BS = [ 'PR-blah', 'PR-bugfix9', "feat1", "master", "dev",]
+BS = [ 'PR1-blah', 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
 
 def test_example_report_statusMany(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -164,7 +164,7 @@ def test_example_report_statusMany(example_hydra_results):
         for G in GS:
             for S in SS:
                 for B in BS:
-                    assert StatusReport(
+                    r = StatusReport(
                         status=('succeeded'
                                 if C == 'gnucc' and G == 'ghc844' and S == 'submodules' and B == 'master'
                                 else 'fixed'
@@ -176,13 +176,13 @@ def test_example_report_statusMany(example_hydra_results):
                                 else 'initial_success'),
                         project='R1',
                         strategy=S,
-                        branchtype="pullreq" if B.startswith('PR-') else "regular",
-                        branch=B[3:] if B.startswith('PR-') else B,
+                        branchtype="pullreq" if B.startswith('PR') else "regular",
+                        branch=B.split('-')[-1] if B.startswith('PR') else B,
                         buildname='-'.join(['.'.join([B,S]),C,G]),
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
-                        ]) in reps
-
+                        ])
+                    assert r in reps
 
 def test_example_report_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results

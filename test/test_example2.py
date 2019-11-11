@@ -259,41 +259,57 @@ def test_example_internal_count(example_internal_bldconfigs):
 
 def test_example_internal_regular_develop_submodules(example_internal_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "develop", "submodules",
-                                [BldRepoRev("Repo1","develop"),
-                                 BldRepoRev("Repo2","r2_develop_head"),
-                                 BldRepoRev("Repo3","r3_develop_head"),
-                                 BldRepoRev("Repo4","r4_master_head")],
-                                [BldVariable("Repo1","ghcver", G)])
+                            [
+                                BldRepoRev("Repo1", "develop", "project_primary"),
+                                BldRepoRev("Repo2", "r2_develop_head", "project_primary"),
+                                BldRepoRev("Repo3", "r3_develop_head", "project_primary"),
+                                BldRepoRev("Repo4", "r4_master_head", "project_primary"),
+                            ],
+                            [
+                                BldVariable("Repo1", "ghcver", G),
+                            ])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_develop_HEADs(example_internal_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "develop", "HEADs",
-                                [BldRepoRev("Repo1","develop"),
-                                 BldRepoRev("Repo2","develop"),
-                                 BldRepoRev("Repo3","develop"),
-                                 BldRepoRev("Repo4","master")],
-                                [BldVariable("Repo1","ghcver", G)])
+                            [
+                                BldRepoRev("Repo1", "develop", "project_primary"),
+                                BldRepoRev("Repo2", "develop", "project_primary"),
+                                BldRepoRev("Repo3", "develop", "project_primary"),
+                                BldRepoRev("Repo4", "master", "project_primary"),
+                            ],
+                            [
+                                BldVariable("Repo1", "ghcver", G),
+                            ])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_submodules(example_internal_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "master", "submodules",
-                                [BldRepoRev("Repo1","master"),
-                                 BldRepoRev("Repo2","r2_master_head"),
-                                 BldRepoRev("Repo3","r3_master_head^3"),
-                                 BldRepoRev("Repo4","r4_master_head^1")],
-                                [BldVariable("Repo1","ghcver", G)])
+                            [
+                                BldRepoRev("Repo1", "master", "project_primary"),
+                                BldRepoRev("Repo2", "r2_master_head", "project_primary"),
+                                BldRepoRev("Repo3", "r3_master_head^3", "project_primary"),
+                                BldRepoRev("Repo4", "r4_master_head^1", "project_primary"),
+                            ],
+                            [
+                                BldVariable("Repo1", "ghcver", G),
+                            ])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
 def test_example_internal_regular_master_HEADs(example_internal_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "master", "HEADs",
-                                [BldRepoRev("Repo1","master"),
-                                 BldRepoRev("Repo2","master"),
-                                 BldRepoRev("Repo3","master"),
-                                 BldRepoRev("Repo4","master")],
-                                [BldVariable("Repo1","ghcver", G)])
+                            [
+                                BldRepoRev("Repo1", "master", "project_primary"),
+                                BldRepoRev("Repo2", "master", "project_primary"),
+                                BldRepoRev("Repo3", "master", "project_primary"),
+                                BldRepoRev("Repo4", "master", "project_primary"),
+                            ],
+                            [
+                                BldVariable("Repo1", "ghcver", G),
+                            ])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 

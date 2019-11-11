@@ -127,42 +127,56 @@ def example_hydra_results():
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR-master.main-ghc865",
+            { "name" : "PR1-master.main-ghc865",
               "nrtotal" : 4,
               "nrsucceeded": 4,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR-master.main-ghc881",
+            { "name" : "PR1-master.main-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 1,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR-develop.main-ghc865",
+            { "name" : "PR2-develop.main-ghc865",
               "nrtotal" : 0,
               "nrsucceeded": 0,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": True,
             },
-            { "name" : "PR-develop.main-ghc881",
+            { "name" : "PR2-develop.main-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 1,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR-foo.main-ghc865",
+            { "name" : "PR1-foo.main-ghc865",
               "nrtotal" : 9,
               "nrsucceeded": 9,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR-foo.main-ghc881",
+            { "name" : "PR1-foo.main-ghc881",
+              "nrtotal" : 4,
+              "nrsucceeded": 3,
+              "nrfailed": 1,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "PR9-master.main-ghc865",
+              "nrtotal" : 9,
+              "nrsucceeded": 9,
+              "nrfailed": 0,
+              "nrscheduled": 0,
+              "haserrormsg": False,
+            },
+            { "name" : "PR9-master.main-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 1,
@@ -173,17 +187,17 @@ def example_hydra_results():
         prior = [
             StatusReport(status='initial_success', project='Repo1',
                          strategy='main', branchtype="pullreq", branch="foo",
-                         buildname='PR-foo.main-ghc881',
+                         buildname='PR1-foo.main-ghc881',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                          ]),
             StatusReport(status='initial_success', project='Repo1',
                          strategy='main', branchtype="pullreq", branch="foo",
-                         buildname='PR-foo.main-ghc865',
+                         buildname='PR1-foo.main-ghc865',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                          ]),
             StatusReport(status='failed', project='Repo1',
                          strategy='main', branchtype="pullreq", branch="master",
-                         buildname='PR-master.main-ghc865',
+                         buildname='PR1-master.main-ghc865',
                          bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                          ]),
             StatusReport(status='succeeded', project='Repo1',
@@ -208,6 +222,7 @@ top_level = [
     "pullreq R1 master",
     "pullreq R3 develop",
     "pullreq R3 foo",
+    "pullreq R3 master",
 ]
 
 def test_example_facts():
@@ -245,6 +260,7 @@ branchreq("Repo1", "develop").
 pullreq("Repo1", "1", "master").
 pullreq("Repo3", "2", "develop").
 pullreq("Repo3", "1", "foo").
+pullreq("Repo3", "9", "master").
 branch("Repo3", "develop").
 branch("Repo1", "develop").
 branch("Repo2", "master").
@@ -267,11 +283,11 @@ def test_example_internal_regular_master_main(example_internal_bldconfigs):
                             branchtype="regular",
                             branchname="master",
                             strategy="main",
-                            blds=[BldRepoRev("Repo1","master"),
-                                  BldRepoRev("Repo2","master"),
-                                  BldRepoRev("Repo3","master"),
+                            blds=[BldRepoRev("Repo1", "master", "project_primary"),
+                                  BldRepoRev("Repo2", "master", "project_primary"),
+                                  BldRepoRev("Repo3", "master", "project_primary"),
                             ],
-                            bldvars=[BldVariable("Repo1","ghcver", G)])
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -280,11 +296,11 @@ def test_example_internal_regular_develop_main(example_internal_bldconfigs):
                             branchtype="regular",
                             branchname="develop",
                             strategy="main",
-                            blds=[BldRepoRev("Repo1","develop"),
-                                  BldRepoRev("Repo2","develop"),
-                                  BldRepoRev("Repo3","develop"),
+                            blds=[BldRepoRev("Repo1", "develop", "project_primary"),
+                                  BldRepoRev("Repo2", "develop", "project_primary"),
+                                  BldRepoRev("Repo3", "develop", "project_primary"),
                             ],
-                            bldvars=[BldVariable("Repo1","ghcver", G)])
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -293,11 +309,11 @@ def test_example_internal_pr1_main(example_internal_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="main",
-                            blds=[BldRepoRev("Repo1","master"),
-                                  BldRepoRev("Repo2","master"),
-                                  BldRepoRev("Repo3","master"),
+                            blds=[BldRepoRev("Repo1", "master", "1"),
+                                  BldRepoRev("Repo2", "master", "project_primary"),
+                                  BldRepoRev("Repo3", "master", "project_primary"),
                             ],
-                            bldvars=[BldVariable("Repo1","ghcver", G)])
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -306,11 +322,11 @@ def test_example_internal_pr2_main(example_internal_bldconfigs):
                             branchtype="pullreq",
                             branchname="develop",
                             strategy="main",
-                            blds=[BldRepoRev("Repo1","develop"),
-                                  BldRepoRev("Repo2","develop"),
-                                  BldRepoRev("Repo3","develop"),
+                            blds=[BldRepoRev("Repo1", "develop", "project_primary"),
+                                  BldRepoRev("Repo2", "develop", "project_primary"),
+                                  BldRepoRev("Repo3", "develop", "2"),
                             ],
-                            bldvars=[BldVariable("Repo1","ghcver", G)])
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -319,11 +335,27 @@ def test_example_internal_pr1r3_main(example_internal_bldconfigs):
                             branchtype="pullreq",
                             branchname="foo",
                             strategy="main",
-                            blds=[BldRepoRev("Repo1","master"),
-                                  BldRepoRev("Repo2","foo"),
-                                  BldRepoRev("Repo3","foo"),
+                            blds=[BldRepoRev("Repo1", "master", "project_primary"),
+                                  BldRepoRev("Repo2", "foo", "project_primary"),
+                                  BldRepoRev("Repo3", "foo", "1"),
                             ],
-                            bldvars=[BldVariable("Repo1","ghcver", G)])
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
+                  for G in GS]:
+        assert each in example_internal_bldconfigs.cfg_build_configs
+
+def test_example_internal_pr9r3_main(example_internal_bldconfigs):
+    for each in example_internal_bldconfigs.cfg_build_configs:
+        print(each)
+        print('')
+    for each in [ BldConfig(projectname="Repo1",
+                            branchtype="pullreq",
+                            branchname="master",
+                            strategy="main",
+                            blds=[BldRepoRev("Repo1", "master", "project_primary"),
+                                  BldRepoRev("Repo2", "master", "project_primary"),
+                                  BldRepoRev("Repo3", "master", "9"),
+                            ],
+                            bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
         assert each in example_internal_bldconfigs.cfg_build_configs
 
@@ -332,6 +364,289 @@ def test_example_hydra_count(example_hydra_jobsets):
     print('##### OUTPUT:')
     print(example_hydra_jobsets)
     assert len(GS) * len(top_level) == len(json.loads(example_hydra_jobsets))
+
+def test_example_hydra_master(example_hydra_jobsets):
+    expected = dict([
+        ( "master.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: brr1:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r1_url master"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url master"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r3_url master"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=master|strategy=main"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
+def test_example_hydra_develop(example_hydra_jobsets):
+    expected = dict([
+        ( "develop.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: brr1:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r1_url develop"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url develop"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r3_url develop"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=develop|strategy=main"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
+def test_example_hydra_R1PR1(example_hydra_jobsets):
+    expected = dict([
+        ( "PR1-master.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: PR1-brr3:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "remote_Repo1 master"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url master"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r3_url master"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=master|strategy=main|PR"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
+def test_example_hydra_R3PR1(example_hydra_jobsets):
+    expected = dict([
+        ( "PR1-foo.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: brr2:Repo1, brr1:Repo2, PR1-brr3:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r1_url master"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url foo"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "remote_Repo3_2 foo"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=foo|strategy=main|PR"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
+def test_example_hydra_R3PR2(example_hydra_jobsets):
+    expected = dict([
+        ( "PR2-develop.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: brr1:Repo1, brr1:Repo2, PR2-brr3:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r1_url develop"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url develop"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "remote_Repo3 develop"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=develop|strategy=main|PR"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
+def test_example_hydra_R3PR9(example_hydra_jobsets):
+    expected = dict([
+        ( "PR9-master.main-%s" % (G), {
+            "checkinterval": 600,
+            "description": "Build configuration: brr1:Repo1, brr1:Repo2, PR9-brr3:Repo3, ghcver=%s" % (G),
+            "emailoverride": "",
+            "enabled": 1,
+            "enableemail": False,
+            "hidden": False,
+            "inputs": {
+                "Repo1-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r1_url master"
+                },
+                "Repo2-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "r2_url master"
+                },
+                "Repo3-src": {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": "remote_repo3_other master"
+                },
+                "ghcver": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": G
+                },
+                "variant": {
+                    "emailresponsible": False,
+                    "type": "string",
+                    "value": "|branch=master|strategy=main|PR"
+                },
+            },
+            "keepnr": 3,
+            "nixexprinput": "Repo1-src",
+            "nixexprpath": "./release.nix",
+            "schedulingshares": 1
+        }) for G in GS ])
+    for each in expected:
+        print(each)
+        actual = json.loads(example_hydra_jobsets)
+        assert each in actual
+        assert expected[each] == actual[each]
+
 
 
 def test_example_report_summary(example_hydra_results):
@@ -342,7 +657,7 @@ def test_example_report_summary(example_hydra_results):
         print(each)
 
     assert ProjectSummary(project_name='Repo1',
-                          bldcfg_count=10, subrepo_count=0, pullreq_count=3) in reps
+                          bldcfg_count=12, subrepo_count=0, pullreq_count=4) in reps
 
 # def test_example_report_status1(example_hydra_results):
 #     bldcfgs, reps = example_hydra_results
@@ -357,7 +672,7 @@ def test_example_report_status2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="develop",
-                        buildname='PR-develop.main-ghc881',
+                        buildname='PR2-develop.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
@@ -365,7 +680,7 @@ def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="foo",
-                        buildname='PR-foo.main-ghc881',
+                        buildname='PR1-foo.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
@@ -373,7 +688,7 @@ def test_example_report_status4(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="master",
-                        buildname='PR-master.main-ghc881',
+                        buildname='PR1-master.main-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
@@ -395,9 +710,9 @@ def test_example_report_status6(example_hydra_results):
 
 def test_example_report_status7(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='fixed', project='Repo1',
+    assert StatusReport(status='initial_success', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="master",
-                        buildname='PR-master.main-ghc865',
+                        buildname='PR9-master.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
@@ -413,7 +728,7 @@ def test_example_report_status9(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='succeeded', project='Repo1',
                         strategy='main', branchtype="pullreq", branch="foo",
-                        buildname='PR-foo.main-ghc865',
+                        buildname='PR1-foo.main-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
