@@ -47,4 +47,4 @@ class GitExample2(ActorTypeDispatcher):
             # exist in submodules from that pull req; see git_example1.
             pass
         ### EXAMPLE-^^^
-        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, rval))
+        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, msg.pullreq_id, rval))

@@ -221,7 +221,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
 :- discontiguous subrepo/1.
-:- discontiguous submodule/4.
+:- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
 :- discontiguous pullreq/3.
@@ -241,12 +241,12 @@ branch("Repo2", "master").
 branch("Repo3", "master").
 branch("Repo2", "develop").
 branch("Repo1", "master").
-submodule("Repo1", "develop", "Repo2", "r2_develop_head").
-submodule("Repo1", "develop", "Repo3", "r3_develop_head").
-submodule("Repo1", "develop", "Repo4", "r4_master_head").
-submodule("Repo1", "master", "Repo2", "r2_master_head").
-submodule("Repo1", "master", "Repo3", "r3_master_head^3").
-submodule("Repo1", "master", "Repo4", "r4_master_head^1").
+submodule("Repo1", project_primary, "develop", "Repo2", "r2_develop_head").
+submodule("Repo1", project_primary, "develop", "Repo3", "r3_develop_head").
+submodule("Repo1", project_primary, "develop", "Repo4", "r4_master_head").
+submodule("Repo1", project_primary, "master", "Repo2", "r2_master_head").
+submodule("Repo1", project_primary, "master", "Repo3", "r3_master_head^3").
+submodule("Repo1", project_primary, "master", "Repo4", "r4_master_head^1").
 varname("Repo1", "ghcver").
 varvalue("Repo1", "ghcver", "ghc844").
 varvalue("Repo1", "ghcver", "ghc865").

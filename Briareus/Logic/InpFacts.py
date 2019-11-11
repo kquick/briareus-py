@@ -54,11 +54,15 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # probing the VCS.  The format is: branch(Repo, BranchName).
         DeclareFact('branch/2'),
 
-        # Specifies the existence of a submodule specification.  The
-        # format is: submodule(ProjectRepo, BranchName, SubmoduleRepo,
+        # Specifies the existence of a submodule specification; this
+        # corresponds to the SubModuleInfo as defined in
+        # Briareus/VCS/InternalMessages.py.  The format is:
+        # submodule(ProjectRepo, PullReqID, BranchName, SubmoduleRepo,
         # SubmoduleRef).  The SubmoduleRef is the explicit VCS
-        # reference that the submodule refers to.
-        DeclareFact('submodule/4'),
+        # reference that the submodule refers to.  The PullReqID is
+        # project_primary (an atom as opposed to a PR ID string) if this
+        # reference is for the project repo and not a pull request.
+        DeclareFact('submodule/5'),
 
         # Specifies a variable that the user has declared to be of
         # interest.  Variables names are identified separately from
@@ -99,20 +103,26 @@ def get_input_facts(RL, BL, VAR, repo_info):
     submodules_facts = []
     if project:
         pn = project.repo_name
-        # n.b. repo_info['subrepos'] are of type SubRepoInfo from InternalOps;
+        # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;
         # the actual definition is not imported here because Python is
         # duck-typed.
-        submods_data = lambda bname: [ (e.sm_sub_name, e.sm_sub_vers)
-                                       for e in repo_info['submodules']
-                                       if e.sm_repo_name == pn and e.sm_branch == bname ]
+        submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)
+                                              for e in repo_info['submodules']
+                                              if (e.sm_repo_name == pn
+                                                  and e.sm_branch == bname
+                                                  and e.sm_pullreq_id == pr_id
+                                                 )]
         for b in BL:
             bn = b.branch_name
-            for repover in submods_data(bn):
-                submodules_facts.append( Fact('submodule("%s", "%s", "%%s", "%%s")' % (pn, bn) % repover) )
+            for repover in submods_data(bn, None):
+                submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
+                                              % (pn, bn) % repover) )
         for p in pullreqs:
             if p.pr_target_repo == project.repo_name:
-                for repover in submods_data(p.pr_branch):
-                    submodules_facts.append( Fact('submodule("%(pr_target_repo)s", "%(pr_branch)s", "%%s", "%%s")' % p.__dict__ % repover) )
+                for repover in submods_data(p.pr_branch, p.pr_ident):
+                    submodules_facts.append(
+                        Fact('submodule("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%%s", "%%s")'
+                             % p.__dict__ % repover) )
 
     varname_facts = []
     varval_facts = []

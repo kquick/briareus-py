@@ -240,12 +240,14 @@ class GatherRepoInfo(ActorTypeDispatcher):
                             Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
                                                GitmodulesData(repo.repo_name,
                                                               p.pullreq_branch,
+                                                              p.pullreq_number,
                                                               p.pullreq_ref or
                                                               p.pullreq_branch)))
                     else:
                         # Source for pull request is in this repo
                         self.get_git_info(GitmodulesData(repo.repo_name,
                                                          p.pullreq_branch,
+                                                         p.pullreq_number,
                                                          p.pullreq_ref or
                                                          p.pullreq_branch))
 
@@ -321,7 +323,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # This is a branch on the project repo, so see if
                     # there is any submodule information on that
                     # branch.
-                    self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name, None))
+                    self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name,
+                                                     None, # Branches are never queried in PR source repos
+                                                     None))
         main_r = ([ r for r in self._all_repos() if r.repo_name == msg.reponame ] +
                   [ None ])[0]
         for br in msg.known_branches:
@@ -351,6 +355,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 if r.repo_url == nsr_url or r.repo_url == named_submod_repo.repo_url:
                     self.submodules.add( SubModuleInfo(sm_repo_name=msg.reponame,
                                                        sm_branch=msg.branch_name,
+                                                       sm_pullreq_id=msg.pullreq_id,
                                                        sm_sub_name=r.repo_name,
                                                        sm_sub_vers=each.subrepo_vers) )
             # Now check for PR-driven branches in those subrepos

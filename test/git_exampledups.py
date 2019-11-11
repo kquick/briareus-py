@@ -51,10 +51,11 @@ class GitExample(ActorTypeDispatcher):
         ### EXAMPLE-vvv
         rval = []
         ### EXAMPLE-^^^
-        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, rval))
+        self.send(sender, GitmodulesRepoVers(msg.reponame, branch, msg.pullreq_id, rval))
 
     def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
         if isinstance(msg.altloc_reqmsg, GitmodulesData):
             self.send(sender, GitmodulesRepoVers(msg.altloc_reqmsg.reponame,
                                                  msg.altloc_reqmsg.branch_name,
+                                                 msg.altloc_reqmsg.pullreq_id,
                                                  []))

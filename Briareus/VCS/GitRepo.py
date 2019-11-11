@@ -118,7 +118,7 @@ class GitRepoInfo(ActorTypeDispatcher):
     def receiveMsg_GitmodulesData(self, msg, sender):
         branch = msg.branch_name
         try:
-            rval = self._ghinfo.get_gitmodules(msg.reponame, branch)
+            rval = self._ghinfo.get_gitmodules(msg.reponame, branch, msg.pullreq_id)
         except Exception as err:
             logging.critical('GitmodulesData err: %s', err, exc_info=True)
             self.send(msg.orig_sender,
@@ -265,13 +265,13 @@ class RemoteGit__Info(object):
             return base64.b64decode(rsp['content']).decode('utf-8')
         return rsp
 
-    def get_gitmodules(self, reponame, branch):
+    def get_gitmodules(self, reponame, branch, pullreq_id):
         rsp = self.get_file_contents_raw('.gitmodules', branch)
         if rsp == self.NotFound:
-            return GitmodulesRepoVers(reponame, branch, [])
-        return self.parse_gitmodules_contents(reponame, branch, rsp)
+            return GitmodulesRepoVers(reponame, branch, pullreq_id, [])
+        return self.parse_gitmodules_contents(reponame, branch, pullreq_id, rsp)
 
-    def parse_gitmodules_contents(self, reponame, branch, gitmodules_contents):
+    def parse_gitmodules_contents(self, reponame, branch, pullreq_id, gitmodules_contents):
         gitmod_cfg = configparser.ConfigParser()
         gitmod_cfg.read_string(gitmodules_contents)
         ret = []
@@ -308,7 +308,7 @@ class RemoteGit__Info(object):
                                            'unknownRemoteRefForPullReq'))
             else:
                 ret.append(self._subrepo_version(remote, gitmod_cfg[remote], submod_info))
-        return GitmodulesRepoVers(reponame, branch, ret)
+        return GitmodulesRepoVers(reponame, branch, pullreq_id, ret)
 
 # ----------------------------------------------------------------------
 #

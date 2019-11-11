@@ -4,7 +4,7 @@
 is_project_repo(R) :- repo(R), project(R).
 
 has_gitmodules(R, B) :-
-    bagof(B, V^S^(is_project_repo(R), (branchreq(R,B); pullreq(R,_,B)), submodule(R, B, S, V)), BHG),
+    bagof(B, V^S^P^(is_project_repo(R), (branchreq(R,B); pullreq(R,_,B)), submodule(R, P, B, S, V)), BHG),
     \+ length(BHG, 0).
 
 all_repos_no_subs(ALLR) :- findall(R, repo(R), ALLR).
@@ -84,33 +84,33 @@ build_revspecs(RevSpec, RevSpecs, [RevSpec|RevSpecs]) :- RevSpec \= skip.
 %% strategy = submodules | heads | main
 
 reporev(R, ProjRepo, pullreq, B, submodules, RepoRev) :-
-    submodule(ProjRepo, B, R, SubRev),
-    pullreq(_, _I, B),
+    submodule(ProjRepo, I, B, R, SubRev),
+    pullreq(_, I, B),
     bldwith(RepoRev, R, SubRev, brr(09)).
 
 reporev(R, ProjRepo, pullreq, B, heads, RepoRev) :-
-    submodule(ProjRepo, B, R, _),
-    pullreq(_, _I, B),
+    submodule(ProjRepo, I, B, R, _),
+    pullreq(_, I, B),
     branch(R, B),
     bldwith(RepoRev, R, B, brr(08)).
 
 reporev(R, ProjRepo, pullreq, B, heads, RepoRev) :-
-    submodule(ProjRepo, B, R, _),
-    pullreq(_, _I, B),
+    submodule(ProjRepo, I, B, R, _),
+    pullreq(_, I, B),
     \+ branch(R, B),
     bldwith(RepoRev, R, "master", brr(07)).
 
-reporev(R, ProjRepo, _BType,  B, submodules, RepoRev) :-
-    submodule(ProjRepo, B, R, SubRev),
+reporev(R, ProjRepo, regular,  B, submodules, RepoRev) :-
+    submodule(ProjRepo, project_primary, B, R, SubRev),
     bldwith(RepoRev, R, SubRev, brr(04)).
 
 reporev(R, ProjRepo, _BType,  B, heads, RepoRev) :-
-    submodule(ProjRepo, B, R, _),
+    submodule(ProjRepo, project_primary, B, R, _),
     branch(R, B),
     bldwith(RepoRev, R, B, brr(05)).
 
 reporev(R, ProjRepo, _BType,  B, heads, RepoRev) :-
-    submodule(ProjRepo, B, R, _),
+    submodule(ProjRepo, project_primary, B, R, _),
     \+ branch(R, B),
     branchreq(ProjRepo,B),
     bldwith(RepoRev, R, "master", brr(06)).
@@ -121,53 +121,53 @@ reporev(R, _ProjRepo, pullreq, B, _Strategy, RepoRev) :-
     bldwith(RepoRev, R, B, brr(03)).
 
 reporev(R, ProjRepo, pullreq, B, _Strategy,  RepoRev) :-
-    submodule(ProjRepo, "master", R, _),
-    \+ pullreq(ProjRepo, _, B),
+    submodule(ProjRepo, I, "master", R, _),
+    \+ pullreq(ProjRepo, I, B),
     pullreq(R, _, B),
     bldwith(RepoRev, R, B, brr(10)).
 
 reporev(R, ProjRepo, pullreq, B, submodules, RepoRev) :-
-    submodule(ProjRepo, "master", R, SubRev),
+    submodule(ProjRepo, project_primary, "master", R, SubRev),
     \+ pullreq(ProjRepo, _, B),
     \+ pullreq(R, _, B),
     bldwith(RepoRev, R, SubRev, brr(11)).
 
 reporev(R, ProjRepo, pullreq, B, heads, RepoRev) :-
-    submodule(ProjRepo, "master", R, _),
+    submodule(ProjRepo, project_primary, "master", R, _),
     \+ pullreq(ProjRepo, _, B),
     \+ pullreq(R, _, B),
     bldwith(RepoRev, R, "master", brr(12)).
 
 reporev(R, ProjRepo, regular, B, submodules, RepoRev) :-
-    \+ submodule(ProjRepo, B, R, _),
-    submodule(ProjRepo, "master", R, SubRev),
+    submodule(ProjRepo, I, "master", R, SubRev),
+    \+ submodule(ProjRepo, I, B, R, _),
     \+ branch(R, B),
     bldwith(RepoRev, R, SubRev, brr(13)),
     !.
 
 reporev(R, ProjRepo, regular, B, heads, RepoRev) :-
-    \+ submodule(ProjRepo, B, R, _),
-    submodule(ProjRepo, "master", R, _),
+    submodule(ProjRepo, I, "master", R, _),
+    \+ submodule(ProjRepo, I, B, R, _),
     branch(R, B),
     bldwith(RepoRev, R, B, brr(15)),
     !.
 
 reporev(R, ProjRepo, regular, B, heads, RepoRev) :-
-    \+ submodule(ProjRepo, B, R, _),
-    submodule(ProjRepo, "master", R, _),
+    submodule(ProjRepo, I, "master", R, _),
+    \+ submodule(ProjRepo, I, B, R, _),
     \+ branch(R, B),
     bldwith(RepoRev, R, "master", brr(14)),
     !.
 
 reporev(R, ProjRepo, _BType,  B, _Strategy,  RepoRev) :-
     repo(R),
-    \+ submodule(ProjRepo, B, R, _),
+    \+ submodule(ProjRepo, _I, B, R, _),
     branch(R, B),
     bldwith(RepoRev, R, B, brr(01)).
 
 reporev(R, ProjRepo, _BType,  B, _Strategy,  RepoRev) :-
     repo(R),
-    \+ submodule(ProjRepo, B, R, _),
+    \+ submodule(ProjRepo, _I, B, R, _),
     \+ branch(R, B),
     bldwith(RepoRev, R, "master", brr(02)).
 

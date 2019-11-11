@@ -65,7 +65,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
 :- discontiguous subrepo/1.
-:- discontiguous submodule/4.
+:- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
 :- discontiguous pullreq/3.
@@ -100,15 +100,15 @@ branch("R5", "bugfix9").
 pullreq("R1", "1", "blah").
 pullreq("R4", "8192", "bugfix9").
 pullreq("R2", "23", "bugfix9").
-submodule("R1", "master", "R2", "r2_master_head").
-submodule("R1", "master", "R3", "r3_master_head^3").
-submodule("R1", "master", "R4", "r4_master_head^1").
-submodule("R1", "feat1", "R2", "r2_master_head^1").
-submodule("R1", "feat1", "R3", "r3_master_head").
-submodule("R1", "feat1", "R4", "r4_feat1_head^2").
-submodule("R1", "blah", "R2", "r2_master_head^22").
-submodule("R1", "blah", "R3", "r3_master_head").
-submodule("R1", "blah", "R7", "r7_master_head^4").
+submodule("R1", project_primary, "master", "R2", "r2_master_head").
+submodule("R1", project_primary, "master", "R3", "r3_master_head^3").
+submodule("R1", project_primary, "master", "R4", "r4_master_head^1").
+submodule("R1", project_primary, "feat1", "R2", "r2_master_head^1").
+submodule("R1", project_primary, "feat1", "R3", "r3_master_head").
+submodule("R1", project_primary, "feat1", "R4", "r4_feat1_head^2").
+submodule("R1", "1", "blah", "R2", "r2_master_head^22").
+submodule("R1", "1", "blah", "R3", "r3_master_head").
+submodule("R1", "1", "blah", "R7", "r7_master_head^4").
 varname("R1", "ghcver").
 varname("R1", "c_compiler").
 varvalue("R1", "ghcver", "ghc844").

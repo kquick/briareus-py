@@ -127,10 +127,17 @@ class BranchPresent(Repo__RspMsg):      # HasBranch -->
 @attr.s
 class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers
     branch_name = attr.ib()
+    pullreq_id = attr.ib()  # may be none, but distinguishes between
+                            # PR's from master branches.  The ID was
+                            # chosen to be unique relative to the
+                            # source repo; another unique field
+                            # (e.g. pullreq_srcurl) could
+                            # alternatively be used.
     source_ref = attr.ib()  # explicit ref for src (e.g. for Gitlab)
 @attr.s
 class GitmodulesRepoVers(Repo__RspMsg): # GitmodulesData -->
     branch_name = attr.ib()
+    pullreq_id = attr.ib()  # may be none, but distinguishes between PR's from master branches
     gitmodules_repovers = attr.ib(factory=list)  # array of SubRepoVers
 
 @attr.s
@@ -155,7 +162,27 @@ class PRInfo(object):
 
 @attr.s(frozen=True)
 class SubModuleInfo(object):
-    sm_repo_name = attr.ib()
-    sm_branch    = attr.ib()
-    sm_sub_name  = attr.ib()
-    sm_sub_vers  = attr.ib()
+    """Describes a known submodule for a repository.  Only a project
+       repository is checked for submodules.
+
+       Note that a Submodule specifies a subrepo name and version, and
+       that since a VCS repository may contain several modules, that a
+       single VCS submodule reference might create multiple
+       SubModuleInfo objects---one for each module---which differ only
+       in sm_sub_name.
+
+       The repo to which this submodule reference belongs is
+       identified by the tuple of: repo_name, branch, and pullreq_id.
+       Note that any branch or pullreq might change the submodule
+       specification.  The pullreq_id may be None, indicating that
+       this is a branch in the main project repo; if the pullreq_id is
+       not None, it is the ID of the pullreq (one or more pullreq
+       source repos might use the same branch name, so the pullreq_id
+       is used to uniquely differentiante between these).
+
+    """
+    sm_repo_name = attr.ib()  # Primary repo name (the one that contains the submodule)
+    sm_branch    = attr.ib()  # Submodule branch name (in source repo)
+    sm_pullreq_id= attr.ib()  # If submodule for a PR to the project repo, this identifies the PR
+    sm_sub_name  = attr.ib()  # Submodule repo name
+    sm_sub_vers  = attr.ib()  # Submodule repo specified version
