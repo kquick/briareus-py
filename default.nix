@@ -8,7 +8,7 @@ python3Packages.buildPythonApplication rec {
     owner = "kquick";
     repo = "briareus";
     rev = "v0.2";
-    sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    sha256 = "1hd8xbwfxz1ngxrpqfsyc2jk516d952m15zs3pzf02i8ny8k5s6q";
   };
   # src = python3Packages.fetchPypi {
   #   inherit pname version;
