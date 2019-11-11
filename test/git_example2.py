@@ -34,11 +34,11 @@ class GitExample2(ActorTypeDispatcher):
         ### EXAMPLE-vvv
         rsub = {
             'Repo1': { "master":[SubRepoVers('Repo2', "r2_url", "r2_master_head"),
-                              SubRepoVers('Repo3', "r3_url", "r3_master_head^3"),
-                              SubRepoVers('Repo4', "r4_url", "r4_master_head^1")],
-                    'develop':[SubRepoVers('Repo2', "r2_url", "r2_develop_head"),
-                               SubRepoVers('Repo3', "r3_url", "r3_develop_head"),
-                               SubRepoVers('Repo4', "r4_url", "r4_master_head")],
+                                 SubRepoVers('Repo3', "r3_url", "r3_master_head^3"),
+                                 SubRepoVers('Repo4', "r4_url", "r4_master_head^1")],
+                       'develop':[SubRepoVers('Repo2', "r2_url", "r2_develop_head"),
+                                  SubRepoVers('Repo3', "r3_url", "r3_develop_head"),
+                                  SubRepoVers('Repo4', "r4_url", "r4_master_head")],
             },
         }[msg.reponame]
         rval = rsub.get(branch, [])
