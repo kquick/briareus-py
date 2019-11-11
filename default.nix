@@ -1,10 +1,15 @@
-{ lib, python3Packages, swiProlog, thespian, setproctitle, attrs, requests }:
+{ stdenv, fetchFromGitHub, python3Packages, swiProlog, thespian, setproctitle, attrs, requests }:
 
 python3Packages.buildPythonApplication rec {
   pname = "briareus";
   version = "0.1";
 
-  src = ./.;
+  src = fetchFromGitHub {
+    owner = "kquick";
+    repo = "briareus";
+    rev = "v0.2";
+    sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+  };
   # src = python3Packages.fetchPypi {
   #   inherit pname version;
   #   sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -21,8 +26,8 @@ python3Packages.buildPythonApplication rec {
 
   meta = {
     description = "Build configuration generator";
-    maintainers = [ lib.maintainers.kquick ];
-    # license = lib.licenses.?;
+    maintainers = [ stdenv.lib.maintainers.kquick ];
+    # license = stdenv.lib.licenses.?;
     # homepage = "?";
   };
 }

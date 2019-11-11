@@ -1,3 +1,10 @@
-{ nixpkgs ? import <nixpkgs> {}
+{ pkgs ? import <nixpkgs> {}
 }:
-nixpkgs.callPackage ./default.nix {}
+let
+  callPackage = pkgs.newScope (pkgs // pkgs.python37Packages);
+
+  briareus = callPackage ./default.nix {};
+in
+pkgs.lib.overrideDerivation briareus (drv: {
+  src = ./.;
+})
