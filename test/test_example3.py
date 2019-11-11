@@ -67,6 +67,8 @@ top_level = [
     "regular dev heads",
     "pullreq bugfix9 heads",
     "pullreq bugfix9 submodules",
+    "pullreq blah heads",
+    "pullreq blah submodules",
 ]
 
 def test_example_internal_count(example_internal_bldconfigs):

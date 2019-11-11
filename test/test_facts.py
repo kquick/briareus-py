@@ -100,6 +100,7 @@ branch("R5", "bugfix9").
 pullreq("R1", "1", "blah").
 pullreq("R4", "8192", "bugfix9").
 pullreq("R2", "23", "bugfix9").
+pullreq("R3", "11", "blah").
 submodule("R1", project_primary, "master", "R2", "r2_master_head").
 submodule("R1", project_primary, "master", "R3", "r3_master_head^3").
 submodule("R1", project_primary, "master", "R4", "r4_master_head^1").

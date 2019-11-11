@@ -101,7 +101,7 @@ def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
                             [
                                 BldRepoRev("R1", "blah", "1", "ignored"),
                                 BldRepoRev("R2", "master", "project_primary", 9999),
-                                BldRepoRev("R3", "blah", "project_primary"),
+                                BldRepoRev("R3", "blah", "11"),
                                 BldRepoRev("R5", "blah", "project_primary"),
                                 BldRepoRev("R6", "master", "project_primary"),
                                 BldRepoRev("R7", "master", "project_primary"),
@@ -750,11 +750,15 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
         assert expected[each] == actual[each]
 
 
-def test_example_hydra_master_blah_heads(example_hydra_jobsets):
+def test_example_hydra_blah_heads(example_hydra_jobsets):
+    # Note that the test_example_hydra_blah_submodules ignores the
+    # PR11 in R3 because the submodules spec in PR1 of R1 takes
+    # priority.  In *this* test, the submodules are ignored, so PR11
+    # now expresses.
     expected = dict([
-        ( "PR1-blah.HEADs-%s-%s" % (C,G), {
+        ( "PR1-PR11-blah.HEADs-%s-%s" % (C,G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR1-brr3:R1, brr7:R2, brr8:R3, brr1:R5, brr2:R6, brr7:R7, c_compiler=%s, ghcver=%s" % (C,G),
+            "description": "Build configuration: PR1-brr3:R1, brr7:R2, PR11-brr3:R3, brr1:R5, brr2:R6, brr7:R7, c_compiler=%s, ghcver=%s" % (C,G),
              "emailoverride": "",
              "enabled": 1,
              "enableemail": False,
@@ -773,7 +777,7 @@ def test_example_hydra_master_blah_heads(example_hydra_jobsets):
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r3_url blah"
+                     "value": "remote_r3_pr11_url blah"
                  },
                  "R5-src": {
                      "emailresponsible": False,

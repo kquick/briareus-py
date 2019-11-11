@@ -39,12 +39,12 @@ def example_hydra_results():
               "haserrormsg": False,
             }
             for n in [
-                    "PR1-blah.HEADs-clang-ghc844",
-                    "PR1-blah.HEADs-gnucc-ghc844",
-                    "PR1-blah.HEADs-clang-ghc865",
-                    "PR1-blah.HEADs-gnucc-ghc865",
-                    "PR1-blah.HEADs-clang-ghc881",
-                    "PR1-blah.HEADs-gnucc-ghc881",
+                    "PR1-PR11-blah.HEADs-clang-ghc844",
+                    "PR1-PR11-blah.HEADs-gnucc-ghc844",
+                    "PR1-PR11-blah.HEADs-clang-ghc865",
+                    "PR1-PR11-blah.HEADs-gnucc-ghc865",
+                    "PR1-PR11-blah.HEADs-clang-ghc881",
+                    "PR1-PR11-blah.HEADs-gnucc-ghc881",
                     "PR1-blah.submodules-clang-ghc844",
                     "PR1-blah.submodules-gnucc-ghc844",
                     "PR1-blah.submodules-clang-ghc865",
@@ -140,14 +140,14 @@ def test_example_report_summary(example_hydra_results):
     print('')
     print(len(reps))
     assert ProjectSummary(project_name='R1',
-                          bldcfg_count=60, subrepo_count=2, pullreq_count=3) in reps
+                          bldcfg_count=60, subrepo_count=2, pullreq_count=4) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
-                        buildname='PR1-blah.HEADs-clang-ghc844',
+                        buildname='PR1-PR11-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
@@ -155,7 +155,7 @@ def test_example_report_status1(example_hydra_results):
 CS = [ 'clang', 'gnucc' ]
 GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
-BS = [ 'PR1-blah', 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
+BS = [ 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
 
 def test_example_report_statusMany(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -183,6 +183,51 @@ def test_example_report_statusMany(example_hydra_results):
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
                         ])
                     assert r in reps
+
+def test_example_report_status2(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    for each in reps:
+        print('')
+        print(each)
+    # Check for all entries that should be present
+    for C in CS:
+        for G in GS:
+            S = 'submodules'
+            B = 'PR1-blah'
+            r = StatusReport(
+                status=('failed'
+                        if C == 'clang'
+                        else 'initial_success'),
+                project='R1',
+                strategy=S,
+                branchtype="pullreq" if B.startswith('PR') else "regular",
+                branch=B.split('-')[-1] if B.startswith('PR') else B,
+                buildname='-'.join(['.'.join([B,S]),C,G]),
+                bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
+                         BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
+                ])
+            assert r in reps
+
+def test_example_report_status3(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    # Check for all entries that should be present
+    for C in CS:
+        for G in GS:
+            S = 'HEADs'
+            B = 'PR1-PR11-blah'
+            r = StatusReport(
+                status=('failed'
+                        if C == 'clang'
+                        else 'initial_success'),
+                project='R1',
+                strategy=S,
+                branchtype="pullreq" if B.startswith('PR') else "regular",
+                branch=B.split('-')[-1] if B.startswith('PR') else B,
+                buildname='-'.join(['.'.join([B,S]),C,G]),
+                bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
+                         BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
+                ])
+            assert r in reps
 
 def test_example_report_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results
