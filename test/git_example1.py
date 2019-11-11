@@ -1,6 +1,19 @@
 from thespian.actors import *
 from Briareus.VCS.InternalMessages import *
 
+# The blah is a pullreq in R1, with pullreqs in R2, R3, and R6:
+#
+#   * R2 is a submodule and does not have the branch, so the
+#     submodules build should honor the submodule ref, but the HEADs
+#     build should build from the R2 PR.
+#
+#   * R3 is similar to R2 except that there is also a blah branch in
+#     the R3 primary repo.  This branch will be ignored because the
+#     submodule takes precedence.
+#
+#   * R6 is not a submodule but a top level repo, so the submodules
+#     build should build from the R6 PR as well as the HEADs build.
+
 class GitExample1(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitExample1, self).__init__(*args, **kw)
@@ -12,9 +25,11 @@ class GitExample1(ActorTypeDispatcher):
         ### EXAMPLE-vvv
         preqs = {
             'R1': [PullReqInfo(1, 'pr#19', 'remote_R1_b', 'blah', 'r1_blah_mergeref'),],
-            'R2': [PullReqInfo(23, 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref')],
+            'R2': [PullReqInfo(23, 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref'),
+                   PullReqInfo(1111, 'blah also', 'remote_r2_pr1111_url', 'blah', 'r2_blah_mergeref')],
             'R3': [PullReqInfo(11, 'blah started', 'remote_r3_pr11_url', 'blah', 'r3_blah_mergeref')],
             'R4': [PullReqInfo(8192, 'fix ninth bug!', 'remote_R4_y', 'bugfix9', 'r1_bf9_mergeref')],
+            'R6': [PullReqInfo(111, 'blah match', 'remote_r6_pr111_url', 'blah', 'r6_blah_mergeref')],
         }.get(msg.reponame, [])
         ### EXAMPLE-^^^
         self.send(sender, PullReqsData(msg.reponame, preqs))

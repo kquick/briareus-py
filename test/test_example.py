@@ -86,7 +86,7 @@ def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
                                 BldRepoRev("R2", "r2_master_head^22", "project_primary"),
                                 BldRepoRev("R3", "r3_master_head", "project_primary"),
                                 BldRepoRev("R5", "blah", "project_primary"),
-                                BldRepoRev("R6", "master", "project_primary"),
+                                BldRepoRev("R6", "blah", "111"),
                                 BldRepoRev("R7", "r7_master_head^4", "project_primary", "Y"),
                             ],
                             [
@@ -100,10 +100,10 @@ def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
     for each in [ BldConfig("R1", "pullreq", "blah", "HEADs",
                             [
                                 BldRepoRev("R1", "blah", "1", "ignored"),
-                                BldRepoRev("R2", "master", "project_primary", 9999),
+                                BldRepoRev("R2", "blah", "1111", 9999),
                                 BldRepoRev("R3", "blah", "11"),
                                 BldRepoRev("R5", "blah", "project_primary"),
-                                BldRepoRev("R6", "master", "project_primary"),
+                                BldRepoRev("R6", "blah", "111"),
                                 BldRepoRev("R7", "master", "project_primary"),
                             ],
                             [
@@ -684,9 +684,9 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
 
 def test_example_hydra_blah_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR1-blah.submodules-%s-%s" % (C,G), {
+        ( "PR1-PR111-blah.submodules-%s-%s" % (C,G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR1-brr3:R1, brr9:R2, brr9:R3, brr1:R5, brr2:R6, brr9:R7, c_compiler=%s, ghcver=%s" % (C,G),
+            "description": "Build configuration: PR1-brr3:R1, brr9:R2, brr9:R3, brr1:R5, PR111-brr3:R6, brr9:R7, c_compiler=%s, ghcver=%s" % (C,G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -715,7 +715,7 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url master"
+                    "value": "remote_r6_pr111_url blah"
                 },
                 "R7-src": {
                     "emailresponsible": False,
@@ -756,9 +756,9 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
     # priority.  In *this* test, the submodules are ignored, so PR11
     # now expresses.
     expected = dict([
-        ( "PR1-PR11-blah.HEADs-%s-%s" % (C,G), {
+        ( "PR1-PR11-PR111-PR1111-blah.HEADs-%s-%s" % (C,G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR1-brr3:R1, brr7:R2, PR11-brr3:R3, brr1:R5, brr2:R6, brr7:R7, c_compiler=%s, ghcver=%s" % (C,G),
+            "description": "Build configuration: PR1-brr3:R1, PR1111-brr3:R2, PR11-brr3:R3, brr1:R5, PR111-brr3:R6, brr7:R7, c_compiler=%s, ghcver=%s" % (C,G),
              "emailoverride": "",
              "enabled": 1,
              "enableemail": False,
@@ -772,7 +772,7 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
                  "R2-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r2_url master"
+                     "value": "remote_r2_pr1111_url blah"
                  },
                  "R3-src": {
                      "emailresponsible": False,
@@ -787,7 +787,7 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
                  "R6-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r6_url master"
+                     "value": "remote_r6_pr111_url blah"
                  },
                  "R7-src": {
                      "emailresponsible": False,

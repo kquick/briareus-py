@@ -39,18 +39,18 @@ def example_hydra_results():
               "haserrormsg": False,
             }
             for n in [
-                    "PR1-PR11-blah.HEADs-clang-ghc844",
-                    "PR1-PR11-blah.HEADs-gnucc-ghc844",
-                    "PR1-PR11-blah.HEADs-clang-ghc865",
-                    "PR1-PR11-blah.HEADs-gnucc-ghc865",
-                    "PR1-PR11-blah.HEADs-clang-ghc881",
-                    "PR1-PR11-blah.HEADs-gnucc-ghc881",
-                    "PR1-blah.submodules-clang-ghc844",
-                    "PR1-blah.submodules-gnucc-ghc844",
-                    "PR1-blah.submodules-clang-ghc865",
-                    "PR1-blah.submodules-gnucc-ghc865",
-                    "PR1-blah.submodules-clang-ghc881",
-                    "PR1-blah.submodules-gnucc-ghc881",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc844",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc844",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc865",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc865",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc881",
+                    "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc881",
+                    "PR1-PR111-blah.submodules-clang-ghc844",
+                    "PR1-PR111-blah.submodules-gnucc-ghc844",
+                    "PR1-PR111-blah.submodules-clang-ghc865",
+                    "PR1-PR111-blah.submodules-gnucc-ghc865",
+                    "PR1-PR111-blah.submodules-clang-ghc881",
+                    "PR1-PR111-blah.submodules-gnucc-ghc881",
                     "PR23-PR8192-bugfix9.HEADs-clang-ghc844",
                     "PR23-PR8192-bugfix9.HEADs-gnucc-ghc844",
                     "PR23-PR8192-bugfix9.HEADs-clang-ghc865",
@@ -140,14 +140,14 @@ def test_example_report_summary(example_hydra_results):
     print('')
     print(len(reps))
     assert ProjectSummary(project_name='R1',
-                          bldcfg_count=60, subrepo_count=2, pullreq_count=4) in reps
+                          bldcfg_count=60, subrepo_count=2, pullreq_count=6) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
-                        buildname='PR1-PR11-blah.HEADs-clang-ghc844',
+                        buildname='PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
@@ -193,7 +193,7 @@ def test_example_report_status2(example_hydra_results):
     for C in CS:
         for G in GS:
             S = 'submodules'
-            B = 'PR1-blah'
+            B = 'PR1-PR111-blah'
             r = StatusReport(
                 status=('failed'
                         if C == 'clang'
@@ -214,7 +214,7 @@ def test_example_report_status3(example_hydra_results):
     for C in CS:
         for G in GS:
             S = 'HEADs'
-            B = 'PR1-PR11-blah'
+            B = 'PR1-PR11-PR111-PR1111-blah'
             r = StatusReport(
                 status=('failed'
                         if C == 'clang'

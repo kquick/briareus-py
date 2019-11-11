@@ -104,6 +104,7 @@ reporev(R, ProjRepo, pullreq, B, _PR_ID, heads, RepoRev) :-
     submodule(ProjRepo, I, B, R, _),
     pullreq(_, I, B),
     \+ branch(R, B),
+    \+ pullreq(R, _I2, B),
     bldwith(RepoRev, R, "master", "project_primary", brr(07)).
 
 reporev(R, ProjRepo, regular,  B, PR_ID, submodules, RepoRev) :-
