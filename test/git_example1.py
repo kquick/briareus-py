@@ -24,12 +24,12 @@ class GitExample1(ActorTypeDispatcher):
     def receiveMsg_GetPullReqs(self, msg, sender):
         ### EXAMPLE-vvv
         preqs = {
-            'R1': [PullReqInfo(1, 'pr#19', 'remote_R1_b', 'blah', 'r1_blah_mergeref'),],
-            'R2': [PullReqInfo(23, 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref'),
-                   PullReqInfo(1111, 'blah also', 'remote_r2_pr1111_url', 'blah', 'r2_blah_mergeref')],
-            'R3': [PullReqInfo(11, 'blah started', 'remote_r3_pr11_url', 'blah', 'r3_blah_mergeref')],
-            'R4': [PullReqInfo(8192, 'fix ninth bug!', 'remote_R4_y', 'bugfix9', 'r1_bf9_mergeref')],
-            'R6': [PullReqInfo(111, 'blah match', 'remote_r6_pr111_url', 'blah', 'r6_blah_mergeref')],
+            'R1': [PullReqInfo("1", 'pr#19', 'remote_R1_b', 'blah', 'r1_blah_mergeref'),],
+            'R2': [PullReqInfo("23", 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref'),
+                   PullReqInfo("1111", 'blah also', 'remote_r2_pr1111_url', 'blah', 'r2_blah_mergeref')],
+            'R3': [PullReqInfo("11", 'blah started', 'remote_r3_pr11_url', 'blah', 'r3_blah_mergeref')],
+            'R4': [PullReqInfo("8192", 'fix ninth bug!', 'remote_R4_y', 'bugfix9', 'r1_bf9_mergeref')],
+            'R6': [PullReqInfo("111", 'blah match', 'remote_r6_pr111_url', 'blah', 'r6_blah_mergeref')],
         }.get(msg.reponame, [])
         ### EXAMPLE-^^^
         self.send(sender, PullReqsData(msg.reponame, preqs))

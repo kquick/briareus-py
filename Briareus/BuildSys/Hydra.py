@@ -135,7 +135,10 @@ class HydraBuilder(BuilderBase.Builder):
 
     def _pullreq_for_bldcfg_and_brr(self, bldcfgs, bldcfg, brr):
         return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
-                   if p.pr_target_repo == brr.reponame and p.pr_branch == bldcfg.branchname] + [None])[0]
+                   if p.pr_target_repo == brr.reponame and
+                      p.pr_branch == bldcfg.branchname and
+                      p.pr_ident == brr.pullreq_id
+                 ] + [None])[0]
                 if bldcfg.branchtype == 'pullreq' and brr.pullreq_id != 'project_primary' else None)
 
     def _jobset_desc(self, bldcfgs, bldcfg):

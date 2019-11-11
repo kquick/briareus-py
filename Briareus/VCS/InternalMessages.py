@@ -156,7 +156,7 @@ class PRInfo(object):
     pr_target_repo = attr.ib()
     pr_srcrepo_url = attr.ib()
     pr_branch      = attr.ib()
-    pr_ident       = attr.ib()  # unique identifier, required
+    pr_ident       = attr.ib()  # unique identifier string, required
     pr_title       = attr.ib()  # user-assistance, optional
 
 
