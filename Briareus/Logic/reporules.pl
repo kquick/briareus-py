@@ -58,9 +58,13 @@ useable_submodules(R, B) :-
     (branch(R, B), has_gitmodules(R, B));
     (is_main_branch(R, MB), has_gitmodules(R, MB), \+ branch(R, B)).
 
-strategy(submodules, R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
-strategy(heads,      R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
-strategy(standard,   R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), \+ useable_submodules(R, B).
+strategy(submodules, R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B); is_main_branch(R, B)), useable_submodules(R, B).
+strategy(heads,      R, B) :-  (branchreq(R, B); is_main_branch(R, B)), useable_submodules(R, B).
+strategy(heads,      R, B) :-  branch_type(pullreq, B, _I), submodule(R, _I2, _B, _SR, _SRRef).
+strategy(standard,   R, B) :- (branch_type(pullreq, B, _I)
+                              ; branchreq(R, B)
+                              ; is_main_branch(R, B)
+                              ), \+ strategy(heads, R, B).
 
 
 %% if pullreq changes submodules, don't have that data available
