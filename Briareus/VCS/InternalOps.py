@@ -156,6 +156,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.RL = msg.repolist
         self.RX = msg.repolocs
         self.BL = msg.branchlist
+        self.BL_queried = []
         for repo in self.RL:
             self.get_info_for_a_repo(repo)
         # In case there were no repos, this is the "I am done" check:
@@ -172,8 +173,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         repo = self._pending_info.get(msg.reponame, None)
         if repo:
             del self._pending_info[msg.reponame]
-            for branch in self.BL:
-                self.get_git_info(HasBranch(repo.repo_name, branch.branch_name))
+            self.get_git_info(HasBranch(repo.repo_name, "master"))
             self.get_git_info(GetPullReqs(repo.repo_name))
         self.got_response(response_name='repo_declared')
 
@@ -331,6 +331,12 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 for each in self._all_repos():
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches[each.repo_name].add(br)
+
+        if msg.reponame not in self.BL_queried:
+            self.BL_queried.append(msg.reponame)
+            for branch in self.BL:
+                self.get_git_info(HasBranch(msg.reponame, branch.branch_name))
+
         self.got_response(response_name='branch_present')
 
 
