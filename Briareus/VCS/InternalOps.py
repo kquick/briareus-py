@@ -204,23 +204,19 @@ class GatherRepoInfo(ActorTypeDispatcher):
         # branches.
         for p in msg.pullreqs:
 
-            # If this pull request is against the master of the source
-            # repo, there is no branch association to be made since
-            # all repos have a master.
-            if p.pullreq_branch != "master":
-                # If this is a new pull request branch, and that branch
-                # has not already been probed for the target repo, check
-                # to see if the branch exists (and if it is confirmed to
-                # exist and it's the project repo, also get any submodule
-                # data on that branch).
-                for pr in self.pullreqs:
-                    if p.pullreq_branch == pr.pr_branch:
-                        break
-                else:
-                    # Have not previously queried for this branch, so
-                    # check various repos for this branch now.
-                    for repo in self._all_repos():
-                        self.check_for_branch(repo.repo_name, p.pullreq_branch)
+            # If this is a new pull request branch, and that branch
+            # has not already been probed for the target repo, check
+            # to see if the branch exists (and if it is confirmed to
+            # exist and it's the project repo, also get any submodule
+            # data on that branch).
+            for pr in self.pullreqs:
+                if p.pullreq_branch == pr.pr_branch:
+                    break
+            else:
+                # Have not previously queried for this branch, so
+                # check various repos for this branch now.
+                for repo in self._all_repos():
+                    self.check_for_branch(repo.repo_name, p.pullreq_branch)
 
             # If this PR is for the project repo, check the gitmodules
             # in the source because the PR might be changing the
