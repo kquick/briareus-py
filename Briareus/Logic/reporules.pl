@@ -18,24 +18,24 @@ build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     all_repos(RL),
     all_vars(ProjRepo, VL),
     varcombs(ProjRepo, VL, VARS),
-
-    % If submodules and not master branch and the branch doesn't exist
-    % in master, don't generate the configuration because the
-    % submodules dictate all configurations so there's no way the
-    % indicated branch can be referenced.
-    (Branch == "master";
-     BranchType == pullreq;
-     Strategy == heads;
-     Strategy == standard;
-     (Branch \== "master",
-      BranchType==regular,
-      Strategy == submodules,
-      all_repos_no_subs(TLR),
-      branch_in_any(TLR, Branch)
-     )),
-
+    reachable_branch(Strategy, BranchType, Branch),
     reporevs(RL, ProjRepo, BranchType, Branch, PR_ID, Strategy, BLDS)
 .
+
+% If the current branch doesn't exist in the project repo, AND
+% this is either a submodules build or else there are no
+% submodules AND the branch doesn't exist in a repo *not*
+% controlled by submodules, then the build configuration will be
+% determined by the project repo main configuration and therefore
+% the generated build will (a) not have anything referencing the
+% target branch, and (b) be identical to the master.submodules
+% build, so it can be skipped.
+reachable_branch(standard,   _,       _).
+reachable_branch(heads,      _,       _).
+reachable_branch(_,          pullreq, _).
+reachable_branch(submodules, regular, Branch) :-
+    all_repos_no_subs(TLR),
+    branch_in_any(TLR, Branch).
 
 branch_in_any([], _Branch) :- false.
 branch_in_any([R|RL], Branch) :-
