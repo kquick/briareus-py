@@ -41,6 +41,10 @@ branch_in_any([], _Branch) :- false.
 branch_in_any([R|RL], Branch) :-
     branch(R, Branch) ; branch_in_any(RL, Branch).
 
+is_main_branch(Repo, Branch) :-
+    branch(Repo, Branch),
+    (main_branch(Repo, Branch) ; (Branch == "master", \+ main_branch(Repo, _))).
+
 varcombs(_, [], []).
 varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varname(ProjRepo, VN),
@@ -50,8 +54,9 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
 branch_type(pullreq, B, PR_ID) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((PR_ID,B), XS).
 branch_type(regular, B, project_primary) :- branchreq(R, B), is_project_repo(R).
 
-useable_submodules(R, B) :- (branch(R, B), has_gitmodules(R, B));
-                            (has_gitmodules(R, "master"), \+ branch(R, B)).  % KWQ: this doesn't work if reversed.
+useable_submodules(R, B) :-
+    (branch(R, B), has_gitmodules(R, B));
+    (is_main_branch(R, MB), has_gitmodules(R, MB), \+ branch(R, B)).
 
 strategy(submodules, R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
 strategy(heads,      R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
@@ -99,7 +104,8 @@ reporev(R, ProjRepo, pullreq, B, _PR_ID, heads, RepoRev) :-
     pullreq(_, I, B),
     \+ branch(R, B),
     \+ pullreq(R, _I2, B),
-    bldwith(RepoRev, R, "master", "project_primary", brr(07)).
+    is_main_branch(R, MB),
+    bldwith(RepoRev, R, MB, "project_primary", brr(07)).
 
 reporev(R, ProjRepo, regular,  B, PR_ID, submodules, RepoRev) :-
     submodule(ProjRepo, project_primary, B, R, SubRev),
@@ -114,51 +120,60 @@ reporev(R, ProjRepo, _BType,  B, PR_ID, heads, RepoRev) :-
     submodule(ProjRepo, project_primary, B, R, _),
     \+ branch(R, B),
     branchreq(ProjRepo,B),
-    bldwith(RepoRev, R, "master", PR_ID, brr(06)).
+    is_main_branch(R, MB),
+    bldwith(RepoRev, R, MB, PR_ID, brr(06)).
 
 reporev(R, _ProjRepo, pullreq, B, PR_ID, _Strategy, RepoRev) :-
     repo(R),
     pullreq(R, I, B),
-    ((B == "master", PR_ID == I); \+ B == "master"),
+    ((is_main_branch(R, B), PR_ID == I); \+ is_main_branch(R, B)),
     bldwith(RepoRev, R, B, I, brr(03)).
 
 reporev(R, ProjRepo, pullreq, B, _PR_ID, _Strategy,  RepoRev) :-
-    submodule(ProjRepo, PI, "master", R, _),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, PI, MB, R, _),
     \+ pullreq(ProjRepo, PI, B),
     pullreq(R, I, B),
     bldwith(RepoRev, R, B, I, brr(10)).
 
 reporev(R, ProjRepo, pullreq, B, PR_ID, submodules, RepoRev) :-
-    submodule(ProjRepo, project_primary, "master", R, SubRev),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, project_primary, MB, R, SubRev),
     \+ pullreq(ProjRepo, _, B),
     \+ pullreq(R, PR_ID, B),
     bldwith(RepoRev, R, SubRev, "project_primary", brr(11)).
 
 reporev(R, ProjRepo, pullreq, B, PR_ID, heads, RepoRev) :-
-    submodule(ProjRepo, project_primary, "master", R, _),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, project_primary, MB, R, _),
     \+ pullreq(ProjRepo, _, B),
     \+ pullreq(R, PR_ID, B),
-    bldwith(RepoRev, R, "master", "project_primary", brr(12)).
+    is_main_branch(R, MBR),
+    bldwith(RepoRev, R, MBR, "project_primary", brr(12)).
 
 reporev(R, ProjRepo, regular, B, PR_ID, submodules, RepoRev) :-
-    submodule(ProjRepo, I, "master", R, SubRev),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, I, MB, R, SubRev),
     \+ submodule(ProjRepo, I, B, R, _),
     \+ branch(R, B),
     bldwith(RepoRev, R, SubRev, PR_ID, brr(13)),
     !.
 
 reporev(R, ProjRepo, regular, B, PR_ID, heads, RepoRev) :-
-    submodule(ProjRepo, I, "master", R, _),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, I, MB, R, _),
     \+ submodule(ProjRepo, I, B, R, _),
     branch(R, B),
     bldwith(RepoRev, R, B, PR_ID, brr(15)),
     !.
 
 reporev(R, ProjRepo, regular, B, PR_ID, heads, RepoRev) :-
-    submodule(ProjRepo, I, "master", R, _),
+    is_main_branch(ProjRepo, MB),
+    submodule(ProjRepo, I, MB, R, _),
     \+ submodule(ProjRepo, I, B, R, _),
     \+ branch(R, B),
-    bldwith(RepoRev, R, "master", PR_ID, brr(14)),
+    is_main_branch(R, MBR),
+    bldwith(RepoRev, R, MBR, PR_ID, brr(14)),
     !.
 
 reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
@@ -171,6 +186,7 @@ reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
     repo(R),
     \+ submodule(ProjRepo, _I, B, R, _),
     \+ branch(R, B),
-    bldwith(RepoRev, R, "master", "project_primary", brr(02)).
+    is_main_branch(R, MB),
+    bldwith(RepoRev, R, MB, "project_primary", brr(02)).
 
 bldwith(bld(R, B, I, T), R, B, I, T).
