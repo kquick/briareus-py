@@ -67,6 +67,7 @@ class GitTestSingle(ActorTypeDispatcher):
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
+:- discontiguous main_branch/2.
 :- discontiguous subrepo/1.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
@@ -77,6 +78,7 @@ expected_facts = sorted(filter(None, '''
 project("TheRepo").
 repo("TheRepo").
 branchreq("TheRepo", "master").
+main_branch("TheRepo", "master").
 branchreq("TheRepo", "feat1").
 branchreq("TheRepo", "dev").
 branch("TheRepo", "master").

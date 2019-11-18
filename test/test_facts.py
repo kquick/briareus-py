@@ -65,6 +65,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
 :- discontiguous subrepo/1.
+:- discontiguous main_branch/2.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
@@ -73,10 +74,15 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varvalue/3.
 project("R1").
 repo("R1").
+main_branch("R1", "master").
 repo("R2").
+main_branch("R2", "master").
 repo("R3").
+main_branch("R3", "master").
 repo("R5").
+main_branch("R5", "master").
 repo("R6").
+main_branch("R6", "master").
 subrepo("R4").
 subrepo("R7").
 branchreq("R1", "master").

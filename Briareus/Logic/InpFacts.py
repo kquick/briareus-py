@@ -28,6 +28,13 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # consideration).
         DeclareFact('project/1'),
 
+        # Specifies the name of the main branch for the associated
+        # repository.  The first argument is the Project repo and the
+        # second argument is the name of the main branch.  This is
+        # used to handle cases where the main branch is not the
+        # expected one (e.g. "master" or "trunk").
+        DeclareFact('main_branch/2'),
+
         # Specifies a branch that the user would like to have built.
         # The branch request is associated with the Project
         # specification from which it came: branchreq(ProjectRepo,
@@ -76,7 +83,8 @@ def get_input_facts(RL, BL, VAR, repo_info):
         DeclareFact('varvalue/3'),
     ]
 
-    repo_facts    = [ Fact('repo("%s")'    % r.repo_name)   for r in RL ]
+    repo_facts    = ([ Fact('repo("%s")'    % r.repo_name)   for r in RL ] +
+                     [ Fact('main_branch("%s", "%s")' % (r.repo_name, "master")) for r in RL ])
     project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]
     branch_facts  = [ Fact('branchreq("%s", "%s")'  % (r.repo_name, b.branch_name))
                       for r in projects for b in BL ]

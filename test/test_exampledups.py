@@ -275,6 +275,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
 :- discontiguous subrepo/1.
+:- discontiguous main_branch/2.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
@@ -285,6 +286,9 @@ project("Repo1").
 repo("Repo1").
 repo("Repo2").
 repo("Repo3").
+main_branch("Repo1", "master").
+main_branch("Repo2", "master").
+main_branch("Repo3", "master").
 branchreq("Repo1", "master").
 branchreq("Repo1", "develop").
 pullreq("Repo1", "1", "master").
