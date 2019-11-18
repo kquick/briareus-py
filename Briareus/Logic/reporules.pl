@@ -26,7 +26,7 @@ build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     (Branch == "master";
      BranchType == pullreq;
      Strategy == heads;
-     Strategy == main;
+     Strategy == standard;
      (Branch \== "master",
       BranchType==regular,
       Strategy == submodules,
@@ -58,10 +58,10 @@ useable_submodules(R, B) :- (branch(R, B), has_gitmodules(R, B));
 
 %% strategy(submodules, R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
 %% strategy(heads,      R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
-%% strategy(main,       R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), \+ useable_submodules(R, B).
+%% strategy(standard,   R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), \+ useable_submodules(R, B).
 strategy(submodules, R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
 strategy(heads,      R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
-strategy(main,       R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), \+ useable_submodules(R, B).
+strategy(standard,   R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), \+ useable_submodules(R, B).
 
 
 %% if pullreq changes submodules, don't have that data available
@@ -87,7 +87,7 @@ build_revspecs(RevSpec, RevSpecs, [RevSpec|RevSpecs]) :- RevSpec \= skip.
 
 
 %% branch_type = pullreq | regular
-%% strategy = submodules | heads | main
+%% strategy = submodules | heads | standard
 
 reporev(R, ProjRepo, pullreq, B, _PR_ID, submodules, RepoRev) :-
     submodule(ProjRepo, I, B, R, SubRev),

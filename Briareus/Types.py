@@ -7,7 +7,7 @@ class BldConfig(object):
     projectname = attr.ib()
     branchtype = attr.ib(default="regular")
     branchname = attr.ib(default="master")
-    strategy   = attr.ib(default="main")
+    strategy   = attr.ib(default="standard")
     blds       = attr.ib(factory=frozenset, converter=frozenset)  # list of BldRepoRev
     bldvars    = attr.ib(factory=frozenset, converter=frozenset)  # list of BldVariable
 
@@ -60,7 +60,7 @@ class ProjectSummary(object):
 class StatusReport(object):
     status    = attr.ib()  # string "success" or "failed"
     project   = attr.ib()  # string name of project
-    strategy  = attr.ib()  # string: submodules, heads, main
+    strategy  = attr.ib()  # string: submodules, heads, standard
     branchtype= attr.ib()  # string: regular, pullreq
     branch    = attr.ib()  # string: branch name
     buildname = attr.ib()  # string name of build on builder
@@ -107,7 +107,7 @@ logic_result_expr = {
     "submodules": "submodules",
     "heads": "HEADs",
     "regular": "regular",
-    "main": "main",
+    "standard": "standard",
     "project_primary": "project_primary",
     "bldcfg": lambda *args: BldConfig(*args),
     "bld": lambda *args: BldRepoRev(*args),
