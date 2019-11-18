@@ -8,7 +8,9 @@ in
 pkgs.lib.overrideDerivation briareus (drv: {
   src = ./.;
   shellHook = ''
-    # Not entirely sure why this doesn't happen automatically.
-    export PATH=${pkgs.swiProlog}/bin:$PATH
+    # Not entirely sure why swiProlog isn't added automatically.
+    export PATH=${pkgs.swiProlog}/bin:${pkgs.python37Packages.pytest}/bin:$PATH
+    # Facilitate running pytest or local hh runs.
+    export PYTHONPATH=$(pwd):$PYTHONPATH
   '';
 })
