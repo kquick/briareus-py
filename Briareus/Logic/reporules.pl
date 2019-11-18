@@ -38,11 +38,8 @@ reachable_branch(heads,      _,       _).
 reachable_branch(_,          pullreq, _).
 reachable_branch(submodules, regular, Branch) :-
     all_repos_no_subs(TLR),
-    branch_in_any(TLR, Branch).
-
-branch_in_any([], _Branch) :- false.
-branch_in_any([R|RL], Branch) :-
-    branch(R, Branch) ; branch_in_any(RL, Branch).
+    member(R, TLR),
+    branch(R, Branch).
 
 is_main_branch(Repo, Branch) :-
     branch(Repo, Branch),
