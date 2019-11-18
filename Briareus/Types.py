@@ -69,6 +69,16 @@ class StatusReport(object):
 @attr.s(frozen=True)
 class VarFailure(BldVariable): pass
 
+@attr.s(frozen=True)
+class ConfigError(object):
+    project = attr.ib() # string name of project
+    buildname = attr.ib()  # string name of build on builder
+
+@attr.s(frozen=True)
+class CompletelyFailing(object):
+    project = attr.ib() # string name of project
+
+
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
 # operation, so define some terms to re-ify the eval'd string into
@@ -91,7 +101,10 @@ logic_result_expr = {
     "failed": "failed",
     "fixed": "fixed",
     "initial_success": "initial_success",
+    "badconfig": "bad_config",
     "var_failure": lambda *args: VarFailure(*args),
+    "config_error": lambda *args: ConfigError(*args),
+    "complete_failure": lambda *args: CompletelyFailing(*args),
 
     "project": lambda n: n,
 }

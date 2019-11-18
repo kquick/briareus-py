@@ -43,10 +43,28 @@ report(status_report(failed, project(ProjRepo), Strategy, BranchType, Branch, Bl
     bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, N, 0, configValid),
     N > 0.
 
+report(status_report(badconfig, project(ProjRepo), Strategy, BranchType, Branch, Bldcfg, Vars)) :-
+    is_project_repo(ProjRepo),
+    strategy(Strategy, ProjRepo, Branch),
+    branch_type(BranchType, Branch),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, _, _, configError).
+
+report(complete_failure(ProjRepo)) :-
+    is_project_repo(ProjRepo),
+    findall(X, (report(status_report(S,project(ProjRepo),_,_,_,X,_)),
+                good_status(S)),
+            Res),
+    length(Res, 0).
+
 report(var_failure(ProjRepo, N, V)) :-
     varvalue(ProjRepo, N, V),
     findall(X, (report(status_report(S,project(ProjRepo),_,_,_,X,Vars)),
                 good_status(S),
                 member(varvalue(ProjRepo, N, V), Vars)),
             Res),
-    length(Res, 0).
+    length(Res, 0),
+    \+ report(complete_failure(ProjRepo)).
+
+report(config_error(ProjRepo, Cfg)) :-
+    is_project_repo(ProjRepo),
+    bldres(ProjRepo, _BranchType, _Branch, _Strategy, _Vars, Cfg, _, _, _, _, configError).

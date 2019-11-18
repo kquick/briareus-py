@@ -136,6 +136,8 @@ def prior_fact(prior):
     return { 'ProjectSummary': prior_fact_ProjectSummary,
              'StatusReport': prior_fact_StatusReport,
              'VarFailure': prior_fact_VarFailure,
+             'CompletelyFailing': lambda p: None,  # ignored as a prior
+             'ConfigError': lambda p: None, # ignored as a prior
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):
