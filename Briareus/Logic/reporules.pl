@@ -4,10 +4,14 @@
 is_project_repo(R) :- repo(R), project(R).
 
 has_gitmodules(R, B) :-
-    bagof(B, V^S^P^(is_project_repo(R), (branchreq(R,B); pullreq(R,_,B)), submodule(R, P, B, S, V)), BHG),
+    bagof(B, V^S^P^(is_project_repo(R), (branchreq(R,B);
+                                         is_main_branch(R,B);
+                                         pullreq(R,_,B)),
+                    submodule(R, P, B, S, V)),
+          BHG),
     \+ length(BHG, 0).
 
-all_repos_no_subs(ALLR) :- findall(R, repo(R), ALLR).
+all_repos_no_subs(ALLR) :- findall(R, (repo(R), \+ subrepo(R)), ALLR).
 all_repos(ALLR) :- findall(R, (repo(R) ; subrepo(R)), ALLR).
 all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
@@ -52,7 +56,7 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varcombs(ProjRepo, VNS, VNSVS).
 
 branch_type(pullreq, B, PR_ID) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((PR_ID,B), XS).
-branch_type(regular, B, project_primary) :- branchreq(R, B), is_project_repo(R).
+branch_type(regular, B, project_primary) :- (branchreq(R, B); is_main_branch(R, B)), is_project_repo(R).
 
 useable_submodules(R, B) :-
     (branch(R, B), has_gitmodules(R, B));
@@ -123,7 +127,7 @@ reporev(R, ProjRepo, _BType,  B, PR_ID, heads, RepoRev) :-
 reporev(R, ProjRepo, _BType,  B, PR_ID, heads, RepoRev) :-
     submodule(ProjRepo, project_primary, B, R, _),
     \+ branch(R, B),
-    branchreq(ProjRepo,B),
+    (branchreq(ProjRepo,B); is_main_branch(ProjRepo, B)),
     is_main_branch(R, MB),
     bldwith(RepoRev, R, MB, PR_ID, brr(06)).
 
