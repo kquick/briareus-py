@@ -120,8 +120,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
                                                   and e.sm_branch == bname
                                                   and e.sm_pullreq_id == pr_id
                                                  )]
-        for b in BL:
-            bn = b.branch_name
+        for bn in set([b.branch_name for b in BL] + ["master"]):
             for repover in submods_data(bn, None):
                 submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
                                               % (pn, bn) % repover) )
