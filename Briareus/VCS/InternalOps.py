@@ -346,7 +346,11 @@ class GatherRepoInfo(ActorTypeDispatcher):
             named_submod_repo = ([r for r in self._all_repos()
                                   if r.repo_name == each.subrepo_name] + [None])[0]
             if not named_submod_repo:
-                # Note: assumes a subrepo URL doesn't change across parent branches
+                # TBD: currently assumes a subrepo URL doesn't change
+                # across project repo branches, but this could happen.
+                # If that's the case, need to associate this project
+                # repo branch with the corresponding changed subrepo
+                # url.
                 named_submod_repo = RepoDesc(each.subrepo_name, each.subrepo_url)
                 self.subrepos.add(named_submod_repo)
                 self.get_info_for_a_repo(named_submod_repo)
