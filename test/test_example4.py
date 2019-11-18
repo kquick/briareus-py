@@ -143,6 +143,23 @@ def test_example_facts():
         asys.shutdown()
 
 
+def test_incorrect_input_facts_attempt():
+    asys = ActorSystem('simpleSystemBase', transientUnique=True)
+    try:
+        # Generate canned info instead of actually doing git operations
+        asys.createActor(GitExample1, globalName="GetGitInfo")
+        # Replication of BCGen.Operations.BCGengenerate()
+        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                        actor_system=asys,
+                                                        verbose=True)
+        gen = Generator.Generator(actor_system = asys)
+        with pytest.raises(RuntimeError) as excinfo:
+            (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
+        assert "The following repos have no available branches: ['R10']" in str(excinfo.value)
+    finally:
+        asys.shutdown()
+
+
 def test_example_internal_count(example_internal_bldconfigs):
     print('### bldcfgs:')
     for each in example_internal_bldconfigs.cfg_build_configs:

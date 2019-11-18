@@ -105,6 +105,14 @@ def get_input_facts(RL, BL, VAR, repo_info):
     # will cause a check on all other repositories (including
     # other projects sharing this repository) for the branch.
 
+    repos_without_branches = [r.repo_name for r in RL] + [r.repo_name for r in repo_info['subrepos']]
+    for rb in repo_info['branches']:
+        while rb[0] in repos_without_branches:
+            repos_without_branches.remove(rb[0])
+    if repos_without_branches:
+        raise RuntimeError("The following repos have no available branches: %s"
+                           % str(repos_without_branches))
+
     repobranch_facts = [ Fact('branch("%s", "%s")' % rb)
                          for rb in repo_info['branches'] ]
 
