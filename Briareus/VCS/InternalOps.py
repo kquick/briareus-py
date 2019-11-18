@@ -249,7 +249,11 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
         self.pullreqs.update(set([
             PRInfo(pr_target_repo=msg.reponame,
-                   pr_srcrepo_url=p.pullreq_srcurl or self._url_for_repo(msg.reponame),
+                   pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,
+                                                 ([r for r in self.RL
+                                                   if r.repo_name == msg.reponame] + [None])[0],
+                                                 self.RX) or
+                                   self._url_for_repo(msg.reponame)),
                    pr_branch=p.pullreq_branch,
                    pr_ident=str(p.pullreq_number),  # PR idents must be strings
                    pr_title=p.pullreq_title)
@@ -504,3 +508,48 @@ def to_http_url(url, repolocs):
             return RepoAPI_Location(returl, patval)
 
     return RepoAPI_Location(returl, None)
+
+def to_access_url(url, for_repo, repolocs): # KWQ: use for_repo to get "git@" portion instead of https portion...
+    """The Repo specification in the input may use a git ssh reference to
+       a repo (e.g. "git@myproj-github:foo/bar") which indicates that
+       an SSH deploy key is being used by the Builder (e.g. Hydra) to
+       access the repository.
+
+       This function should be called with any URL that the builder
+       might use to access a version of that repository (e.g. a pull
+       request or merge request reference, or a submodule), and it
+       will translate the URL *back* into the form that the builder
+       will need to use to access that repository.  If no translation
+       is needed, the input URL is returned untouched.
+
+    """
+    if not for_repo:
+        # URL is not for a primary input repo.  It is probably a
+        # subrepo.  Because it is not a primary, there is no
+        # translation information available.
+        return url
+
+    if not for_repo.repo_url.startswith('git@'):
+        # Primary input repo doesn't use SSH access, so presumably
+        # repo is publicly accessible and the URL will work
+        return url
+
+    # The for_repo specification indicates that SSH access is needed,
+    # so extract the hostname so that the same hostname can be used in
+    # the input URL to ensure the same Builder's .ssh/config entry is
+    # used.
+
+    trimmed_url = _remove_trailer(for_repo.repo_url[len('git@'):], '.git')
+    ssh_host = trimmed_url.split(':')[0]
+
+    # The input URL can be in http form or already in ssh form.
+    if url.startswith("git@"):
+        url_path = _remove_trailer(url[len('git@'):], '.git').split(':')[0]
+    else:
+        parsed = urlparse(url)
+        # n.b. assumes there are no params, query, or fragment
+        # portions of a git http URL.  Remove the initial slash on the
+        # path part as well.
+        url_path = parsed.path[1:]
+
+    return "git@" + ssh_host + ":" + url_path

@@ -1,5 +1,6 @@
 from thespian.actors import *
 from Briareus.VCS.InternalMessages import *
+from collections import defaultdict
 
 # The blah is a pullreq in R1, with pullreqs in R2, R3, and R6:
 #
@@ -18,12 +19,24 @@ class GitExample1(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitExample1, self).__init__(*args, **kw)
         self.main_branches = {}
+        self.pullreqs = defaultdict(list)
+        self.pullreqs.update({
+            'R1': [PullReqInfo("1", 'pr#19', 'remote_R1_b', 'blah', 'r1_blah_mergeref'),],
+            'R2': [PullReqInfo("23", 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref'),
+                   PullReqInfo("1111", 'blah also', 'remote_r2_pr1111_url', 'blah', 'r2_blah_mergeref')],
+            'R3': [PullReqInfo("11", 'blah started', 'remote_r3_pr11_url', 'blah', 'r3_blah_mergeref')],
+            'R4': [PullReqInfo("8192", 'fix ninth bug!', 'remote_R4_y', 'bugfix9', 'r1_bf9_mergeref')],
+            'R6': [PullReqInfo("111", 'blah match', 'remote_r6_pr111_url', 'blah', 'r6_blah_mergeref')],
+        })
 
     def receiveMsg_tuple(self, msg, sender):
         "Used by test programs to adjust the git responses"
         if msg[0] == "primary branch":
             self.main_branches[msg[1]] = msg[2]
             self.send(sender, "ok: %s main branch is %s" % (msg[1], msg[2]))
+        elif msg[0] == "pullreq":
+            self.pullreqs[msg[1]].append(msg[2])
+            self.send(sender, "ok: added pullreq for %s" % msg[1])
         else:
             self.send(sender, "UNRECOGNIZED MESSAGE!")
 
@@ -32,14 +45,7 @@ class GitExample1(ActorTypeDispatcher):
 
     def receiveMsg_GetPullReqs(self, msg, sender):
         ### EXAMPLE-vvv
-        preqs = {
-            'R1': [PullReqInfo("1", 'pr#19', 'remote_R1_b', 'blah', 'r1_blah_mergeref'),],
-            'R2': [PullReqInfo("23", 'add fantasticness', 'remote_r2_a', 'bugfix9', 'r2_b9_mergeref'),
-                   PullReqInfo("1111", 'blah also', 'remote_r2_pr1111_url', 'blah', 'r2_blah_mergeref')],
-            'R3': [PullReqInfo("11", 'blah started', 'remote_r3_pr11_url', 'blah', 'r3_blah_mergeref')],
-            'R4': [PullReqInfo("8192", 'fix ninth bug!', 'remote_R4_y', 'bugfix9', 'r1_bf9_mergeref')],
-            'R6': [PullReqInfo("111", 'blah match', 'remote_r6_pr111_url', 'blah', 'r6_blah_mergeref')],
-        }.get(msg.reponame, [])
+        preqs = self.pullreqs.get(msg.reponame, [])
         ### EXAMPLE-^^^
         self.send(sender, PullReqsData(msg.reponame, preqs))
 
@@ -67,6 +73,12 @@ class GitExample1(ActorTypeDispatcher):
 
     def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
         assert isinstance(msg.altloc_reqmsg, GitmodulesData)
+        print('api_repo_loc:',msg.api_repo_loc)
+        assert msg.api_repo_loc.apiloc in ['remote_R1_b',
+                                           'remote_r10_prloc',
+                                           'https://r10_xlated_url/pullpath/part',
+        ]
+        assert msg.api_repo_loc.apitoken is None
         self._gitmodules_data(msg.altloc_reqmsg, sender, msg.api_repo_loc)
 
     def _gitmodules_data(self, msg, sender, alt_repo_url):
@@ -104,6 +116,9 @@ class GitExample1(ActorTypeDispatcher):
             'R10': {
                 main_branch_R10:[SubRepoVers('R3', 'r3_url', 'r3_master_head^9'),
                                  SubRepoVers('R4', 'r4_url', 'r4_master_head^1'),
+                ],
+                "devtest":[SubRepoVers('R3', 'r3_url', 'r3_master_head^7'),
+                           SubRepoVers('R4', 'r4_url', 'r4_master_head^11'),
                 ],
             },
         }[msg.reponame]
