@@ -27,7 +27,8 @@ class RepoLoc(object):
 class RepoDesc(object):
     repo_name = attr.ib()
     repo_url = attr.ib()
-    project_repo = attr.ib(default=False)
+    main_branch = attr.ib(default="master") # input optional
+    project_repo = attr.ib(default=False)  # internally generated, not part of the input spec
 
 @attr.s(frozen=True)
 class BranchDesc(object):

@@ -5,9 +5,9 @@ import attr
 @attr.s(frozen=True)
 class BldConfig(object):
     projectname = attr.ib()
-    branchtype = attr.ib(default="regular")
-    branchname = attr.ib(default="master")
-    strategy   = attr.ib(default="standard")
+    branchtype = attr.ib()  # default="regular"
+    branchname = attr.ib()
+    strategy   = attr.ib()  # default="standard"
     blds       = attr.ib(factory=frozenset, converter=frozenset)  # list of BldRepoRev
     bldvars    = attr.ib(factory=frozenset, converter=frozenset)  # list of BldVariable
 

@@ -17,6 +17,15 @@ from Briareus.VCS.InternalMessages import *
 class GitExample1(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GitExample1, self).__init__(*args, **kw)
+        self.main_branches = {}
+
+    def receiveMsg_tuple(self, msg, sender):
+        "Used by test programs to adjust the git responses"
+        if msg[0] == "primary branch":
+            self.main_branches[msg[1]] = msg[2]
+            self.send(sender, "ok: %s main branch is %s" % (msg[1], msg[2]))
+        else:
+            self.send(sender, "UNRECOGNIZED MESSAGE!")
 
     def receiveMsg_DeclareRepo(self, msg, sender):
         self.send(sender, RepoDeclared(msg.reponame))
@@ -37,8 +46,7 @@ class GitExample1(ActorTypeDispatcher):
     def receiveMsg_HasBranch(self, msg, sender):
         branch = msg.branch_name
         ### EXAMPLE-vvv
-        if branch == "master":
-            # All repos have a master branch
+        if self.main_branches.get(msg.reponame, "master") == branch:
             chk = True
         else:
             chk = branch in {
@@ -64,33 +72,46 @@ class GitExample1(ActorTypeDispatcher):
     def _gitmodules_data(self, msg, sender, alt_repo_url):
         ref = msg.source_ref or msg.branch_name
         alt_url = alt_repo_url.apiloc if alt_repo_url else alt_repo_url
-        print('_gitmodules_data, branch %s, pr_id %s, ref %s, alt_repo_url %s'
-              % (msg.branch_name, msg.pullreq_id, ref, alt_url) )
+        print('_gitmodules_data, repo %s, branch %s, pr_id %s, ref %s, alt_repo_url %s'
+              % (msg.reponame, msg.branch_name, msg.pullreq_id, ref, alt_url) )
         ### EXAMPLE-vvv
+        main_branch_R1 = self.main_branches.get("R1", "master")
+        main_branch_R2 = self.main_branches.get("R2", "master")
+        main_branch_R10 = self.main_branches.get("R10", "master")
+        print('_gitmodules_data main_R1 = %s, main_R2 = %s, main_R10 = %s' % (main_branch_R1, main_branch_R2, main_branch_R10))
+
         rsub = {
-            'R1': { "master":[SubRepoVers('R2', "r2_url", "r2_master_head"),
-                              SubRepoVers('R3', "r3_url", "r3_master_head^3"),
-                              SubRepoVers('R4', "r4_url", "r4_master_head^1")],
-                    'blah':[SubRepoVers('R2', "r2_url", "r2_master_head^22"),
-                            SubRepoVers('R3', "r3_url", "r3_master_head"),
-                            SubRepoVers('R7', "r7_url", "r7_master_head^4")],
-                    'feat1':[SubRepoVers('R2', "r2_url", "r2_master_head^1"),
-                             SubRepoVers('R3', "r2_url", "r3_master_head"),
-                             SubRepoVers('R4', "r4_url", "r4_feat1_head^2")],
+            'R1': {
+                main_branch_R1:[SubRepoVers('R2', "r2_url", "r2_master_head"),
+                                SubRepoVers('R3', "r3_url", "r3_master_head^3"),
+                                SubRepoVers('R4', "r4_url", "r4_master_head^1")
+                ],
+                'blah':[SubRepoVers('R2', "r2_url", "r2_master_head^22"),
+                        SubRepoVers('R3', "r3_url", "r3_master_head"),
+                        SubRepoVers('R7', "r7_url", "r7_master_head^4")
+                ],
+                'feat1':[SubRepoVers('R2', "r2_url", "r2_master_head^1"),
+                         SubRepoVers('R3', "r2_url", "r3_master_head"),
+                         SubRepoVers('R4', "r4_url", "r4_feat1_head^2")
+                ],
             },
-            'R2': { 'master':[SubRepoVers('R3', "r3_url", 'r3_master_head^9'),
-                              SubRepoVers('R4', "r4_url", 'r4_master_head^16'),
-                              SubRepoVers('R5', "r5_url", 'r5_master_head^25')],
+            'R2': {
+                main_branch_R2:[SubRepoVers('R3', "r3_url", 'r3_master_head^9'),
+                                SubRepoVers('R4', "r4_url", 'r4_master_head^16'),
+                                SubRepoVers('R5', "r5_url", 'r5_master_head^25')
+                ],
             },
-            'R10': { 'master':[SubRepoVers('R3', 'r3_url', 'r3_master_head^9'),
-                               SubRepoVers('R4', 'r4_url', 'r4_master_head^1'),
-                               ],},
+            'R10': {
+                main_branch_R10:[SubRepoVers('R3', 'r3_url', 'r3_master_head^9'),
+                                 SubRepoVers('R4', 'r4_url', 'r4_master_head^1'),
+                ],
+            },
         }[msg.reponame]
         rval = rsub.get(msg.branch_name, [])
         if msg.reponame == 'R1':
             if ref in ['blah', 'r1_blah_mergeref'] and alt_url != 'remote_R1_b':
                 # The blah gitmodules information only exists in the alternate repo
-                rval = rsub.get("master", [])
+                rval = rsub.get(main_branch_R1, [])
             if ref not in ['blah', 'r1_blah_mergeref' ] and alt_url:
                 # Otherwise if an alt_url is specified, return nothing
                 rval = []

@@ -173,7 +173,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         repo = self._pending_info.get(msg.reponame, None)
         if repo:
             del self._pending_info[msg.reponame]
-            self.get_git_info(HasBranch(repo.repo_name, "master"))
+            self.get_git_info(HasBranch(repo.repo_name, repo.main_branch))
             self.get_git_info(GetPullReqs(repo.repo_name))
         self.got_response(response_name='repo_declared')
 

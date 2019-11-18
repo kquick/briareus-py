@@ -84,7 +84,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
     ]
 
     repo_facts    = ([ Fact('repo("%s")'    % r.repo_name)   for r in RL ] +
-                     [ Fact('main_branch("%s", "%s")' % (r.repo_name, "master")) for r in RL ])
+                     [ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch)) for r in RL ])
     project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]
     branch_facts  = [ Fact('branchreq("%s", "%s")'  % (r.repo_name, b.branch_name))
                       for r in projects for b in BL ]
@@ -120,7 +120,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
                                                   and e.sm_branch == bname
                                                   and e.sm_pullreq_id == pr_id
                                                  )]
-        for bn in set([b.branch_name for b in BL] + ["master"]):
+        for bn in set([b.branch_name for b in BL] + [project.main_branch]):
             for repover in submods_data(bn, None):
                 submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
                                               % (pn, bn) % repover) )
