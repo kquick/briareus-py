@@ -83,6 +83,8 @@ repo("R5").
 main_branch("R5", "master").
 repo("R6").
 main_branch("R6", "master").
+subrepo("R2").
+subrepo("R3").
 subrepo("R4").
 subrepo("R7").
 branchreq("R1", "master").

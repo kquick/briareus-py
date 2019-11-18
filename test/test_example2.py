@@ -232,6 +232,8 @@ project("Repo1").
 repo("Repo1").
 repo("Repo2").
 repo("Repo3").
+subrepo("Repo2").
+subrepo("Repo3").
 subrepo("Repo4").
 main_branch("Repo1", "master").
 main_branch("Repo2", "master").
@@ -332,8 +334,10 @@ def test_example_report_summary(example_hydra_results):
         print('')
         print(each)
 
+    # Note that Repo2, Repo3, and Repo4 are all subrepos of Repo1, even though
+    # they are also explicitly listed in the input specification.
     assert ProjectSummary(project_name='Repo1',
-                          bldcfg_count=12, subrepo_count=1, pullreq_count=0) in reps
+                          bldcfg_count=12, subrepo_count=3, pullreq_count=0) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results

@@ -166,7 +166,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.get_git_info(DeclareRepo(repo.repo_name, repo.repo_url, self.RX))
         self._pending_info[repo.repo_name] = repo
 
-    def _all_repos(self): return list(self.RL) + list(self.subrepos)
+    def _all_repos(self): return set(self.RL).union(set(self.subrepos))
 
     def receiveMsg_RepoDeclared(self, msg, sender):
         "Response message from the GetGitInfo actor to a DeclareRepo message"
@@ -356,8 +356,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # repo branch with the corresponding changed subrepo
                 # url.
                 named_submod_repo = RepoDesc(each.subrepo_name, each.subrepo_url)
-                self.subrepos.add(named_submod_repo)
                 self.get_info_for_a_repo(named_submod_repo)
+            self.subrepos.add(named_submod_repo)
             # Add the submodule specification for this submodule repo
             # and any other modules that share the same repo
             nsr_url = to_http_url(named_submod_repo.repo_url, self.RX).apiloc

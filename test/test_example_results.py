@@ -140,7 +140,7 @@ def test_example_report_summary(example_hydra_results):
     print('')
     print(len(reps))
     assert ProjectSummary(project_name='R1',
-                          bldcfg_count=60, subrepo_count=2, pullreq_count=6) in reps
+                          bldcfg_count=60, subrepo_count=4, pullreq_count=6) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
