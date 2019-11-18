@@ -4,10 +4,10 @@ import attr
 
 @attr.s(frozen=True)
 class InputDesc(object):
-    RL  = attr.ib(factory=list)   # repo list
-    BL  = attr.ib(factory=list)   # branch list
-    VAR = attr.ib(factory=list)   # variables list
-    RX  = attr.ib(factory=list)   # repo location translations
+    RL  = attr.ib(factory=list)   # RepoDesc repo list
+    BL  = attr.ib(factory=list)   # BranchDesc branch list
+    VAR = attr.ib(factory=list)   # VariableDesc variables list
+    RX  = attr.ib(factory=list)   # RepoLoc repo location translations
 
 @attr.s(frozen=True)
 class RepoLoc(object):
