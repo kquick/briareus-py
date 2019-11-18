@@ -236,4 +236,11 @@ def test_example_report_varfailure(example_hydra_results):
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Verify that there are no unexpected additional entries
-    assert (len(CS) * len(GS) * len(SS) * len(BS) + 2) == len(reps)
+    nrscheduled = 0
+    prfailing = 4
+    prsuccess = 0
+    additional_bldcfgs = 1 # status2 + status3
+    expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
+                len(['ProjectSummary', 'VarFailure'])
+                + prfailing + prsuccess - nrscheduled)
+    assert expected == len(reps)

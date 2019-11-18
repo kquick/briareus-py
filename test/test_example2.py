@@ -438,4 +438,8 @@ def test_example_report_ghc881_varfailure(example_hydra_results):
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert (14 - 2) == len(reps)
+    nrscheduled = 1
+    expected = ((len(top_level) * len(GS)) +
+                len(['ProjectSummary', 'VarFailure', 'ConfigError'])
+                - nrscheduled)
+    assert expected == len(reps)

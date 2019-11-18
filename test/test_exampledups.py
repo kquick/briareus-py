@@ -920,4 +920,14 @@ def test_example_report_varfailure(example_hydra_results):
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert (len(GS) * len(top_level) - 2 + 2) == len(reps)
+    nrscheduled = 1
+    prfailing = 7
+    prsuccess = 1
+    expected = ((len(top_level) * len(GS)) +
+                len(['ProjectSummary', 'VarFailure', 'ConfigError'])
+                - 1 # PR2-develop.standard-ghc865 has ntotal and others as zero
+                + prfailing + prsuccess - nrscheduled)
+    for each in reps:
+        print(each)
+        print('')
+    assert expected == len(reps)
