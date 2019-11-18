@@ -138,6 +138,9 @@ def prior_fact(prior):
              'VarFailure': prior_fact_VarFailure,
              'CompletelyFailing': lambda p: None,  # ignored as a prior
              'ConfigError': lambda p: None, # ignored as a prior
+             'PR_Success': lambda p: None, # ignored as a prior
+             'PR_Failure': lambda p: None, # ignored as a prior
+             'PR_Failing': lambda p: None, # ignored as a prior  # KWQ: old
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):

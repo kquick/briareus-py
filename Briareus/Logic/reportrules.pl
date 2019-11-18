@@ -2,10 +2,15 @@
 %%
 %% bldres(ProjRepo, branchtype, "branchname", strategy, [varvalue("ProjRepo", "vname", "value"), ...], builderCfgName, njobs, nsucceeded, nfailed, nscheduled, cfgstatus)
 %%   cfgstatus = configValid | configError
+%%
+%% The rules here form the first layer of results: reporting based on build configurations and results
 
 good_status(succeeded).
 good_status(initial_success).
 good_status(fixed).
+
+bad_status(failed).
+bad_status(badconfig).
 
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
@@ -68,3 +73,30 @@ report(var_failure(ProjRepo, N, V)) :-
 report(config_error(ProjRepo, Cfg)) :-
     is_project_repo(ProjRepo),
     bldres(ProjRepo, _BranchType, _Branch, _Strategy, _Vars, Cfg, _, _, _, _, configError).
+
+%% ------------------------------------------------------------
+%% PR assessments
+
+report(pr_success(Branch, RIS)) :-
+    branch_type(pullreq, Branch),
+    pr_failures(Branch, RIS, Cfgs),
+    length(Cfgs, 0).
+
+report(pr_failure(Branch, RIS)) :-
+    pr_failures(Branch, RIS, Cfgs),
+    length(Cfgs, N), N > 0.
+
+report(pr_failing(ProjRepo, Branch, "strategy-TBD", Cfgs)) :-
+    is_project_repo(ProjRepo),
+    branch_type(pullreq, Branch),
+    findall(X, (report(status_report(S,project(ProjRepo),_,pullreq,Branch,X,_)),
+                bad_status(S)),
+            Cfgs).
+
+pr_failures(Branch, RIS, Cfgs) :-
+    branch_type(pullreq, Branch),
+    findall(X, (is_project_repo(ProjRepo),
+                report(status_report(S,project(ProjRepo),_,pullreq,Branch,X,_)),
+                bad_status(S)),
+            Cfgs),
+    findall((R,I), pullreq(R,I,Branch), RIS).

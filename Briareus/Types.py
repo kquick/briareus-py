@@ -70,6 +70,24 @@ class StatusReport(object):
 class VarFailure(BldVariable): pass
 
 @attr.s(frozen=True)
+class PR_Success(object):
+    branch = attr.ib() # string: branch name
+    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
+
+@attr.s(frozen=True)
+class PR_Failure(object):
+    branch = attr.ib() # string: branch name
+    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
+
+@attr.s(frozen=True)
+class PR_Failing(object):
+    project = attr.ib() # string name of project
+    branch = attr.ib() # string: branch name
+    strategy  = attr.ib()  # string: submodules, heads, main
+    # bldvars   = attr.ib(converter=sorted)  # list of BldVariable
+    buildnames= attr.ib()  # list of string name of builds on builder
+
+@attr.s(frozen=True)
 class ConfigError(object):
     project = attr.ib() # string name of project
     buildname = attr.ib()  # string name of build on builder
@@ -103,6 +121,9 @@ logic_result_expr = {
     "initial_success": "initial_success",
     "badconfig": "bad_config",
     "var_failure": lambda *args: VarFailure(*args),
+    "pr_success": lambda *args: PR_Success(*args),
+    "pr_failure": lambda *args: PR_Failure(*args),
+    "pr_failing": lambda *args: PR_Failing(*args),  # KWQ: old
     "config_error": lambda *args: ConfigError(*args),
     "complete_failure": lambda *args: CompletelyFailing(*args),
 
