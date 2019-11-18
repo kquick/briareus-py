@@ -13,7 +13,7 @@ all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
 build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     is_project_repo(ProjRepo),
-    branch_spec(BranchType, Branch, PR_ID),
+    branch_type(BranchType, Branch, PR_ID),
     strategy(Strategy, ProjRepo, Branch),
     all_repos(RL),
     all_vars(ProjRepo, VL),
@@ -47,21 +47,15 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varvalue(ProjRepo, VN,VVS),
     varcombs(ProjRepo, VNS, VNSVS).
 
-branch_type(pullreq, B) :- setof(X, R^I^pullreq(R, I, X), XS), member(B, XS).
-branch_type(regular, B) :- branchreq(R, B), is_project_repo(R).
-
-branch_spec(pullreq, B, I) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((I,B), XS).
-branch_spec(regular, B, project_primary) :- branchreq(R, B), is_project_repo(R).
+branch_type(pullreq, B, PR_ID) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((PR_ID,B), XS).
+branch_type(regular, B, project_primary) :- branchreq(R, B), is_project_repo(R).
 
 useable_submodules(R, B) :- (branch(R, B), has_gitmodules(R, B));
                             (has_gitmodules(R, "master"), \+ branch(R, B)).  % KWQ: this doesn't work if reversed.
 
-%% strategy(submodules, R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
-%% strategy(heads,      R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), useable_submodules(R, B).
-%% strategy(standard,   R, B) :- (branch_type(pullreq, B) ; branchreq(R, B)), \+ useable_submodules(R, B).
-strategy(submodules, R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
-strategy(heads,      R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
-strategy(standard,   R, B) :- (branch_spec(pullreq, B, _I) ; branchreq(R, B)), \+ useable_submodules(R, B).
+strategy(submodules, R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
+strategy(heads,      R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), useable_submodules(R, B).
+strategy(standard,   R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B)), \+ useable_submodules(R, B).
 
 
 %% if pullreq changes submodules, don't have that data available
