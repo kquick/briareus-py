@@ -88,9 +88,11 @@ this time, consist of the following:
 
  * A build of every branch requested in the input configuration file.
    This branch preference is applied to *every* repo, with a fallback
-   to "master" if that branch doesn't exist.
+   to the main branch for the repo (usually "master") if that branch
+   doesn't exist.
 
-   The default if no branches are requested is just "master".
+   The default if no branches are requested is just the main branch
+   (usually "master").
 
  * A build of every pull request or merge request ("PR") identified by
    querying the VCS forge for *every* repo.
@@ -238,8 +240,8 @@ This BCD represents the different jobsets that will be built for the project:
                    constructed using this branch in any of the
                    repositories where it appears.  Any repository that
                    has this branch will build using the HEAD version
-                   of that branch; otherwise the HEAD of master will
-                   be used.
+                   of that branch; otherwise the HEAD of the main
+                   branch (usually "master") will be used.
 
                    A failure of this jobset could indicate that:
                    * a similarly named branch should be created in a repo
@@ -284,8 +286,8 @@ This BCD represents the different jobsets that will be built for the project:
   * dev.HEADs :: Similar to dev.submodules, except the submodules file
                  in the R1 Project repository is ignored and all
                  repositories are built from either the HEAD of the
-                 dev branch or the HEAD of master if there is no dev
-                 branch.
+                 dev branch or the HEAD of the main branch (usually
+                 "master") if there is no dev branch.
 
                  This build configuration will help indicate whether
                  the dev branch is compatible with the latest
@@ -311,10 +313,10 @@ This BCD represents the different jobsets that will be built for the project:
        which submodule versions are built.
 
   * PR-blah.HEADs :: This is an alternate build for the PR that exists
-                     on a Project repo, but building against the head of
-                     all associated branches (the PR-named branch or
-                     master) of submodules instead of the specific
-                     versions identified in the submodules.
+                     on a Project repo, but building against the head
+                     of all associated branches (the PR-named branch
+                     or the main branch) of submodules instead of the
+                     specific versions identified in the submodules.
 
                      Success of this build should be an indicator that
                      the PR submodules could be updated to the HEAD
@@ -332,7 +334,7 @@ This BCD represents the different jobsets that will be built for the project:
        HEADs and submodules variations are still built, overriding any
        submodules specifications with this PR branch where it exists.
 
-       The PR is assumed to be against the master branch for all
+       The PR is assumed to be against the main branch for all
        repositories that do not have a branch of this name.
 
        This jobset can be used to track the viability of the
@@ -356,16 +358,17 @@ This BCD represents the different jobsets that will be built for the project:
 
 
   * PRonly-bugfix9 :: This is a jobset similar to the "PR-bugfix9"
-                      jobset, but it builds against master for all
-                      repositories unless their corresponding branch
-                      has an opened PR for that branch.
+                      jobset, but it builds against the main branch
+                      (usually "master") for all repositories unless
+                      their corresponding branch has an opened PR for
+                      that branch.
 
                       Build failures in this jobset can indicate that
                       a repository with a correspondingly-named branch
                       needs a pull-request and that all of the
                       similarly-named pull requests must be merged at
                       the same time because the pull-request changes
-                      are not compatible with master.
+                      are not compatible with the main branch.
 
 * Main Functionality
 
