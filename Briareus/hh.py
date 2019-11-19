@@ -47,6 +47,8 @@ def verbosely(params, *msgargs):
 
 @attr.s
 class GenResult(object):
+    "Stores the result of one or more generated build configurations"
+
     actor_system = attr.ib()
     result_sets = attr.ib(factory=list) # list of AnaRep.ResultSet
 
