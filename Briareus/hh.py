@@ -136,7 +136,7 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
 def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
     fpath = os.path.join(src_path, os.path.basename(fname))
     try:
-        data = get_updated_file(src_url, fpath, repolocs, actor_system=actor_system)
+        data = get_updated_file(src_url, fpath, repolocs, 'master', actor_system=actor_system)
         if data.error_code:
             raise RuntimeError('Error %s' % data.error_code)
     except Exception as ex:
