@@ -355,7 +355,7 @@ class GitLabInfo(RemoteGit__Info):
         # Gather {"upvotes": 0, "downvotes": 0, "approvals_before_merge": 0} for analysis phase
         # Use {"work_in_progress": true} to ignore the PR
         # Use {"merge_status": "can_be_merged"} for analysis phase?
-        preqs = [ PullReqInfo(pr["id"],   # for user reference
+        preqs = [ PullReqInfo(str(pr["id"]),   # for user reference
                               pr["title"],    # for user reference
                               self._src_repo_url(pr),  # source repo URL
                               pr["source_branch"],          # source repo branch
@@ -414,7 +414,7 @@ class GitHubInfo(RemoteGit__Info):
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
-        preqs = [ PullReqInfo(pr["number"],   # for user reference
+        preqs = [ PullReqInfo(str(pr["number"]),   # for user reference
                               pr["title"],    # for user reference
                               pr["head"]["repo"]["html_url"],  # source repo URL
                               pr["head"]["ref"],          # source repo branch
