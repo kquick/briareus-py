@@ -92,10 +92,14 @@ def run_hh_gen(params, inpcfg, inp, prev_gen_result=None):
 
 def run_hh_report(params, gen_result, prior_report):
     verbosely(params, 'Generating Analysis/Report')
+    t0 = datetime.datetime.now()
     anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=gen_result.actor_system)
     report = anarep.report_on(gen_result.result_sets, prior_report)
+    te = datetime.datetime.now()
+    verbosely(params, 'Generated Analysis/Report: %d items in %s' %
+              (len(report[1]), str(te - t0)))
 
     assert report[0] == 'report'
     return report[1]
