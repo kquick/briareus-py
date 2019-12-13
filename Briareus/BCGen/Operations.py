@@ -18,7 +18,7 @@ class BCGen(object):
                                                    up_to=self._up_to)
         # cfgs : Generator.GeneratedConfigs
         if rtype != "build_configs":   # early up_to abort
-            return None
+            return cfgs
         if self.verbose or self._up_to == "build_configs":
             print('## BUILD CONFIGS:')
             for each in cfgs.cfg_build_configs:
@@ -30,6 +30,6 @@ class BCGen(object):
             for each in cfgs.cfg_pullreqs:
                 print(str(each))
         if self._up_to and not self._up_to.enough("builder_configs"):
-            return None
+            return cfgs
         cfg_spec = self._bldsys.output_build_configurations(input_desc, cfgs)
         return cfg_spec, cfgs
