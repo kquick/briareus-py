@@ -940,10 +940,17 @@ def test_example_report_length(example_hydra_results):
     nrscheduled = 1
     prfailing = 7
     prsuccess = 1
+    num_varfailure = 1
+    num_analysis = num_varfailure
+    num_actions = num_varfailure
+    num_do = num_varfailure
     expected = ((len(top_level) * len(GS)) +
-                len(['ProjectSummary', 'VarFailure', 'ConfigError'])
+                len(['ProjectSummary', 'ConfigError'])
                 - 1 # PR2-develop.standard-ghc865 has ntotal and others as zero
-                + prfailing + prsuccess - nrscheduled)
+                + num_varfailure + prfailing + prsuccess - nrscheduled
+                + num_analysis + num_actions + num_do
+                + 4
+    )
     for each in reps:
         print(each)
         print('')

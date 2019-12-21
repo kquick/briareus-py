@@ -1,4 +1,7 @@
 # Data representation of build configurations and report data
+#
+# ALL Logic output items are translated back into Python objects and
+# values defined here via the logic_result_expr translation below.
 
 import attr
 
@@ -48,6 +51,7 @@ class BuilderResult(object):
 
 
 # ----------------------------------------------------------------------
+# Reporting
 
 @attr.s(frozen=True)
 class ProjectSummary(object):
@@ -97,6 +101,42 @@ class CompletelyFailing(object):
     project = attr.ib() # string name of project
 
 # ----------------------------------------------------------------------
+# Analysis
+
+@attr.s(frozen=True)
+class MergeablePR(object):
+    branch = attr.ib() # string: branch name
+    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
+
+@attr.s(frozen=True)
+class SepHandledVar(object):
+    project = attr.ib() # string: project repo
+    var_name = attr.ib() # string: variable name
+    var_value = attr.ib() # string: variable value
+
+# ----------------------------------------------------------------------
+# Actions
+
+@attr.s(frozen=True)
+class Notify(object):
+    what = attr.ib() # string: type of notification
+    item = attr.ib() # string: notification item (branch, project, etc.)
+    params = attr.ib() # list of parameters associated with item
+
+
+@attr.s(frozen=True)
+class SendEmail(object):
+    recipients = attr.ib() # list of email addresses
+    notification = attr.ib() # Notify object
+    sent_to = attr.ib() # list of addresses message has been sent to already
+
+@attr.s(frozen=True)
+class PostChatMessage(object):
+    channels = attr.ib() # list of channels
+    what = attr.ib() # Notification type
+    posted = attr.ib() # list of channels message has been posted to already
+
+# ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
 # operation, so define some terms to re-ify the eval'd string into
 # Python description.
@@ -125,6 +165,19 @@ logic_result_expr = {
     "pr_failing": lambda *args: PR_Failing(*args),  # KWQ: old
     "config_error": lambda *args: ConfigError(*args),
     "complete_failure": lambda *args: CompletelyFailing(*args),
+
+    "mergeable_pr": lambda *args: MergeablePR(*args),
+    "var_handled_separately": lambda *args: SepHandledVar(*args),
+
+    "notify": lambda *args: Notify(*args),
+    "email": lambda *args: SendEmail(*args),
+    "chat": lambda *args: PostChatMessage(*args),
+    "merge_pr": "merge_pr",
+    "completely_broken": "completely_broken",
+    "master_submodules_broken": "master_submodules_broken",
+    "master_submodules_good": "master_submodules_good",
+    "variable_failing": "variable_failing",
+
 
     "project": lambda n: n,
 }

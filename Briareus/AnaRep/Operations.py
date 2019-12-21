@@ -1,6 +1,20 @@
-# Briareus Analysis and Reporting functionality.  Extends build
-# configurations with build results (as available) and generates
-# output reports.
+"""Briareus Analysis and Reporting functionality.  Extends build
+   configurations with build results (as available) and generates
+   output reports.
+
+   The AnaRep functionality uses the Logic analysis to process the
+   build configurations and the collected build results to create a
+   report, an analysis, and recommended actions.  The logic analysis
+   is performed via multiple layers of logic:
+
+     - actions
+     - analysis
+     - report
+
+   The higher-level logic layers can (and should) use the lower-layer
+   results.
+
+"""
 
 import attr
 import functools
@@ -141,6 +155,11 @@ def prior_fact(prior):
              'PR_Success': lambda p: None, # ignored as a prior
              'PR_Failure': lambda p: None, # ignored as a prior
              'PR_Failing': lambda p: None, # ignored as a prior  # KWQ: old
+             'SepHandledVar': lambda p: None, # ignored as a prior
+             'MergeablePR': lambda p: None, # ignored as a prior
+             'Notify': lambda p: None, # ignored as a prior
+             'SendEmail': lambda p: None, # ignored as a prior
+             'PostChatMessage': lambda p: None, # ignored as a prior
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):

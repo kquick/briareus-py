@@ -248,7 +248,12 @@ def test_example_report_length(example_hydra_results):
     prfailing = 4
     prsuccess = 0
     additional_bldcfgs = 1 # status2 + status3
+    num_varfailure = 1
+    num_analysis = num_varfailure
+    num_actions = num_varfailure
+    num_do = num_varfailure
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
-                len(['ProjectSummary', 'VarFailure'])
-                + prfailing + prsuccess - nrscheduled)
+                len(['ProjectSummary'])
+                + num_varfailure + prfailing + prsuccess - nrscheduled
+                + num_analysis + num_actions + num_do)
     assert expected == len(reps)
