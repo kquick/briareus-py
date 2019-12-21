@@ -83,7 +83,7 @@ class PR_Failure(object):
 class PR_Failing(object):
     project = attr.ib() # string name of project
     branch = attr.ib() # string: branch name
-    strategy  = attr.ib()  # string: submodules, heads, main
+    strategy  = attr.ib()  # string: submodules, heads, standard
     # bldvars   = attr.ib(converter=sorted)  # list of BldVariable
     buildnames= attr.ib()  # list of string name of builds on builder
 
@@ -95,7 +95,6 @@ class ConfigError(object):
 @attr.s(frozen=True)
 class CompletelyFailing(object):
     project = attr.ib() # string name of project
-
 
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
