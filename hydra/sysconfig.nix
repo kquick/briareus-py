@@ -153,10 +153,7 @@ let
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh ${project.hhd} -b hydra -B ${project.hhb} -o ${briareus_outfile name}.new -I ${inp_upd}
-             if [ $? -eq 0 ] ; then
-               replace_json_if_newer ${briareus_outfile name}.new ${briareus_outfile name}
-             fi
+             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} ${project.hhd} ${briareus_outfile name}
 	     set +x
              '';
 
