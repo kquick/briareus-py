@@ -32,9 +32,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
             successor = self.createActor("Briareus.VCS.InternalOps.GatherRepoInfo",
                                          globalName='GatherRepoInfo')
             self.send(successor, 'HaveCachedInfo')
-        elif msg == 'HaveCachedInfo' and sender != self.myAddress:
-            # Ask sender for their cached info...
-            logging.critical('Get cached repo info from %s', sender)
+        elif msg == 'HaveCachedInfo':
+            if sender != self.myAddress:
+                # Ask sender for their cached info...
+                logging.critical('Get cached repo info from %s', sender)
             pass
         elif msg == 'Start':
             # Sent by Thespian Director based on the TLI file; this is
