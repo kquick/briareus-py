@@ -99,11 +99,16 @@ class HydraBuilder(BuilderBase.Builder):
                           'value': copy_hh_src_path,
                           'emailresponsible': False,
                       },
+                      'nixpkgs': {
+                          'type': "git",
+                          'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
+                          'emailresponsible': False,
+                      },
                   },
                 }),
             os.path.join(copy_hh_src_path, 'copy_hh.nix') :
             '\n'.join([
-                '{ hh_output }:',
+                '{ nixpkgs, hh_output }:',
                 'let pkgs = import <nixpkgs> {}; in',
                 '{ jobsets = pkgs.stdenv.mkDerivation {',
                 '    name = "copy_hh";',
