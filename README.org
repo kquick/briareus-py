@@ -426,20 +426,35 @@ with; although Hydra will be the initial focus, dependencies on Hydra
 implementation will be abstracted and minimized to allow potential
 utilization of other build systems in the future.
 
-* Potential Functionality Items
+* Functionality Notes
 
-** Has its own triggers, or is invoked from existing build system
+ * Has its own triggers, or is invoked from existing build system?
 
-** Concerned more with build configurations that the build process
-   * Generate build configurations
-   * Interpret results
+   There's no reason Briareus couldn't be invoked from a webhook, but
+   at present it has a hydra sysconfig (for NixOS) that generates a
+   service and a timer that invokes that service periodically.
+
+ * Concerned more with build configurations that the build process
+   * Generates build configurations
+   * Interprets build results
    * Runs as a front-end to a conventional build system (Hydra, Travis?, Jenkins?)
 
-** Extensible via plugins?
+ * Extensible via plugins?
 
-** Has its own DB, uses conventional build system's HTTP/REST API for interaction?
+ * Has its own DB?
 
-** Has a DSL for Prolog-style evaluation of results, including notification strategies, etc.
+   Currently Briareus does not have a significant long-term database.
+   At present it simply operates on the delta between the previous run
+   and the current run, so the previous report output comprises the
+   only "database" input for Briareus.  Longer term a more significant
+   previous history might be needed.
+
+ * Uses conventional build system's HTTP/REST API for interaction
+
+   Briareus obtains build results from the underlying build system
+   (e.g. Hydra) and therefore requires API access to that system.
+
+ * Has a DSL for Prolog-style evaluation of results, including notification strategies, etc.
 
 * TBD issues
 
