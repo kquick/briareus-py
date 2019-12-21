@@ -167,8 +167,12 @@ def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
     if inpcfg.input_url is not None:
         asys = ((prev_gen_result.actor_system if prev_gen_result else None)
                 or ActorSystem('multiprocTCPBase'))
-        upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
-        upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
+        try:
+            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, [], asys)
+            upd_from_remote(inpcfg.input_url, inpcfg.input_path, inpcfg.builder_conf, [], asys)
+        except:
+            print('Warning: update from remote %s path %s failed (%s, %s)' %
+                  (inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, inpcfg.builder_conf))
     ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
                  else ((inpcfg.hhd + '.hhd') if os.path.exists(inpcfg.hhd + '.hhd')
                        else None))
