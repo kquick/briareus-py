@@ -188,8 +188,8 @@ reporev(R, ProjRepo, regular, B, PR_ID, heads, RepoRev) :-
 
 reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
     repo(R),
+    branch(R, B),
     \+ submodule(ProjRepo, _I, B, R, _),
-    branch(R, B),  % KWQ swap with above
     bldwith(RepoRev, R, B, "project_primary", brr(01)).
 
 reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
