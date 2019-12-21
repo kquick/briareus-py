@@ -88,6 +88,7 @@ let
              if [ $? -eq 0 ] ; then
                replace_json_if_newer ${briareus_outfile name}.new ${briareus_outfile name}
              fi
+	     set +x
              '';
 
         startMin = if projnum == null then 0 else projnum;
