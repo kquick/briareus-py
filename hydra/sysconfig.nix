@@ -37,13 +37,14 @@ let
     # running briareus with an input configuration that describes
     # multiple projects.
     projnum:  # null or this project's number
-    name:
-    # The name is a string that is used to describe the system
-    # service.  It does not need to correlate to anything in the
-    # inpcfg.
-    inpcfg:
-    # The inpcfg is the input configuration file that Briareus will
-    # consume.
+    { name
+      # The name is a string that is used to describe the system
+      # service.  It does not need to correlate to anything in the
+      # inpcfg.
+    , inpcfg
+      # The inpcfg is the input configuration file that Briareus will
+      # consume.
+    }:
 
     let
       startMin = if projnum == null then 0 else projnum;
@@ -189,9 +190,9 @@ let
       });
     };
 
-  mapEnum = f: l:
+  mapEnum = z: f: l:
     let pnums = builtins.genList (n: n) (builtins.length l);
-        callNum = n: let v = builtins.elemAt l n; in f n v;
+        callNum = n: let v = builtins.elemAt l n; in f (n + z) v;
     in builtins.map callNum pnums;
 
 in
@@ -213,13 +214,16 @@ rec {
     # service is used to manage the persistent daemon processes and
     # cache.
     projectList:
-      [briareusServiceBase] ++ (mapEnum mkBriareusProject projectList);
-
-  mkBriareusWithCfgInput =
-    inpcfg:
-    [briareusServiceBase
-     (mkBriareusWithConfig 1 "cfg_briareus" inpcfg)
-    ];
+    # projectList is the list of projects; a project is an attrset as
+    # described for the mkBriareus function.
+    inpcfgList:
+    # inpcfgList is a list of { name = ...; inpcfg = ...; } attrsets,
+    # where the inpcfg is the file containing the InpConfig
+    # specification for briareus.
+    let n = builtins.length projectList;
+        p = mapEnum 0 mkBriareusProject projectList;
+        c = mapEnum n mkBriareusWithConfig inpcfgList;
+    in [briareusServiceBase] ++ p ++ c;
 
   briareusServiceBase = {
     systemd.services."briareus" = {
