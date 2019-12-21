@@ -152,7 +152,12 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
               file=sys.stderr)
     else:
         if data.file_data:
-            atomic_write_to(fname, lambda f: f.write(data.file_data))
+            try:
+                atomic_write_to(fname, lambda f: f.write(data.file_data))
+            except Exception as ex:
+                print('Warning: failed writing to %s: %s  [contents: %s]'
+                      % (fname, str(ex), str(data)),
+                      file=sys.stderr)
         else:
             print('No contents obtained for %s @ %s'
                   % (fpath, src_url))
