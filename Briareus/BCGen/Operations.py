@@ -11,7 +11,7 @@ class BCGen(object):
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def generate(self, input_desc, repo_info):
+    def generate(self, input_desc, repo_info, bldcfg_fname=None):
         gen = Generator.Generator(actor_system=self._actor_system,
                                   verbose=self.verbose)
         (rtype, cfgs) = gen.generate_build_configs(input_desc, repo_info,
@@ -31,5 +31,6 @@ class BCGen(object):
                 print(str(each))
         if self._up_to and not self._up_to.enough("builder_configs"):
             return cfgs
-        cfg_spec = self._bldsys.output_build_configurations(input_desc, cfgs)
+        cfg_spec = self._bldsys.output_build_configurations(input_desc, cfgs,
+                                                            bldcfg_fname=bldcfg_fname)
         return cfg_spec, cfgs

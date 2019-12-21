@@ -89,7 +89,7 @@ def test_example_facts(testing_dir, inp_configs):
             # Generate canned info instead of actually doing git operations
             gitActor = asys.createActor(git, globalName="GetGitInfo")
             with open(inpcfg.hhd, 'r') as inpf:
-                result.extend(hh.run_hh_gen(params, inpcfg, inpf.read(), prev_result))
+                result.extend(hh.run_hh_gen(params, inpcfg, inpf.read(), None, prev_result))
             asys.ask(gitActor, ActorExitRequest(), 1)
             asys.ask(asys.createActor(git, globalName="GatherRepoInfo"), ActorExitRequest(), 1)
         assert expected_facts == sorted(map(str, result))
@@ -127,7 +127,7 @@ def example_internal_bldconfigs(testing_dir, inp_configs):
             # Generate canned info instead of actually doing git operations
             gitActor = asys.createActor(git, globalName="GetGitInfo")
             with open(inpcfg.hhd, 'r') as inpf:
-                result = hh.run_hh_gen(params, inpcfg, inpf.read(), result)
+                result = hh.run_hh_gen(params, inpcfg, inpf.read(), None, result)
             asys.ask(gitActor, ActorExitRequest(), 1)
             asys.ask(asys.createActor(git, globalName="GatherRepoInfo"), ActorExitRequest(), 1)
         yield result
