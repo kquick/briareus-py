@@ -18,6 +18,7 @@ import test_example_results as texres
 import test_facts as texfacts
 import test_example3 as tex3
 import test_exampledups as tdups
+from datetime import datetime, timedelta
 
 
 # This test combines test_example, test_example3, and test_exampledups
@@ -120,6 +121,7 @@ expected_facts = sorted(filter(None,
 def example_internal_bldconfigs(testing_dir, inp_configs):
     asys = ActorSystem('simpleSystemBase', transientUnique=True)
     try:
+        starttime = datetime.now()
         params = hh.Params(verbose=True, up_to=hh.UpTo("builder_configs"),
                            report_file=testing_dir.join("ex1_ex3_dups.hhr"))
         result = hh.GenResult(actor_system=asys)
@@ -130,6 +132,9 @@ def example_internal_bldconfigs(testing_dir, inp_configs):
                 result = hh.run_hh_gen(params, inpcfg, inpf.read(), None, result)
             asys.ask(gitActor, ActorExitRequest(), 1)
             asys.ask(asys.createActor(git, globalName="GatherRepoInfo"), ActorExitRequest(), 1)
+        endtime = datetime.now()
+        # This should be a proper test: checks the amount of time to run run the logic process.
+        assert endtime - starttime < timedelta(seconds=2, milliseconds=500)  # avg 1.56s
         yield result
         asys.shutdown()
         asys = None
@@ -212,8 +217,12 @@ def example_report(testing_dir, example_internal_bldconfigs):
             "R10": [],
             "Repo1": tdups.hydra_results,
         }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    starttime = datetime.now()
     rep = hh.run_hh_report(params, example_internal_bldconfigs,
                            tdups.prior + texres.prior)
+    endtime = datetime.now()
+    # This should be a proper test: checks the amount of time to run run the logic process.
+    assert endtime - starttime < timedelta(seconds=1, milliseconds=500)  # avg 1.02s
     return rep
 
 def test_example_report_summary(example_report):

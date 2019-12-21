@@ -9,6 +9,8 @@ from thespian.actors import *
 from git_exampledups import GitExample
 import json
 import pytest
+from datetime import datetime, timedelta
+
 
 # This test is similar to the small test_example2, except:
 #
@@ -228,6 +230,7 @@ def example_hydra_results():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample, globalName="GetGitInfo")
+        starttime = datetime.now()
         inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
                                                              actor_system=asys,
                                                              verbose=True)
@@ -243,6 +246,9 @@ def example_hydra_results():
         builder._build_results = hydra_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
         assert report[0] == 'report'
+        endtime = datetime.now()
+        # This should be a proper test: checks the amount of time to run run the logic process.
+        assert endtime - starttime < timedelta(seconds=1, milliseconds=500)  # avg 1.03s
         yield (builder_cfgs, report[1])
         asys.shutdown()
         asys = None

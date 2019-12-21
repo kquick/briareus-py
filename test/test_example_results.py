@@ -10,6 +10,8 @@ from git_example1 import GitExample1
 import json
 import pytest
 from test_example import input_spec
+from datetime import datetime, timedelta
+
 
 hydra_results = [
     { "name": n,
@@ -110,6 +112,7 @@ def example_hydra_results():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
+        starttime = datetime.now()
         inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
                                                              actor_system=asys,
                                                              verbose=True)
@@ -125,6 +128,9 @@ def example_hydra_results():
         builder._build_results = hydra_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
         assert report[0] == 'report'
+        endtime = datetime.now()
+        # This should be a proper test: checks the amount of time to run run the logic process.
+        assert endtime - starttime < timedelta(seconds=1, milliseconds=750)  # avg 1.06s
         yield (builder_cfgs, report[1])
         asys.shutdown()
         asys = None

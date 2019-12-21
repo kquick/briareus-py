@@ -7,6 +7,7 @@ from thespian.actors import *
 from git_example1 import GitExample1
 import json
 import pytest
+from datetime import datetime, timedelta
 
 # Identical to test_example3, except that one of the subrepos is also
 # specified in the Repos list.  This test ensures that the proper
@@ -52,12 +53,16 @@ def example_hydra_builder_output():
     try:
         # Generate canned info instead of actually doing git operations
         asys.createActor(GitExample1, globalName="GetGitInfo")
+        starttime = datetime.now()
         input_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
                                                                verbose=True,
                                                                actor_system=asys)
         builder = BldSys.HydraBuilder(None)
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
         output = bcgen.generate(input_desc, repo_info)
+        endtime = datetime.now()
+        # This should be a proper test: checks the amount of time to run run the logic process.
+        assert endtime - starttime < timedelta(seconds=1, milliseconds=250)  # avg 0.52s
         yield output[0]
         asys.shutdown()
         asys = None

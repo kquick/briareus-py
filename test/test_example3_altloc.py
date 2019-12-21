@@ -9,6 +9,8 @@ from git_example1 import GitExample1
 from datetime import timedelta
 import json
 import pytest
+from datetime import datetime, timedelta
+
 
 # Like example3 except R3 and R10 are both explicitly listed with a
 # RepoLoc translation in the input, and R10 adds a pull request. This
@@ -71,12 +73,16 @@ def example_hydra_builder_output():
     try:
         # Generate canned info instead of actually doing git operations
         setup_getgitinfo(asys)
+        starttime = datetime.now()
         input_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
                                                                verbose=True,
                                                                actor_system=asys)
         builder = BldSys.HydraBuilder(None)
         bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
         output = bcgen.generate(input_desc, repo_info)
+        endtime = datetime.now()
+        # This should be a proper test: checks the amount of time to run run the logic process.
+        assert endtime - starttime < timedelta(seconds=1, milliseconds=250)  # avg 0.52s
         yield output[0]
         asys.shutdown()
         asys = None
