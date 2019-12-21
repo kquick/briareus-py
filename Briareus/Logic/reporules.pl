@@ -100,7 +100,7 @@ build_revspecs(RevSpec, RevSpecs, [RevSpec|RevSpecs]) :- RevSpec \= skip.
 
 reporev(R, ProjRepo, pullreq, B, _PR_ID, submodules, RepoRev) :-
     submodule(ProjRepo, I, B, R, SubRev),
-    pullreq(_, I, B),
+    pullreq(_, I, B), !,
     bldwith(RepoRev, R, SubRev, "project_primary", brr(09)).
 
 reporev(R, ProjRepo, pullreq, B, _PR_ID, heads, RepoRev) :-
