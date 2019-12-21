@@ -119,6 +119,8 @@ def run_hh_gen_with_files(inp, inpcfg, outputf, outputfname, params, prev_gen_re
     if r is None:
         # Probably an --up-to prevented the full generation
         return None
+    if params.up_to and not params.up_to.enough('builder_configs'):
+        return None
     gen_result, builder_cfgs = r
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
         outputf.write(builder_cfgs[None])
