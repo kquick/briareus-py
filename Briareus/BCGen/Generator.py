@@ -29,7 +29,7 @@ class Generator(object):
                                 input_descr.VAR,
                                 repo_info)
         if self.verbose or up_to == 'facts':
-            print('## FACTS:')
+            print('%% FACTS:')
             for f in facts:
                 print(str(f))
         if up_to == "facts":
