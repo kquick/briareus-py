@@ -44,7 +44,7 @@ reachable_branch(submodules, regular, Branch) :-
 
 is_main_branch(Repo, Branch) :-
     branch(Repo, Branch),
-    (main_branch(Repo, Branch) ; (Branch == "master", \+ main_branch(Repo, _))).
+    (main_branch(Repo, Branch) ; (default_main_branch(Branch), \+ main_branch(Repo, _))).
 
 varcombs(_, [], []).
 varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-

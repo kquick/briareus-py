@@ -296,12 +296,10 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("Repo1").
+default_main_branch("master").
 repo("Repo1").
 repo("Repo2").
 repo("Repo3").
-main_branch("Repo1", "master").
-main_branch("Repo2", "master").
-main_branch("Repo3", "master").
 branchreq("Repo1", "master").
 branchreq("Repo1", "develop").
 pullreq("Repo1", "1", "master").

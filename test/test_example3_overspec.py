@@ -100,8 +100,7 @@ expected_facts = sorted(filter(None, '''
 project("R10").
 repo("R10").
 repo("R4").
-main_branch("R10", "master").
-main_branch("R4", "master").
+default_main_branch("master").
 subrepo("R3").
 subrepo("R4").
 branchreq("R10", "dev").

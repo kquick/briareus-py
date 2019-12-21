@@ -60,15 +60,11 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varvalue/3.
 project("R1").
 repo("R1").
-main_branch("R1", "master").
+default_main_branch("master").
 repo("R2").
-main_branch("R2", "master").
 repo("R3").
-main_branch("R3", "master").
 repo("R5").
-main_branch("R5", "master").
 repo("R6").
-main_branch("R6", "master").
 subrepo("R2").
 subrepo("R3").
 subrepo("R4").

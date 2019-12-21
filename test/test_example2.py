@@ -244,9 +244,7 @@ repo("Repo3").
 subrepo("Repo2").
 subrepo("Repo3").
 subrepo("Repo4").
-main_branch("Repo1", "master").
-main_branch("Repo2", "master").
-main_branch("Repo3", "master").
+default_main_branch("master").
 branchreq("Repo1", "master").
 branchreq("Repo1", "develop").
 branch("Repo3", "develop").
