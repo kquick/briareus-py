@@ -30,10 +30,12 @@ class HydraBuilder(BuilderBase.Builder):
     def output_build_configurations(self, input_desc, bldcfgs):
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
-        return json.dumps(
-            { self._jobset_name(each) :
-              self._jobset(input_desc, bldcfgs, input_cfg, each)
-              for each in bldcfgs.cfg_build_configs })
+        return {
+            None: json.dumps(
+                { self._jobset_name(each) :
+                  self._jobset(input_desc, bldcfgs, input_cfg, each)
+                  for each in bldcfgs.cfg_build_configs }),
+        }
 
     def _jobset(self, input_desc, bldcfgs, input_cfg, bldcfg):
         jobset_inputs = self._jobset_inputs(input_desc, bldcfgs, bldcfg)

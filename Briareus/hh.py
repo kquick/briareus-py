@@ -82,7 +82,8 @@ def run_hh_gen(params, inpcfg, inp, prev_gen_result=None):
         return config_results
 
     builder_cfgs, build_cfgs = config_results
-    # builder_cfgs : string to send to the builder
+    # builder_cfgs : dictionary of builder configuration file(s),
+    #                including the configuration for each build.
     # build_cfgs : Generator.GeneratedConfigs
 
     result.add_results(builder, inp_desc, repo_info, build_cfgs)
@@ -117,8 +118,8 @@ def run_hh_gen_with_files(inp, inpcfg, outputf, params, prev_gen_result=None):
         return None
     gen_result, builder_cfgs = r
     if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
-        outputf.write(builder_cfgs)
-    return gen_result
+        outputf.write(builder_cfgs[None])
+    return r
 
 
 def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
@@ -129,15 +130,25 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
     with open(inp_fname) as inpf:
         if not params.up_to or params.up_to.enough('builder_configs'):
             verbosely(params, 'hh <',inp_fname,'>',outfname)
-            return atomic_write_to(
+            r = atomic_write_to(
                 outfname,
                 lambda outf: run_hh_gen_with_files(inpf.read(), inpcfg, outf,
                                                    params=params,
                                                    prev_gen_result=prev_gen_result))
-        verbosely(params, 'hh partial run, no output')
-        return run_hh_gen_with_files(inpf.read(), inpcfg, None,
-                                     params=params,
-                                     prev_gen_result=prev_gen_result)
+        else:
+            verbosely(params, 'hh partial run, no output')
+            r = run_hh_gen_with_files(inpf.read(), inpcfg, None,
+                                      params=params,
+                                      prev_gen_result=prev_gen_result)
+    for fname in r[1]:
+        if fname:
+            atomic_write_to(
+                os.path.join(
+                    (os.path.dirname(inpcfg.output_file) or os.getcwd()),
+                    fname),
+                lambda of: of.write(r[1][fname]))
+
+    return r[0]
 
 
 def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
@@ -211,19 +222,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
             gen_result = run_hh_on_inpcfg(inpcfg, params, prev_gen_result=gen_result)
 
     else:
-        if not inpcfg.hhd:
-            inp = input('Briareus input spec? ')
-            if inpcfg.output_file:
-                with open(inpcfg.output_file, 'w') as outf:
-                    gen_result = run_hh_gen_with_files(inp, inpcfg, outf,
-                                                       params=params,
-                                                       inpcfg=inpcfg)
-            else:
-                gen_result = run_hh_gen_with_files(inp, inpcfg, sys.stdout,
-                                                   params=params,
-                                                   inpcfg=inpcfg)
-        else:
-            gen_result = run_hh_on_inpcfg(inpcfg, params)
+        gen_result = run_hh_on_inpcfg(inpcfg, params)
 
     # Generator cycle done, now do any reporting
 
@@ -247,7 +246,7 @@ def atomic_write_to(outfname, gen_output):
 def run_hh(params, inpcfg=None, inputArg=None):
     verbosely(params, 'Running hh')
     if inpcfg is None:
-        verbosely(params, 'multiple input configs from:', inputArg or 'stdin')
+        verbosely(params, 'multiple input configs from:', inputArg)
     else:
         verbosely(params, 'input from:', inpcfg.hhd)
     if params.report_file and (not params.up_to or params.up_to.enough('report')):
@@ -312,14 +311,10 @@ class UpTo(object):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Run the Briareus (hundred hander) tool to generate build configurations.',
+        description='Run the Briareus (the Hundred Hander) tool to generate build configurations.',
         epilog=('The BRIAREUS_PAT environment variable can be used to supply "repo=token;..." '
                 'specifications of access tokens needed for access to the specified repo.'),
         prog='hh')
-    parser.add_argument(
-        '--output', '-o', default=None,
-        help=('Output file for writing build configurations.'
-              'The default is {inputfile}.hhc or stdout if no inputfile.'))
     parser.add_argument(
         '--report', '-r', default=None,
         help=('Output file for writing build reports.  Also read as '
@@ -380,16 +375,20 @@ def main():
                 repository for which the BRIAREUS_PAT provides access
                 tokens for updates.''')
     parser.add_argument(
-        'INPUT', default=None, nargs='?',
-        help='Briareus input specification (file or URL or blank to read from stdin)')
+        'INPUT',
+        help='Briareus input specification (file or URL)')
+    parser.add_argument(
+        'OUTPUT', nargs='?', default=None,
+        help=('Output file for writing build configurations.'
+              'The default is {inputfile}.hhc.'))
     args = parser.parse_args()
     params = Params(verbose=args.verbose,
                     up_to=args.up_to,
                     report_file=args.report)
     if args.cfginput:
         if args.builder_url or args.builder_conf or \
-           args.input_url_and_path or args.output:
-            raise ValueError('Cannot use -C with any of: -U, -B, -b, -I, or -o')
+           args.input_url_and_path or args.OUTPUT:
+            raise ValueError('Cannot use -C with any of: -U, -B, -b, -I, or OUTPUT')
         inpcfg = None
         inputArg = args.INPUT
     else:
@@ -400,7 +399,8 @@ def main():
                            builder_type=args.builder,
                            builder_conf=args.builder_conf,
                            builder_url=args.builder_url,
-                           output_file=args.output)
+                           output_file=args.OUTPUT or
+                           (os.path.splitext(args.INPUT)[0] + ".hhc"))
         inputArg = None
     try:
         run_hh(params, inpcfg=inpcfg, inputArg=inputArg)

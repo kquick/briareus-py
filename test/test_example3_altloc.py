@@ -66,7 +66,7 @@ def example_internal_bldconfigs():
 
 
 @pytest.fixture(scope="module")
-def example_hydra_jobsets():
+def example_hydra_builder_output():
     asys = ActorSystem(transientUnique=True)
     try:
         # Generate canned info instead of actually doing git operations
@@ -83,6 +83,10 @@ def example_hydra_jobsets():
     finally:
         if asys:
             asys.shutdown()
+
+@pytest.fixture(scope="module")
+def example_hydra_jobsets(example_hydra_builder_output):
+    return example_hydra_builder_output[None]
 
 GS = [ "ghc822", "ghc844" ]
 top_level = [
