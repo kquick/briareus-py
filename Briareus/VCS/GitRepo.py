@@ -371,7 +371,15 @@ class GitLabInfo(RemoteGit__Info):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
 
     def get_file_contents_raw(self, target_filepath, branch):
-        return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch, raw=True)
+        return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch,
+                            # Sometimes this cannot be accessed, and
+                            # the higher levels handle this.  This
+                            # will frequently happen when someone
+                            # forks a Private repo where a PAT has
+                            # been added for the Private repo but the
+                            # user's fork doesn't propagate the PAT.
+                            notFoundOK=True,
+                            raw=True)
 
     def _subrepo_version(self, remote_name, remote_info, submod_info):
         return SubRepoVers(submod_info['file_name'],
