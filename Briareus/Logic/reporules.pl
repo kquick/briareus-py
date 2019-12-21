@@ -37,9 +37,10 @@ reachable_branch(standard,   _,       _).
 reachable_branch(heads,      _,       _).
 reachable_branch(_,          pullreq, _).
 reachable_branch(submodules, regular, Branch) :-
+    branch(R, Branch),
     all_repos_no_subs(TLR),
     member(R, TLR),
-    branch(R, Branch).
+    !.  % only necessary to find one case.
 
 is_main_branch(Repo, Branch) :-
     branch(Repo, Branch),
