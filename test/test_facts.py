@@ -4,22 +4,8 @@ import Briareus.Input.Parser as Parser
 import Briareus.Input.Description as D
 from Briareus.BCGen.Generator import Generator
 from git_example1 import GitExample1
+from test_example import input_spec
 
-
-input_spec = '''
-{
-  "Repos" : [ ("R1", "r1_url"),
-              ("R2", "r2_url"),
-              ("R3", "r3_url"),
-              ("R5", "r5_url"),
-              ("R6", "r6_url") ]
-, "Branches" : [ "master", "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc844", "ghc865", "ghc881" ],
-      "c_compiler" : [ "gnucc", "clang", "MSVC" ],
-  }
-}
-'''
 
 def test_input_parser():
     parser = Parser.BISParser()
@@ -57,7 +43,7 @@ expected_inp = D.InputDesc(
     VAR = [ D.VariableDesc(variable_name="ghcver",
                            variable_values=["ghc844", "ghc865", "ghc881"]),
             D.VariableDesc(variable_name="c_compiler",
-                           variable_values=["gnucc", "clang", "MSVC"]),
+                           variable_values=["gnucc", "clang"]),
     ])
 
 
@@ -127,7 +113,6 @@ varvalue("R1", "ghcver", "ghc865").
 varvalue("R1", "ghcver", "ghc881").
 varvalue("R1", "c_compiler", "gnucc").
 varvalue("R1", "c_compiler", "clang").
-varvalue("R1", "c_compiler", "MSVC").
 '''.split('\n')))
 
 # Note: the above does not contain branch("R2", "bugfix9").  This is

@@ -80,25 +80,7 @@ def example_hydra_jobsets():
         if asys:
             asys.shutdown()
 
-@pytest.fixture(scope="module")
-def example_hydra_results():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample, globalName="GetGitInfo")
-        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                             actor_system=asys,
-                                                             verbose=True)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        config_results = bcgen.generate(inp_desc, repo_info)
-        builder_cfgs, build_cfgs = config_results
-        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
-        # n.b. the name values for build_results come from
-        # builder._jobset_name, which is revealed by this print loop.
-        for each in build_cfgs.cfg_build_configs:
-            print(builder._jobset_name(each))
-        builder._build_results = [
+hydra_results = [
             { "name" : "develop.standard-ghc865",
               "nrtotal" : 4,
               "nrsucceeded": 3,
@@ -212,28 +194,49 @@ def example_hydra_results():
               "haserrormsg": False,
             },
         ]
-        prior = [
-            StatusReport(status='initial_success', project='Repo1',
-                         strategy='standard', branchtype="pullreq", branch="foo",
-                         buildname='PR1-foo.standard-ghc881',
-                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
-                         ]),
-            StatusReport(status='initial_success', project='Repo1',
-                         strategy='standard', branchtype="pullreq", branch="foo",
-                         buildname='PR1-foo.standard-ghc865',
-                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
-                         ]),
-            StatusReport(status='failed', project='Repo1',
-                         strategy='standard', branchtype="pullreq", branch="master",
-                         buildname='PR1-master.standard-ghc865',
-                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
-                         ]),
-            StatusReport(status='succeeded', project='Repo1',
-                         strategy='standard', branchtype="regular", branch="master",
-                         buildname='master.standard-ghc881',
-                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
-                         ]),
-        ]
+
+prior = [
+    StatusReport(status='initial_success', project='Repo1',
+                 strategy='standard', branchtype="pullreq", branch="foo",
+                 buildname='PR1-foo.standard-ghc881',
+                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                 ]),
+    StatusReport(status='initial_success', project='Repo1',
+                 strategy='standard', branchtype="pullreq", branch="foo",
+                 buildname='PR1-foo.standard-ghc865',
+                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                 ]),
+    StatusReport(status='failed', project='Repo1',
+                 strategy='standard', branchtype="pullreq", branch="master",
+                 buildname='PR1-master.standard-ghc865',
+                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                 ]),
+    StatusReport(status='succeeded', project='Repo1',
+                 strategy='standard', branchtype="regular", branch="master",
+                 buildname='master.standard-ghc881',
+                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                 ]),
+]
+
+@pytest.fixture(scope="module")
+def example_hydra_results():
+    asys = ActorSystem('simpleSystemBase', transientUnique=True)
+    try:
+        # Generate canned info instead of actually doing git operations
+        asys.createActor(GitExample, globalName="GetGitInfo")
+        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
+                                                             actor_system=asys,
+                                                             verbose=True)
+        builder = BldSys.HydraBuilder(None)
+        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
+        config_results = bcgen.generate(inp_desc, repo_info)
+        builder_cfgs, build_cfgs = config_results
+        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
+        # n.b. the name values for build_results come from
+        # builder._jobset_name, which is revealed by this print loop.
+        for each in build_cfgs.cfg_build_configs:
+            print(builder._jobset_name(each))
+        builder._build_results = hydra_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
         assert report[0] == 'report'
         yield (builder_cfgs, report[1])

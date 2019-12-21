@@ -21,6 +21,38 @@ input_spec = '''
 }
 '''
 
+expected_facts = sorted(filter(None, '''
+:- discontiguous project/1.
+:- discontiguous repo/1.
+:- discontiguous subrepo/1.
+:- discontiguous main_branch/2.
+:- discontiguous submodule/5.
+:- discontiguous branchreq/2.
+:- discontiguous branch/2.
+:- discontiguous pullreq/3.
+:- discontiguous varname/2.
+:- discontiguous varvalue/3.
+project("R10").
+default_main_branch("master").
+repo("R10").
+subrepo("R3").
+subrepo("R4").
+branch("R10", "master").
+branch("R3", "master").
+branch("R3", "blah").
+branch("R4", "master").
+branch("R4", "feat1").
+pullreq("R3", "11", "blah").
+pullreq("R4", "8192", "bugfix9").
+branchreq("R10", "master").
+branchreq("R10", "dev").
+branchreq("R10", "feat1").
+submodule("R10", project_primary, "master", "R3", "r3_master_head^9").
+submodule("R10", project_primary, "master", "R4", "r4_master_head^1").
+varname("R10", "ghcver").
+varvalue("R10", "ghcver", "ghc822").
+varvalue("R10", "ghcver", "ghc844").
+'''.split('\n')))
 
 @pytest.fixture(scope="module")
 def example_internal_bldconfigs():
@@ -490,3 +522,34 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
         actual = json.loads(example_hydra_jobsets)
         assert each in actual
         assert expected[each] == actual[each]
+
+hydra_results = [
+    { "name": n,
+      "nrtotal" : 123,
+      "nrsucceeded": 0 if '-ghc822-' in n else 123,
+      "nrfailed": 123 if '-ghc822-' in n else 0,
+      "nrscheduled": 0,
+      "haserrormsg": False,
+    }
+    for n in [
+            "master.HEADs-ghc822",
+            "master.HEADs-ghc844",
+            "master.submodules-ghc822",
+            "master.submodules-ghc844",
+            "feat1.HEADs-ghc822",
+            "feat1.HEADs-ghc844",
+            "dev.HEADs-ghc822",
+            "dev.HEADs-ghc844",
+            "PR8192-bugfix9.HEADs-ghc822",
+            "PR8192-bugfix9.HEADs-ghc844",
+            "PR8192-bugfix9.submodules-ghc822",
+            "PR8192-bugfix9.submodules-ghc844",
+            "PR11-blah.HEADs-ghc822",
+            "PR11-blah.HEADs-ghc844",
+            "PR11-blah.submodules-ghc822",
+            "PR11-blah.submodules-ghc844",
+    ]
+]
+
+prior = [
+]
