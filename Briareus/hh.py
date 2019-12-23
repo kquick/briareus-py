@@ -30,6 +30,7 @@ class InpConfig(object):
         self.hhd = expand_filerefs(self.hhd)
         self.builder_conf = expand_filerefs(self.builder_conf)
         self.output_file = expand_filerefs(self.output_file)
+        return self
 
 
 @attr.s
