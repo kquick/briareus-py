@@ -263,9 +263,12 @@ def test_example_hydra_count(example_hydra_jobsets):
     print(example_hydra_jobsets)
     assert len(GS) * len(top_level) == len(json.loads(example_hydra_jobsets))
 
+@pytest.fixture(scope="module")
+def example_hydra_results(generate_hydra_results):
+    return generate_hydra_results(prior=prior)
 
-def test_example_report_summary(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_summary(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
 
     for each in reps:
         print('')
@@ -276,16 +279,16 @@ def test_example_report_summary(generated_hydra_results):
     assert ProjectSummary(project_name='Repo1',
                           bldcfg_count=12, subrepo_count=3, pullreq_count=0) in reps
 
-def test_example_report_status1(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status1(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="develop",
                         buildname='develop.HEADs-ghc844',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
 
-# def test_example_report_status2(generated_hydra_results):
-#     bldcfgs, reps = generated_hydra_results
+# def test_example_report_status2(example_hydra_results):
+#     bldcfgs, reps = example_hydra_results
 #     # This one is pending:
 #     assert StatusReport(status='initial_success', project='Repo1',
 #                         strategy='HEADs', branchtype="regular", branch="develop",
@@ -293,16 +296,16 @@ def test_example_report_status1(generated_hydra_results):
 #                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
 #                         ]) in reps
 
-def test_example_report_status3(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status3(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="develop",
                         buildname='develop.HEADs-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
-# def test_example_report_status4(generated_hydra_results):
-#     bldcfgs, reps = generated_hydra_results
+# def test_example_report_status4(example_hydra_results):
+#     bldcfgs, reps = example_hydra_results
 #     # This one has an error message (configInvalid)
 #     assert StatusReport(status='initial_success', project='Repo1',
 #                         strategy='submodules', branchtype="regular", branch="master",
@@ -310,32 +313,32 @@ def test_example_report_status3(generated_hydra_results):
 #                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
 #                         ]) in reps
 
-def test_example_report_status5(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status5(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
-def test_example_report_status6(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status6(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
-def test_example_report_status7(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status7(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc844',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
 
-def test_example_report_status8(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status8(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # This one had a prior failure
     assert StatusReport(status='fixed', project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="master",
@@ -343,8 +346,8 @@ def test_example_report_status8(generated_hydra_results):
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
-def test_example_report_status9(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status9(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # This one had a prior success
     assert StatusReport(status='failed', project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="master",
@@ -352,8 +355,8 @@ def test_example_report_status9(generated_hydra_results):
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
-def test_example_report_status10(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status10(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # This one has a prior success
     assert StatusReport(status='succeeded', project='Repo1',
                         strategy='submodules', branchtype="regular", branch="master",
@@ -361,28 +364,28 @@ def test_example_report_status10(generated_hydra_results):
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                         ]) in reps
 
-def test_example_report_status11(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status11(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
-def test_example_report_status12(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status12(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
-def test_example_report_ghc881_varfailure(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_ghc881_varfailure(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert VarFailure('Repo1', 'ghcver', 'ghc881') in reps
 
-def test_example_report_length(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_length(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     nrscheduled = 1
     num_varfailure = 1
     num_analysis = num_varfailure

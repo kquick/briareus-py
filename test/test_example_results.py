@@ -106,8 +106,13 @@ prior = [
 
 analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s
 
-def test_example_report_summary(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+@pytest.fixture(scope="module")
+def example_hydra_results(generate_hydra_results):
+    return generate_hydra_results(prior=prior)
+
+
+def test_example_report_summary(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
 
     for each in reps:
         print('')
@@ -117,8 +122,8 @@ def test_example_report_summary(generated_hydra_results):
     assert ProjectSummary(project_name='R1',
                           bldcfg_count=60, subrepo_count=4, pullreq_count=6) in reps
 
-def test_example_report_status1(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status1(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
@@ -132,8 +137,8 @@ GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
 BS = [ 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
 
-def test_example_report_statusMany(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_statusMany(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
     for C in CS:
         for G in GS:
@@ -159,8 +164,8 @@ def test_example_report_statusMany(generated_hydra_results):
                         ])
                     assert r in reps
 
-def test_example_report_status2(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status2(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     for each in reps:
         print('')
         print(each)
@@ -183,8 +188,8 @@ def test_example_report_status2(generated_hydra_results):
                 ])
             assert r in reps
 
-def test_example_report_status3(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_status3(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
     for C in CS:
         for G in GS:
@@ -204,12 +209,12 @@ def test_example_report_status3(generated_hydra_results):
                 ])
             assert r in reps
 
-def test_example_report_varfailure(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_varfailure(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     assert VarFailure('R1', 'c_compiler', 'clang') in reps
 
-def test_example_report_length(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_length(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
     # Verify that there are no unexpected additional entries
     nrscheduled = 0
     prfailing = 4
@@ -225,8 +230,8 @@ def test_example_report_length(generated_hydra_results):
                 + num_analysis + num_actions + num_do)
     assert expected == len(reps)
 
-def test_example_report_varfail_do_email(generated_hydra_results):
-    bldcfgs, reps = generated_hydra_results
+def test_example_report_varfail_do_email(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
 
     for each in reps:
         print('')
@@ -240,19 +245,20 @@ def test_example_report_varfail_do_email(generated_hydra_results):
                                                             varvalue='clang')),
                      sent_to=[]) in reps
 
-prior2 = prior + [
-    SendEmail(recipients=['fred@nocompany.com'],
-              notification=Notify(what='variable_failing', item='R1',
-                                  params=BldVariable(projrepo='R1',
-                                                     varname='c_compiler',
-                                                     varvalue='clang')),
-              sent_to=['fred@nocompany.com'])
-]
-
-def test_example_report_varfail_do_email_again(generated_hydra_results2):
-    """The results2 contains a prior send of an email to the target; this
-       ensures that these prior sends are retained."""
-    bldcfgs, reps = generated_hydra_results2
+def test_example_report_varfail_do_email_again(generate_hydra_results):
+    """Express a prior send of an email to the target; this ensures that
+       these prior sends are retained.
+    """
+    bldcfgs, reps = generate_hydra_results(
+        prior=prior + [
+            SendEmail(recipients=['fred@nocompany.com'],
+                      notification=Notify(what='variable_failing', item='R1',
+                                          params=BldVariable(projrepo='R1',
+                                                             varname='c_compiler',
+                                                             varvalue='clang')),
+                      sent_to=['fred@nocompany.com'])
+        ],
+    )
 
     for each in reps:
         print('')
