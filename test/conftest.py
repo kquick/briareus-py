@@ -101,7 +101,7 @@ def generated_hydra_builder_output(actor_system, generated_repo_info, request):
 
 @pytest.fixture(scope="module")
 def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_builder_output, request):
-    def _ghr(prior, reporting_logic_defs=''):
+    def _ghr(build_results, prior, reporting_logic_defs=''):
         starttime = datetime.now()
         inp_desc, repo_info = generated_repo_info
         builder_cfgs, build_cfgs = generated_hydra_builder_output
@@ -111,7 +111,7 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
         builder = BldSys.HydraBuilder(None)
         for each in build_cfgs.cfg_build_configs:
             print(buildcfg_name(each, inp_desc, repo_info))
-        builder._build_results = request.module.build_results
+        builder._build_results = build_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)],
                                   prior,
                                   reporting_logic_defs=reporting_logic_defs)

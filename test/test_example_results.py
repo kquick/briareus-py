@@ -108,7 +108,7 @@ analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s
 
 @pytest.fixture(scope="module")
 def example_hydra_results(generate_hydra_results):
-    return generate_hydra_results(prior=prior)
+    return generate_hydra_results(build_results=build_results, prior=prior)
 
 
 def test_example_report_summary(example_hydra_results):
@@ -251,6 +251,7 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
        these prior sends are retained.
     """
     bldcfgs, reps = generate_hydra_results(
+        build_results=build_results,
         prior=prior + [
             SendEmail(recipients=['fred@nocompany.com'],
                       notification=Notify(what='variable_failing', item='R1',
