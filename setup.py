@@ -21,7 +21,11 @@ setup(
     ],
     keywords='ci build development',
     packages = find_packages(), # ["src/Briareus"],
-    package_data={ '': ['*.pl'] },   # Include Prolog scripts in packages
+    package_data={ '': ['*.pl',   # Include Prolog scripts in packages
+                        'Actions/*.txt',  # Include Action contents
+                        'Actions/*.tag',  # Include Action taglines
+                       ],
+                 },
     data_files=[('hydra', ['hydra/sysconfig.nix', 'hydra/copy_hh.nix'])],
     python_requires = '>=3.3',
     # install_requires=[],  # for pip
