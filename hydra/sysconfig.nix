@@ -36,6 +36,7 @@ let
     # Called to generate the NixOS Briareus support components for
     # running briareus with an input configuration that describes
     # multiple projects.
+    envvars:  # an attrset of additional environment variables to be set for the Briareus job
     projnum:  # null or this project's number
     { name
       # The name is a string that is used to describe the system
@@ -91,7 +92,7 @@ let
           THESPIAN_DIRECTOR_DIR=thespian_director_dir;
           BRIAREUS_PAT=briareus_pat;
           HH_OUTDIR=briareus_rundir;
-        };
+        } // envvars;
         startAt = "*:${builtins.toString startMin}/${builtins.toString briareusPeriod}";
       } //
       (if projnum == null then {} else {
@@ -107,6 +108,7 @@ let
     # the check times for the projects will be staggered on 3-minute
     # intervals and a common briareus service is used for for handling
     # the persistent daemon and caching elements.
+    envvars:  # an attrset of additional environment variables to be set for the Briareus job
     projnum:  # null or this project's number
     project:  # attrset that describes the project
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
@@ -182,7 +184,7 @@ let
         environment = {
           THESPIAN_DIRECTOR_DIR=thespian_director_dir;
           BRIAREUS_PAT=briareus_pat;
-        };
+        } // envvars;
         startAt = "*:${builtins.toString startMin}/${builtins.toString briareusPeriod}";
       } //
       (if projnum == null then {} else {
@@ -202,11 +204,12 @@ rec {
   mkBriareus =
     # Called to generate the NixOS Briareus support components for a
     # project.
+    envvars:  # an attrset of additional environment variables to be set for the Briareus job
     project:  # attrset that describes the project
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
     #  project.hhd   = filename for Briareus input specification (in hhSrc)
     #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
-    mkBriareusProject null project;
+    mkBriareusProject envvars null project;
 
   mkBriareusMulti =
     # mkBriareusMulti should be used instead of calling mkBriareus
@@ -214,6 +217,7 @@ rec {
     # projects).  The mkBriareusMulti ensures that the briareus base
     # service is used to manage the persistent daemon processes and
     # cache.
+    envvars:  # an attrset of additional environment variables to be set for the Briareus job
     projectList:
     # projectList is the list of projects; a project is an attrset as
     # described for the mkBriareus function.
@@ -222,8 +226,8 @@ rec {
     # where the inpcfg is the file containing the InpConfig
     # specification for briareus.
     let n = builtins.length projectList;
-        p = mapEnum 0 mkBriareusProject projectList;
-        c = mapEnum n mkBriareusWithConfig inpcfgList;
+        p = mapEnum 0 (mkBriareusProject envvars) projectList;
+        c = mapEnum n (mkBriareusWithConfig envvars) inpcfgList;
     in [briareusServiceBase] ++ p ++ c;
 
   briareusServiceBase = {
