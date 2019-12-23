@@ -176,7 +176,7 @@ def prior_fact(prior):
              'SepHandledVar': lambda p: None, # ignored as a prior
              'MergeablePR': lambda p: None, # ignored as a prior
              'Notify': lambda p: None, # ignored as a prior
-             'SendEmail': lambda p: None, # ignored as a prior
+             'SendEmail': prior_fact_SendEmail, # ignored as a prior
              'PostChatMessage': lambda p: None, # ignored as a prior
     }[prior.__class__.__name__](prior)
 
@@ -204,6 +204,27 @@ def prior_fact_StatusReport(prior):
 
 def prior_fact_VarFailure(prior):
     return None
+
+def prior_fact_SendEmail(prior):
+    targets = [ '"%s"' % A for A in prior.recipients ]
+    sent = [ '"%s"' % A for A in prior.sent_to ]
+    return Fact(('email('
+                 '[ {send_to} ]'
+                 ', notify({prior.notification.what}'
+                 '  , "{prior.notification.item}"'
+                 '  , varvalue('
+                 '      "{prior.notification.params.projrepo}"'
+                 '    , "{prior.notification.params.varname}"'
+                 '    , "{prior.notification.params.varvalue}"'
+                 '  )'
+                 ')'
+                 ', [ {sent_to} ]'
+                 ')'
+                 ).format(prior=prior,
+                          send_to = ', '.join(targets),
+                          sent_to = ', '.join(sent),
+                 ))
+
 
 def built_fact(result):
     vars = [ 'varvalue("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)

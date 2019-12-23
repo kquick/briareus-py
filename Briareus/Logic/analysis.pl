@@ -104,11 +104,12 @@ do_notnew([]).
 :- discontiguous chat/3.
 
 do(email(Users, notify(What, P, CS), Notified)) :-
-    action(notify(What, P, CS)),
+    Notification = notify(What, P, CS),
+    action(Notification),
     setof(User, ((action_type(email, User) ; action_type(email, User, What, P)),
                  email_address_useable(User)
                  ), Users),
-    do_new(email, notify(What, P, CS), Notified).
+    do_new(email, Notification, Notified).
 
 do(chat(Channels, notify(What, Item, Args), Posted)) :-
     action(notify(What, Item, Args)),

@@ -118,3 +118,24 @@ def generated_hydra_results(actor_system, generated_repo_info, generated_hydra_b
     if hasattr(request.module, 'analysis_time_budget'):
         assert endtime - starttime < request.module.analysis_time_budget
     yield (builder_cfgs, report[1])
+
+@pytest.fixture(scope="module")
+def generated_hydra_results2(actor_system, generated_repo_info, generated_hydra_builder_output, request):
+    starttime = datetime.now()
+    inp_desc, repo_info = generated_repo_info
+    builder_cfgs, build_cfgs = generated_hydra_builder_output
+    anarep = AnaRep.AnaRep(verbose=True, actor_system=actor_system)
+    # n.b. the name values for build_results come from
+    # builder._jobset_name, which is revealed by this print loop.
+    builder = BldSys.HydraBuilder(None)
+    for each in build_cfgs.cfg_build_configs:
+        print(builder._jobset_name(each))
+    builder._build_results = request.module.build_results
+    report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)],
+                              request.module.prior2)
+    assert report[0] == 'report'
+    endtime = datetime.now()
+    # This should be a proper test: checks the amount of time to run run the logic process.
+    if hasattr(request.module, 'analysis_time_budget'):
+        assert endtime - starttime < request.module.analysis_time_budget
+    yield (builder_cfgs, report[1])

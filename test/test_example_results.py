@@ -239,3 +239,35 @@ def test_example_report_varfail_do_email(generated_hydra_results):
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=[]) in reps
+
+prior2 = prior + [
+    SendEmail(recipients=['fred@nocompany.com'],
+              notification=Notify(what='variable_failing', item='R1',
+                                  params=BldVariable(projrepo='R1',
+                                                     varname='c_compiler',
+                                                     varvalue='clang')),
+              sent_to=['fred@nocompany.com'])
+]
+
+def test_example_report_varfail_do_email_again(generated_hydra_results2):
+    """The results2 contains a prior send of an email to the target; this
+       ensures that these prior sends are retained."""
+    bldcfgs, reps = generated_hydra_results2
+
+    for each in reps:
+        print('')
+        print(each)
+    print('')
+    print(len(reps))
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1',
+                                                            varname='c_compiler',
+                                                            varvalue='clang')),
+                     sent_to=[]) not in reps
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1',
+                                                            varname='c_compiler',
+                                                            varvalue='clang')),
+                     sent_to=['fred@nocompany.com']) in reps
