@@ -6,7 +6,9 @@ from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
 import Briareus.Input.Operations as BInput
 import Briareus.BuildSys.Hydra as BldSys
+import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
+from Briareus.Types import SendEmail
 import argparse
 import datetime
 import os
@@ -111,6 +113,9 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     assert report[0] == 'report'
     return report[1]
 
+
+def perform_hh_actions(inp_report):
+    return [ Actions.do_action(each) for each in inp_report ]
 
 # ----------------------------------------------------------------------
 
@@ -247,6 +252,8 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
 
     report = run_hh_report(params, gen_result, prior_report,
                            reporting_logic_defs=reporting_logic_defs)
+
+    report = perform_hh_actions(report)
 
     if reportf and (not params.up_to or params.up_to.enough('report')):
         write_report_output(reportf, report)

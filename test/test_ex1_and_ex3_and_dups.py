@@ -15,6 +15,7 @@ import git_exampledups as GitDups
 import json
 import os
 import pytest
+from unittest.mock import (patch, ANY, call)
 import test_example as texample
 import test_example_results as texres
 import test_facts as texfacts
@@ -208,20 +209,6 @@ def test_example_report_varfailures(example_report):
     assert VarFailure(projrepo='Repo1', varname='ghcver', varvalue='ghc881') in reps
 
 def test_example_report_do_list(example_report):
-    reps = example_report
-    assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='variable_failing', item='R1',
-                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
-                     sent_to=[]) in reps
-    assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='variable_failing', item='Repo1',
-                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
-                     sent_to=[]) in reps
-    assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
-                     sent_to=[]) in reps
-
-def test_example_report_do_list(example_report):
     "Check email actions with no whitelisting or blacklisting."
     reps = example_report
     recipients = sorted(['eddy@nocompany.com',
@@ -373,11 +360,6 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                            ''',
                            )
 
-    for each in reps:
-        if isinstance(each, SendEmail):
-            print('')
-            print(each)
-
     recipients = sorted(['eddy@nocompany.com',
                          'sam@not_a_company.com',
     ])
@@ -392,3 +374,38 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
     assert SendEmail(recipients=recipients,
                      notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
+
+@patch('Briareus.Actions.SendEmail.send_email')
+def test_example_report_take_actions(send_email, example_report):
+    "Check email actions with no whitelisting or blacklisting."
+
+    send_email.side_effect = lambda r, s, m: r
+
+    rep = hh.perform_hh_actions(example_report)
+
+    for each in rep:
+        if isinstance(each, SendEmail):
+            print('')
+            print(each)
+
+    recipients = sorted(['eddy@nocompany.com',
+                         'fred@nocompany.com',
+                         'john@_company.com',
+                         'sam@not_a_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=recipients) in rep
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=recipients) in rep
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=recipients) in rep
+    send_email.assert_has_calls([call(set(recipients), ANY, ANY),
+                                 call(set(recipients), ANY, ANY),
+                                 call(set(recipients), ANY, ANY),
+    ])
+    assert send_email.call_count == 3
