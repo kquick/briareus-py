@@ -268,12 +268,11 @@ def run_hh(params, inpcfg=None, inputArg=None):
     else:
         verbosely(params, 'input from:', inpcfg.hhd)
     if params.report_file and (not params.up_to or params.up_to.enough('report')):
-        if os.path.exists(params.report_file):
-            verbosely(params, 'Reporting updates to', params.report_file)
-            prior_report = get_prior_report(params.report_file)
-        else:
-            verbosely(params, 'Reporting to', params.report_file)
-            prior_report = None
+        verbosely(params, 'Reporting to', params.report_file)
+        prior_rep_fd, prior_report = get_prior_report(params.report_file)
+        # n.b. the rep_fd references the locked file descriptor; keep
+        # this reference to keep the lock active and prevent
+        # simultaneous Briareus runs from colliding.
         atomic_write_to(
             params.report_file,
             lambda rep_fd: run_hh_reporting_to(rep_fd, params,
