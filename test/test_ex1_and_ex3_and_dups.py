@@ -244,7 +244,12 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                                                              params=BldVariable(projrepo='Repo1',
                                                                                 varname='ghcver',
                                                                                 varvalue='ghc881')),
-                                         sent_to=["george@nocompany.com", "sally@not_a_company.com"])
+                                         sent_to=["george@nocompany.com", "sally@not_a_company.com"]),
+                               SendEmail(recipients=['shorty@nocompany.com'],
+                                         notification=Notify(what='completely_broken',
+                                                             item='BadRepo',
+                                                             params=9),
+                                         sent_to=[]),
                            ],
                            reporting_logic_defs='''
                              email_domain_whitelist("nocompany.com").
