@@ -101,15 +101,18 @@ class AnaRep(object):
         facts = (sorted(list(input_facts), key=str) +
                  sorted(list(prior_facts), key=str) +
                  sorted(list(built_facts), key=str))
+        raw = '\n'.join([each.inp_desc.REP.get('logic', '') for each in result_sets])
 
         if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
             for each in facts:
                 print(str(each))
+            print(raw)
         if self._up_to == 'built_facts':
             return (up_to, facts)
 
         r = run_logic_analysis('built_analysis', facts,
+                               raw_logic=raw,
                                actor_system=self._actor_system,
                                verbose=self.verbose)
         if self.verbose or self._up_to == 'raw_built_analysis':

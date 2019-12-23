@@ -19,9 +19,11 @@ class BISParser(object):
         repo_locs = set([Desc.RepoLoc(*r) for r in x.get('RepoLoc', list())])
         bldvars = [ Desc.VariableDesc(n,v)
                     for n,v in x.get('Variables',dict()).items() ]
+        reporting = x.get('Reporting', dict())
         r = Desc.InputDesc(RL=sorted(list(repos)),
                            BL=sorted(list(branches)),
                            VAR=bldvars,
-                           RX=sorted(list(repo_locs)))
+                           RX=sorted(list(repo_locs)),
+                           REP=reporting)
         if self.verbose: print('Input description: ', r)
         return r

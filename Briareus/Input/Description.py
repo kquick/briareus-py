@@ -8,6 +8,7 @@ class InputDesc(object):
     BL  = attr.ib(factory=list)   # BranchDesc branch list
     VAR = attr.ib(factory=list)   # VariableDesc variables list
     RX  = attr.ib(factory=list)   # RepoLoc repo location translations
+    REP = attr.ib(factory=dict)   # dictionary of reporting items (currently "logic")
 
 @attr.s(frozen=True)
 class RepoLoc(object):
