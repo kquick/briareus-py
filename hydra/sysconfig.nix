@@ -66,7 +66,7 @@ let
              cd ${briareus_rundir};
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -C ${inpcfg}
+             ${briareus}/bin/hh -C ${inpcfg} -r ${briareus_rundir}/${name}.hhr
              set +x
       '';
 
