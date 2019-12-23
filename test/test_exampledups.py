@@ -111,28 +111,28 @@ build_results = [
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR2-develop.standard-ghc865",
+            { "name" : "PR-develop.standard-ghc865",
               "nrtotal" : 0,
               "nrsucceeded": 0,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": True,
             },
-            { "name" : "PR2-develop.standard-ghc881",
+            { "name" : "PR-develop.standard-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 1,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR1-foo.standard-ghc865",
+            { "name" : "PR-foo.standard-ghc865",
               "nrtotal" : 9,
               "nrsucceeded": 9,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR1-foo.standard-ghc881",
+            { "name" : "PR-foo.standard-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 1,
@@ -153,14 +153,14 @@ build_results = [
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR101-PRReq8-dog.standard-ghc865",
+            { "name" : "PR-dog.standard-ghc865",
               "nrtotal" : 9,
               "nrsucceeded": 9,
               "nrfailed": 0,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
-            { "name" : "PR101-PRReq8-dog.standard-ghc881",
+            { "name" : "PR-dog.standard-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
               "nrfailed": 0,
@@ -172,12 +172,12 @@ build_results = [
 prior = [
     StatusReport(status='initial_success', project='Repo1',
                  strategy='standard', branchtype="pullreq", branch="foo",
-                 buildname='PR1-foo.standard-ghc881',
+                 buildname='PR-foo.standard-ghc881',
                  bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                  ]),
     StatusReport(status='initial_success', project='Repo1',
                  strategy='standard', branchtype="pullreq", branch="foo",
-                 buildname='PR1-foo.standard-ghc865',
+                 buildname='PR-foo.standard-ghc865',
                  bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                  ]),
     StatusReport(status='failed', project='Repo1',
@@ -204,10 +204,10 @@ top_level = [
     "regular master standard",
     "pullreq 1 R1 master",
     "pullreq 2 R1 master",
-    "pullreq R3 develop",
+    "pullreq [2] R3 develop",
     "pullreq R3 foo",
     "pullreq R3 master",
-    "pullreq R101 Req8 dog",
+    "pullreq [101 Req8] dog",
 ]
 
 def test_example_facts(generated_facts):
@@ -559,7 +559,7 @@ def test_example_hydra_R1PR2(example_hydra_jobsets):
 
 def test_example_hydra_R3PR1(example_hydra_jobsets):
     expected = dict([
-        ( "PR1-foo.standard-%s" % (G), {
+        ( "PR-foo.standard-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:Repo1, brr1:Repo2, PR1-brr3:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
@@ -606,7 +606,7 @@ def test_example_hydra_R3PR1(example_hydra_jobsets):
 
 def test_example_hydra_R3PR2(example_hydra_jobsets):
     expected = dict([
-        ( "PR2-develop.standard-%s" % (G), {
+        ( "PR-develop.standard-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr1:Repo1, brr1:Repo2, PR2-brr3:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
@@ -700,7 +700,7 @@ def test_example_hydra_R3PR9(example_hydra_jobsets):
 
 def test_example_hydra_R3PR101_R1_PRReq8(example_hydra_jobsets):
     expected = dict([
-        ( "PR101-PRReq8-dog.standard-%s" % (G), {
+        ( "PR-dog.standard-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: PRReq8-brr3:Repo1, brr2:Repo2, PR101-brr3:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
@@ -770,7 +770,7 @@ def test_example_report_status2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="develop",
-                        buildname='PR2-develop.standard-ghc881',
+                        buildname='PR-develop.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
@@ -778,7 +778,7 @@ def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='failed', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="foo",
-                        buildname='PR1-foo.standard-ghc881',
+                        buildname='PR-foo.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
@@ -834,7 +834,7 @@ def test_example_report_status9(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert StatusReport(status='succeeded', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="foo",
-                        buildname='PR1-foo.standard-ghc865',
+                        buildname='PR-foo.standard-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
@@ -854,7 +854,7 @@ def test_example_report_status11(example_hydra_results):
         print('')
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="dog",
-                        buildname='PR101-PRReq8-dog.standard-ghc865',
+                        buildname='PR-dog.standard-ghc865',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
@@ -874,7 +874,7 @@ def test_example_report_length(example_hydra_results):
     num_do = num_varfailure
     expected = ((len(top_level) * len(GS)) +
                 len(['ProjectSummary', 'ConfigError'])
-                - 1 # PR2-develop.standard-ghc865 has ntotal and others as zero
+                - 1 # PR[2]-develop.standard-ghc865 has ntotal and others as zero
                 + num_varfailure + prfailing + prsuccess - nrscheduled
                 + num_analysis + num_actions + num_do
                 + 4

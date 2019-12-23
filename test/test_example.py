@@ -657,7 +657,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
 
 def test_example_hydra_blah_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR1-PR111-blah.submodules-%s-%s" % (C,G), {
+        ( "PR-blah.submodules-%s-%s" % (C,G), {
             "checkinterval": 600,
             "description": "Build configuration: PR1-brr3:R1, brr9:R2, brr9:R3, brr1:R5, PR111-brr3:R6, brr9:R7, c_compiler=%s, ghcver=%s" % (C,G),
             "emailoverride": "",
@@ -729,7 +729,7 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
     # priority.  In *this* test, the submodules are ignored, so PR11
     # now expresses.
     expected = dict([
-        ( "PR1-PR11-PR111-PR1111-blah.HEADs-%s-%s" % (C,G), {
+        ( "PR-blah.HEADs-%s-%s" % (C,G), {
             "checkinterval": 600,
             "description": "Build configuration: PR1-brr3:R1, PR1111-brr3:R2, PR11-brr3:R3, brr1:R5, PR111-brr3:R6, brr7:R7, c_compiler=%s, ghcver=%s" % (C,G),
              "emailoverride": "",
@@ -796,7 +796,7 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR23-PR8192-bugfix9.submodules-%s-%s" % (C,G), {
+        ( "PR-bugfix9.submodules-%s-%s" % (C,G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R1, PR23-brr3:R2, brr11:R3, PR8192-brr10:R4, brr1:R5, brr2:R6, c_compiler=%s, ghcver=%s" % (C,G),
             "emailoverride": "",
@@ -863,7 +863,7 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
     expected = dict([
-        ( "PR23-PR8192-bugfix9.HEADs-%s-%s" % (C,G), {
+        ( "PR-bugfix9.HEADs-%s-%s" % (C,G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R1, PR23-brr3:R2, brr12:R3, PR8192-brr10:R4, brr1:R5, brr2:R6, c_compiler=%s, ghcver=%s" % (C,G),
              "emailoverride": "",

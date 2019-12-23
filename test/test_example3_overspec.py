@@ -409,7 +409,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR8192-bugfix9.submodules-%s" % (G), {
+        ( "PR-bugfix9.submodules-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr11:R3, PR8192-brr3:R4, ghcver=%s" % (G),
             "emailoverride": "",
@@ -456,7 +456,7 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
     expected = dict([
-        ( "PR8192-bugfix9.HEADs-%s" % (G), {
+        ( "PR-bugfix9.HEADs-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr12:R3, PR8192-brr3:R4, ghcver=%s" % (G),
              "emailoverride": "",

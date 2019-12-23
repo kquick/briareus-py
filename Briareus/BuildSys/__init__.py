@@ -1,6 +1,6 @@
 # Support for various backend builders
 
-def buildcfg_name(bldcfg):
+def buildcfg_name(bldcfg, input_desc, repo_info):
     fix_branchname = lambda bn: bn.replace('/', '~~')
     if bldcfg.bldvars:
         vnames = sorted([ v.varname for v in bldcfg.bldvars ])
@@ -11,6 +11,7 @@ def buildcfg_name(bldcfg):
     parts = "-".join([".".join([ fix_branchname(bldcfg.branchname),
                                  bldcfg.strategy])] + varparts)
     if bldcfg.branchtype == "pullreq":
+
         # n.b. a PR jobset is not identified by a single PR number
         # (pr_ident) because the PR number is repo-specific and
         # it's possible that the PR exists for multiple repos.
@@ -36,16 +37,73 @@ def buildcfg_name(bldcfg):
         # of these with simply the branch name and knowledge that
         # it is a PR.
         #
-        # The jobname for PR-based builds is therefore composed of
-        # the branch name and all the PR numbers.  The unfortunate
-        # part of this is that if a new PR is created in a related
-        # repo with the same branch name (see the workflow
-        # described above), the jobname will change, losing
-        # history continuity for tracking progress on the PR.
-        prnums = sorted(list(set([ "PR" + brr.pullreq_id
-                                   for brr in bldcfg.blds
-                                   if brr.pullreq_id != "project_primary"
-        ])))
+        # One additional consideration is that the history of a build
+        # configuration is bounded by the name: if a new PR is created
+        # and the job name is updated to include that PR, then that's
+        # a brand new configuration (and the old configuration
+        # disappears) so it's hard to determine build progress (or
+        # regression) if that occurs.
+        #
+        # Therefore, the following semi-complicated scheme is used:
+        #
+        #  * Normally for a pullreq build the name is
+        #    "PR-{branchname}..." and the PR number does not appear in
+        #    the name (it will in the description).  This should be a
+        #    stable name.
+        #
+        #  * If the PR is for the master branch of a repo, then it is
+        #    assumed that it should be distinct from other master
+        #    branch PRs so the name is "PR{N}-{branchname}...".  This
+        #    should be a stable name.
+        #
+        #    Note that this currently doesn't have information about
+        #    repos whose main branch name is not "master", but
+        #    multiple PR's for those will be handled by the next case.
+        #
+        #    Also note that while this case appears to be covered by
+        #    the following case, the difference is in the stability of
+        #    the naming for this case, thus this case is preferred to
+        #    the following case.
+        #
+        #  * If there are multiple PR's for the same repo with the
+        #    same branch name, these are assumed to be distinct
+        #    relative to this repo, but not to others, so the name is
+        #    "PR{N}-{branchname}" (as with the above case).  This is
+        #    not a stable name: it may start as "PR-{branchname}" (the
+        #    normal case) until the second PR is created, at which
+        #    time it will change to include the number (this case),
+        #    but then when one of the PR's is merged and it is back to
+        #    a single PR, it will return to the normal naming.  This
+        #    is assumed to be an exception case, so there is currently
+        #    no protection against this; handling this would require a
+        #    persistent registry of PRs.
+        #
+
+        # repo_info['pullreqs'] is list of PRInfo (Briareus.VCS.InternalMessages)
+        # bldcfg.blds is list of BldRepoRev (Briareus.Types)
+
+        enumerate_prnums = False
+        for BRR in bldcfg.blds:
+            if BRR.pullreq_id == "project_primary":
+                continue
+            if BRR.repover in [ r.main_branch
+                                for r in input_desc.RL
+                                if BRR.reponame == r.repo_name ] or \
+               len([ True
+                        for PR in repo_info['pullreqs']
+                        if PR.pr_target_repo == BRR.reponame and
+                        PR.pr_branch == BRR.repover ]) > 1:
+                enumerate_prnums = True
+                break
+
+        if enumerate_prnums:
+            prnums = sorted(list(set([ "PR" + brr.pullreq_id
+                                       for brr in bldcfg.blds
+                                       if brr.pullreq_id != "project_primary"
+            ])))
+        else:
+            prnums = ["PR"]
+
         return '-'.join(prnums +
                         ['.'.join([fix_branchname(bldcfg.branchname),
                                    bldcfg.strategy])] +

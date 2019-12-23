@@ -81,7 +81,7 @@ class AnaRep(object):
                   % (summary.bldcfg_count, summary.subrepo_count, summary.pullreq_count))
 
         build_results = functools.reduce(
-            lambda bres, e: bres + self.get_build_results(e.builder, e.build_cfgs),
+            lambda bres, e: bres + self.get_build_results(e),
             result_sets, [])
 
         if self.verbose:
@@ -142,9 +142,11 @@ class AnaRep(object):
                 (eval(r, globals(), logic_result_expr) if r else []))
 
 
-    def get_build_results(self, buildsys, build_cfgs):
-        return [ BuildResult(build, buildsys.get_build_result(build))
-                 for build in build_cfgs.cfg_build_configs ]
+    def get_build_results(self, result_set):
+        return [ BuildResult(build, result_set.builder.get_build_result(build,
+                                                                        result_set.inp_desc,
+                                                                        result_set.repo_info))
+                 for build in result_set.build_cfgs.cfg_build_configs ]
 
 def mk_prior_facts(prior_report):
     return set(

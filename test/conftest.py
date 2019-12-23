@@ -7,6 +7,7 @@ import Briareus.AnaRep.Operations as AnaRep
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
+from Briareus.BuildSys import buildcfg_name
 import Briareus.BCGen.Operations as BCGen
 from Briareus.Logic.Evaluation import (Fact, DeclareFact)
 import Briareus.hh as hh
@@ -106,10 +107,10 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
         builder_cfgs, build_cfgs = generated_hydra_builder_output
         anarep = AnaRep.AnaRep(verbose=True, actor_system=actor_system)
         # n.b. the name values for build_results come from
-        # builder._jobset_name, which is revealed by this print loop.
+        # buildcfg_name, which is revealed by this print loop.
         builder = BldSys.HydraBuilder(None)
         for each in build_cfgs.cfg_build_configs:
-            print(builder._jobset_name(each))
+            print(buildcfg_name(each, inp_desc, repo_info))
         builder._build_results = request.module.build_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)],
                                   prior,

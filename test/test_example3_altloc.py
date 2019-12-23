@@ -419,7 +419,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR8192-bugfix9.submodules-%s" % (G), {
+        ( "PR-bugfix9.submodules-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr11:R3, PR8192-brr10:R4, ghcver=%s" % (G),
             "emailoverride": "",
@@ -466,7 +466,7 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
 
 def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
     expected = dict([
-        ( "PR8192-bugfix9.HEADs-%s" % (G), {
+        ( "PR-bugfix9.HEADs-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: brr2:R10, brr12:R3, PR8192-brr10:R4, ghcver=%s" % (G),
              "emailoverride": "",
@@ -515,7 +515,7 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
 
 def test_example_hydra_master_devtest_submodules(example_hydra_jobsets):
     expected = dict([
-        ( "PR321-devtest.submodules-%s" % (G), {
+        ( "PR-devtest.submodules-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: PR321-brr3:R10, brr9:R3, brr9:R4, ghcver=%s" % (G),
             "emailoverride": "",
@@ -562,7 +562,7 @@ def test_example_hydra_master_devtest_submodules(example_hydra_jobsets):
 
 def test_example_hydra_master_devtest_heads(example_hydra_jobsets):
     expected = dict([
-        ( "PR321-devtest.HEADs-%s" % (G), {
+        ( "PR-devtest.HEADs-%s" % (G), {
             "checkinterval": 600,
             "description": "Build configuration: PR321-brr3:R10, brr7:R3, brr7:R4, ghcver=%s" % (G),
              "emailoverride": "",

@@ -20,30 +20,30 @@ build_results = [
       "haserrormsg": False,
     }
     for n in [
-            "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc844",
-            "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc844",
-            "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc865",
-            "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc865",
-            "PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc881",
-            "PR1-PR11-PR111-PR1111-blah.HEADs-gnucc-ghc881",
-            "PR1-PR111-blah.submodules-clang-ghc844",
-            "PR1-PR111-blah.submodules-gnucc-ghc844",
-            "PR1-PR111-blah.submodules-clang-ghc865",
-            "PR1-PR111-blah.submodules-gnucc-ghc865",
-            "PR1-PR111-blah.submodules-clang-ghc881",
-            "PR1-PR111-blah.submodules-gnucc-ghc881",
-            "PR23-PR8192-bugfix9.HEADs-clang-ghc844",
-            "PR23-PR8192-bugfix9.HEADs-gnucc-ghc844",
-            "PR23-PR8192-bugfix9.HEADs-clang-ghc865",
-            "PR23-PR8192-bugfix9.HEADs-gnucc-ghc865",
-            "PR23-PR8192-bugfix9.HEADs-clang-ghc881",
-            "PR23-PR8192-bugfix9.HEADs-gnucc-ghc881",
-            "PR23-PR8192-bugfix9.submodules-clang-ghc844",
-            "PR23-PR8192-bugfix9.submodules-gnucc-ghc844",
-            "PR23-PR8192-bugfix9.submodules-clang-ghc865",
-            "PR23-PR8192-bugfix9.submodules-gnucc-ghc865",
-            "PR23-PR8192-bugfix9.submodules-clang-ghc881",
-            "PR23-PR8192-bugfix9.submodules-gnucc-ghc881",
+            "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111
+            "PR-blah.HEADs-gnucc-ghc844",
+            "PR-blah.HEADs-clang-ghc865",
+            "PR-blah.HEADs-gnucc-ghc865",
+            "PR-blah.HEADs-clang-ghc881",
+            "PR-blah.HEADs-gnucc-ghc881",
+            "PR-blah.submodules-clang-ghc844", # 1 111
+            "PR-blah.submodules-gnucc-ghc844",
+            "PR-blah.submodules-clang-ghc865",
+            "PR-blah.submodules-gnucc-ghc865",
+            "PR-blah.submodules-clang-ghc881",
+            "PR-blah.submodules-gnucc-ghc881",
+            "PR-bugfix9.HEADs-clang-ghc844",  # 23 8192
+            "PR-bugfix9.HEADs-gnucc-ghc844",
+            "PR-bugfix9.HEADs-clang-ghc865",
+            "PR-bugfix9.HEADs-gnucc-ghc865",
+            "PR-bugfix9.HEADs-clang-ghc881",
+            "PR-bugfix9.HEADs-gnucc-ghc881",
+            "PR-bugfix9.submodules-clang-ghc844",
+            "PR-bugfix9.submodules-gnucc-ghc844",
+            "PR-bugfix9.submodules-clang-ghc865",
+            "PR-bugfix9.submodules-gnucc-ghc865",
+            "PR-bugfix9.submodules-clang-ghc881",
+            "PR-bugfix9.submodules-gnucc-ghc881",
             "dev.HEADs-clang-ghc844",
             "dev.HEADs-gnucc-ghc844",
             "dev.HEADs-clang-ghc865",
@@ -127,7 +127,7 @@ def test_example_report_status1(example_hydra_results):
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
-                        buildname='PR1-PR11-PR111-PR1111-blah.HEADs-clang-ghc844',
+                        buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
@@ -135,7 +135,8 @@ def test_example_report_status1(example_hydra_results):
 CS = [ 'clang', 'gnucc' ]
 GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
-BS = [ 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
+BS = [ 'PR-bugfix9',  # PR23-PR8192
+       "feat1", "master", "dev",]
 
 def test_example_report_statusMany(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -173,7 +174,7 @@ def test_example_report_status2(example_hydra_results):
     for C in CS:
         for G in GS:
             S = 'submodules'
-            B = 'PR1-PR111-blah'
+            B = 'PR-blah' # PR1-PR111-blah
             r = StatusReport(
                 status=('failed'
                         if C == 'clang'
@@ -194,7 +195,7 @@ def test_example_report_status3(example_hydra_results):
     for C in CS:
         for G in GS:
             S = 'HEADs'
-            B = 'PR1-PR11-PR111-PR1111-blah'
+            B = 'PR-blah' # PR1-PR11-PR111-PR1111-blah
             r = StatusReport(
                 status=('failed'
                         if C == 'clang'
