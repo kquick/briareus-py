@@ -206,7 +206,7 @@ def read_inpcfgs_from(inputArg):
         with open(inputArg) as inpf:
             inp = inpf.read()
     # A parser we already have, although it's dangerous...
-    inpConfigs = eval(inp)
+    inpConfigs = eval(inp.strip())
     for each in inpConfigs:
         each.fixup()
     return inpConfigs
