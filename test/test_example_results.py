@@ -239,7 +239,10 @@ def test_example_report_varfail_do_email(example_hydra_results):
         print(each)
     print('')
     print(len(reps))
-    assert SendEmail(recipients=['fred@nocompany.com'],
+    assert SendEmail(recipients=sorted(['eddy@nocompany.com',
+                                        'fred@nocompany.com',
+                                        'john@_company.com',
+                                        'sam@not_a_company.com']),
                      notification=Notify(what='variable_failing', item='R1',
                                          params=BldVariable(projrepo='R1',
                                                             varname='c_compiler',
@@ -267,13 +270,17 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
         print(each)
     print('')
     print(len(reps))
-    assert SendEmail(recipients=['fred@nocompany.com'],
+    recipients = sorted(['eddy@nocompany.com',
+                         'fred@nocompany.com',
+                         'john@_company.com',
+                         'sam@not_a_company.com'])
+    assert SendEmail(recipients=recipients,
                      notification=Notify(what='variable_failing', item='R1',
                                          params=BldVariable(projrepo='R1',
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=[]) not in reps
-    assert SendEmail(recipients=['fred@nocompany.com'],
+    assert SendEmail(recipients=recipients,
                      notification=Notify(what='variable_failing', item='R1',
                                          params=BldVariable(projrepo='R1',
                                                             varname='c_compiler',

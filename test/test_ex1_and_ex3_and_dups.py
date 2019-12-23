@@ -173,17 +173,20 @@ def test_example_empty_report_complete_failures(example_empty_report):
 
 @pytest.fixture(scope="module")
 def example_report(testing_dir, generated_inp_config_bldconfigs):
-    params = hh.Params(verbose=True, up_to=None,
-                       report_file=testing_dir.join("ex1_ex3_dups.hhr"))
     for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
         }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    return generate_report(testing_dir, generated_inp_config_bldconfigs, tdups.prior + texres.prior)
+
+def generate_report(testdir, inp_config_bldconfigs, prior, reporting_logic_defs=''):
+    params = hh.Params(verbose=True, up_to=None,
+                       report_file=testdir.join("ex1_ex3_dups.hhr"))
     starttime = datetime.now()
-    rep = hh.run_hh_report(params, generated_inp_config_bldconfigs,
-                           tdups.prior + texres.prior)
+    rep = hh.run_hh_report(params, inp_config_bldconfigs, prior,
+                           reporting_logic_defs=reporting_logic_defs)
     endtime = datetime.now()
     # This should be a proper test: checks the amount of time to run run the logic process.
     assert endtime - starttime < timedelta(seconds=1, milliseconds=500)  # avg 1.02s
@@ -215,5 +218,177 @@ def test_example_report_do_list(example_report):
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps
+
+def test_example_report_do_list(example_report):
+    "Check email actions with no whitelisting or blacklisting."
+    reps = example_report
+    recipients = sorted(['eddy@nocompany.com',
+                         'fred@nocompany.com',
+                         'john@_company.com',
+                         'sam@not_a_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps
+
+def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs):
+    "Demonstrate that email whitelists and blacklists can be combined"
+    for each in generated_inp_config_bldconfigs.result_sets:
+        each.builder._build_results = {
+            "R1": texres.build_results,
+            "R10": [],
+            "Repo1": tdups.build_results,
+        }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    reps = generate_report(testing_dir, generated_inp_config_bldconfigs,
+                           tdups.prior + texres.prior + [
+                               SendEmail(recipients=['fred@nocompany.com'],
+                                         notification=Notify(what='variable_failing',
+                                                             item='Repo1',
+                                                             params=BldVariable(projrepo='Repo1',
+                                                                                varname='ghcver',
+                                                                                varvalue='ghc881')),
+                                         sent_to=["george@nocompany.com", "sally@not_a_company.com"])
+                           ],
+                           reporting_logic_defs='''
+                             email_domain_whitelist("nocompany.com").
+                             email_domain_whitelist("_company.com").
+                             email_domain_blacklist("not_a_company.com").
+                           ''',
+                           )
+
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print('')
+            print(each)
+
+    recipients = sorted(['eddy@nocompany.com',
+                         'fred@nocompany.com',
+                         'john@_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=["george@nocompany.com", "sally@not_a_company.com"]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps
+
+def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
+    "Check email whitelist auto-disable all and only allow whitelisted."
+    for each in generated_inp_config_bldconfigs.result_sets:
+        each.builder._build_results = {
+            "R1": texres.build_results,
+            "R10": [],
+            "Repo1": tdups.build_results,
+        }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    reps = generate_report(testing_dir, generated_inp_config_bldconfigs,
+                           tdups.prior + texres.prior,
+                           reporting_logic_defs='''
+                             email_domain_whitelist("_company.com").
+                           ''',
+                           )
+
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print('')
+            print(each)
+
+    recipients = sorted(['john@_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps
+
+def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
+    "Check email blacklist only disables blacklisted."
+    for each in generated_inp_config_bldconfigs.result_sets:
+        each.builder._build_results = {
+            "R1": texres.build_results,
+            "R10": [],
+            "Repo1": tdups.build_results,
+        }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    reps = generate_report(testing_dir, generated_inp_config_bldconfigs,
+                           tdups.prior + texres.prior,
+                           reporting_logic_defs='''
+                             email_domain_blacklist("not_a_company.com").
+                           ''',
+                           )
+
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print('')
+            print(each)
+
+    recipients = sorted(['eddy@nocompany.com',
+                         'fred@nocompany.com',
+                         'john@_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps
+
+def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfigs):
+    "Check email blacklist only disables blacklisted."
+    for each in generated_inp_config_bldconfigs.result_sets:
+        each.builder._build_results = {
+            "R1": texres.build_results,
+            "R10": [],
+            "Repo1": tdups.build_results,
+        }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    reps = generate_report(testing_dir, generated_inp_config_bldconfigs,
+                           tdups.prior + texres.prior,
+                           reporting_logic_defs='''
+                             email_user_blacklist("fred@nocompany.com").
+                             email_user_blacklist("john@_company.com").
+                           ''',
+                           )
+
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print('')
+            print(each)
+
+    recipients = sorted(['eddy@nocompany.com',
+                         'sam@not_a_company.com',
+    ])
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=recipients,
                      notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
