@@ -95,13 +95,14 @@ def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
     return result, builder_cfgs
 
 
-def run_hh_report(params, gen_result, prior_report):
+def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     verbosely(params, 'Generating Analysis/Report')
     t0 = datetime.datetime.now()
     anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=gen_result.actor_system)
-    report = anarep.report_on(gen_result.result_sets, prior_report)
+    report = anarep.report_on(gen_result.result_sets, prior_report,
+                              reporting_logic_defs=reporting_logic_defs)
     te = datetime.datetime.now()
     verbosely(params, 'Generated Analysis/Report: %d items in %s' %
               (len(report[1]), str(te - t0)))

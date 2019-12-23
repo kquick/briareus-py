@@ -59,7 +59,7 @@ class AnaRep(object):
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def report_on(self, result_sets, prior_report):
+    def report_on(self, result_sets, prior_report, reporting_logic_defs=''):
         # result_sets is an array of ResultSet from hh.py, each containing:
         #   builder is the builder for the results
         #   input_descs is an array of the 'first' returned from input_desc_and_VCS_info
@@ -116,7 +116,8 @@ class AnaRep(object):
                  sorted(list(input_facts), key=str) +
                  sorted(list(prior_facts), key=str) +
                  sorted(list(built_facts), key=str))
-        raw = '\n'.join([each.inp_desc.REP.get('logic', '') for each in result_sets])
+        raw = reporting_logic_defs + '\n'.join([each.inp_desc.REP.get('logic', '')
+                                                for each in result_sets])
 
         if self.verbose or self._up_to == 'built_facts':
             print('## BUILT FACTS:')
