@@ -201,16 +201,23 @@ def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
 
 
 def read_inpcfgs_from(inputArg):
+    """Reads the -C input configuration file.  The format is a python
+       dictionary, with keys of 'InpConfigs' (value is a list of
+       InpConfig objects) and 'Reporting' which is a dictionary with
+       sub-keys 'logic', whose value is a string specifying additional
+       logic statements to express during the reporting phase
+       (e.g. email_whitelist_domain, etc.).
+
+    """
     if inputArg is None:
         inp = input('Briareus input configurations? ')
     else:
         with open(inputArg) as inpf:
             inp = inpf.read()
     # A parser we already have, although it's dangerous...
-    inpConfigs = eval(inp.strip())
-    for each in inpConfigs:
-        each.fixup()
-    return inpConfigs
+    inpParsed = eval(inp.strip())
+    inpParsed['InpConfigs'] = [ each.fixup() for each in inpParsed['InpConfigs'] ]
+    return inpParsed
 
 
 def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_report=None):
@@ -225,18 +232,21 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
         if not inpcfgs:
             raise ValueError('No input configurations specified')
         gen_result = None
-        for inpcfg in inpcfgs:
+        for inpcfg in inpcfgs['InpConfigs']:
             gen_result = run_hh_on_inpcfg(inpcfg, params, prev_gen_result=gen_result)
-
+        reporting_logic_defs = inpcfgs.get('Reporting', dict()).get('logic', '')
     else:
         gen_result = run_hh_on_inpcfg(inpcfg, params)
+        reporting_logic_defs = ''
 
     # Generator cycle done, now do any reporting
 
     if params.up_to and not params.up_to.enough('report'):
         return
 
-    report = run_hh_report(params, gen_result, prior_report)
+    report = run_hh_report(params, gen_result, prior_report,
+                           reporting_logic_defs=reporting_logic_defs)
+
     if reportf and (not params.up_to or params.up_to.enough('report')):
         write_report_output(reportf, report)
 
