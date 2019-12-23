@@ -153,7 +153,7 @@ let
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} ${project.hhd} ${briareus_outfile name}
+             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${project.hhd} ${briareus_outfile name}
 	     set +x
              '';
 
