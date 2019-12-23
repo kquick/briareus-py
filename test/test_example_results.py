@@ -1,19 +1,15 @@
-import Briareus.AnaRep.Operations as AnaRep
-import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, StatusReport, VarFailure)
-import Briareus.Input.Operations as BInput
-import Briareus.BCGen.Generator as Generator
-import Briareus.BuildSys.Hydra as BldSys
-from thespian.actors import *
 from git_example1 import GitExample1
 import json
 import pytest
 from test_example import input_spec
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
-hydra_results = [
+gitactor = GitExample1
+
+build_results = [
     { "name": n,
       "nrtotal" : 10,
       "nrsucceeded": 8 if '-clang-' in n else 10,
@@ -106,41 +102,10 @@ prior = [
                  ]),
 ]
 
-@pytest.fixture(scope="module")
-def example_hydra_results():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample1, globalName="GetGitInfo")
-        starttime = datetime.now()
-        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                             actor_system=asys,
-                                                             verbose=True)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        config_results = bcgen.generate(inp_desc, repo_info)
-        builder_cfgs, build_cfgs = config_results
-        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
-        # n.b. the name values for build_results come from
-        # builder._jobset_name, which is revealed by this print loop.
-        for each in build_cfgs.cfg_build_configs:
-            print(builder._jobset_name(each))
-        builder._build_results = hydra_results
-        report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
-        assert report[0] == 'report'
-        endtime = datetime.now()
-        # This should be a proper test: checks the amount of time to run run the logic process.
-        assert endtime - starttime < timedelta(seconds=1, milliseconds=750)  # avg 1.06s
-        yield (builder_cfgs, report[1])
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
+analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s
 
-
-def test_example_report_summary(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_summary(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
 
     for each in reps:
         print('')
@@ -150,8 +115,8 @@ def test_example_report_summary(example_hydra_results):
     assert ProjectSummary(project_name='R1',
                           bldcfg_count=60, subrepo_count=4, pullreq_count=6) in reps
 
-def test_example_report_status1(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_status1(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     # Check for a single entry
     assert StatusReport(status='failed', project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
@@ -165,8 +130,8 @@ GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
 BS = [ 'PR23-PR8192-bugfix9', "feat1", "master", "dev",]
 
-def test_example_report_statusMany(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_statusMany(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     # Check for all entries that should be present
     for C in CS:
         for G in GS:
@@ -192,8 +157,8 @@ def test_example_report_statusMany(example_hydra_results):
                         ])
                     assert r in reps
 
-def test_example_report_status2(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_status2(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     for each in reps:
         print('')
         print(each)
@@ -216,8 +181,8 @@ def test_example_report_status2(example_hydra_results):
                 ])
             assert r in reps
 
-def test_example_report_status3(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_status3(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     # Check for all entries that should be present
     for C in CS:
         for G in GS:
@@ -237,12 +202,12 @@ def test_example_report_status3(example_hydra_results):
                 ])
             assert r in reps
 
-def test_example_report_varfailure(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_varfailure(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     assert VarFailure('R1', 'c_compiler', 'clang') in reps
 
-def test_example_report_length(example_hydra_results):
-    bldcfgs, reps = example_hydra_results
+def test_example_report_length(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
     # Verify that there are no unexpected additional entries
     nrscheduled = 0
     prfailing = 4

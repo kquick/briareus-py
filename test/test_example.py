@@ -1,9 +1,4 @@
-import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable
-import Briareus.Input.Operations as BInput
-import Briareus.BCGen.Generator as Generator
-import Briareus.BuildSys.Hydra as BldSys
-from thespian.actors import *
 from git_example1 import GitExample1
 import json
 import pytest
@@ -23,47 +18,11 @@ input_spec = '''
 }
 '''
 
+gitactor = GitExample1
 
 @pytest.fixture(scope="module")
-def example_internal_bldconfigs():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample1, globalName="GetGitInfo")
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec, verbose=True,
-                                                        actor_system=asys)
-        gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(inp, repo_info)
-        yield cfgs
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
-
-
-@pytest.fixture(scope="module")
-def example_hydra_builder_output():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample1, globalName="GetGitInfo")
-        input_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                               verbose=True,
-                                                               actor_system=asys)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(input_desc, repo_info)
-        yield output[0]
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
-
-@pytest.fixture(scope="module")
-def example_hydra_jobsets(example_hydra_builder_output):
-    return example_hydra_builder_output[None]
+def example_hydra_jobsets(generated_hydra_builder_output):
+    return generated_hydra_builder_output[0][None]
 
 GS = [ "ghc844", "ghc865", "ghc881" ]
 CS = [ "gnucc", "clang" ]
@@ -80,10 +39,10 @@ top_level = [
     "pullreq bugfix9 submodules",
 ]
 
-def test_example_internal_count(example_internal_bldconfigs):
-    assert len(GS) * len(CS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
+def test_example_internal_count(generated_bldconfigs):
+    assert len(GS) * len(CS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
 
-def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
+def test_example_internal_blah_pullreq_submods(generated_bldconfigs):
     for each in [ BldConfig("R1", "pullreq", "blah", "submodules",
                             [
                                 BldRepoRev("R1", "blah", "1", "X"),
@@ -98,9 +57,9 @@ def test_example_internal_blah_pullreq_submods(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
+def test_example_internal_blah_pullreq_HEADs(generated_bldconfigs):
     for each in [ BldConfig("R1", "pullreq", "blah", "HEADs",
                             [
                                 BldRepoRev("R1", "blah", "1", "ignored"),
@@ -115,21 +74,21 @@ def test_example_internal_blah_pullreq_HEADs(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_no_blah_regular_submods(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_blah_regular_submods(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "blah" and
                     each.strategy == "submodules")
 
-def test_example_internal_no_blah_regular_HEADs(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_blah_regular_HEADs(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "blah" and
                     each.strategy == "HEADs")
 
-def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
+def test_example_internal_bugfix9_pullreq_submods(generated_bldconfigs):
     for each in [ BldConfig("R1", "pullreq", "bugfix9", "submodules",
                             [
                                 BldRepoRev("R1", "master", "project_primary", "X"),
@@ -144,9 +103,9 @@ def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
+def test_example_internal_bugfix9_pullreq_HEADs(generated_bldconfigs):
     for each in [ BldConfig("R1", "pullreq", "bugfix9", "HEADs",
                             [
                                 BldRepoRev("R1", "master", "project_primary"),
@@ -161,21 +120,21 @@ def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_no_bugfix9_regular_submods(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_bugfix9_regular_submods(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "bugfix9" and
                     each.strategy == "submodules")
 
-def test_example_internal_no_bugfix9_regular_HEADs(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_bugfix9_regular_HEADs(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "bugfix9" and
                     each.strategy == "HEADs")
 
-def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_feat1_regular_submodules(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "feat1", "submodules",
                             [
                                 BldRepoRev("R1", "feat1", "project_primary"),
@@ -190,9 +149,9 @@ def test_example_internal_feat1_regular_submodules(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_feat1_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "feat1", "HEADs",
                             [
                                 BldRepoRev("R1", "feat1", "project_primary"),
@@ -207,9 +166,9 @@ def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_master_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_master_regular_submodules(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "master", "submodules",
                             [
                                 BldRepoRev("R1", "master", "project_primary"),
@@ -224,9 +183,9 @@ def test_example_internal_master_regular_submodules(example_internal_bldconfigs)
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_master_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "master", "HEADs",
                             [
                                 BldRepoRev("R1", "master", "project_primary"),
@@ -241,9 +200,9 @@ def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_dev_regular_submodules(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "dev", "submodules",
                             [
                                 BldRepoRev("R1", "master", "project_primary"),
@@ -258,10 +217,10 @@ def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        print(example_internal_bldconfigs)
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        print(generated_bldconfigs)
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_dev_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig("R1", "regular", "dev", "HEADs",
                             [
                                 BldRepoRev("R1", "master", "project_primary"),
@@ -276,7 +235,7 @@ def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
                                 BldVariable("R1", "c_compiler", C),
                             ])
                   for G in GS for C in CS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
 
 def test_example_hydra_count(example_hydra_jobsets):

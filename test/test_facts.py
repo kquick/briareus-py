@@ -1,8 +1,5 @@
-from thespian.actors import *
-import Briareus.Input.Operations as BInput
 import Briareus.Input.Parser as Parser
 import Briareus.Input.Description as D
-from Briareus.BCGen.Generator import Generator
 from git_example1 import GitExample1
 from test_example import input_spec
 
@@ -12,21 +9,10 @@ def test_input_parser():
     inp = parser.parse(input_spec)
     assert expected_inp == inp
 
-def test_example_facts():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample1, globalName="GetGitInfo")
-        # Replication of BCGen.Operations.BCGengenerate()
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                        actor_system=asys,
-                                                        verbose=True)
-        gen = Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
-        assert rtype == "facts"
-        assert expected_facts == sorted(map(str, facts))
-    finally:
-        asys.shutdown()
+gitactor = GitExample1
+
+def test_example_facts(generated_facts):
+    assert expected_facts == list(map(str, generated_facts))
 
 
 expected_inp = D.InputDesc(

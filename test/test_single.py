@@ -1,13 +1,9 @@
 # Simple tests for a single repository, which perforce has no submodules.
 
-from thespian.actors import *
 import json
 import pytest
-import Briareus.BCGen.Operations as BCGen
+from thespian.actors import *
 from Briareus.Types import BldConfig, BldRepoRev
-import Briareus.Input.Operations as BInput
-import Briareus.BCGen.Generator as Generator
-import Briareus.BuildSys.Hydra as BldSys
 from Briareus.VCS.InternalMessages import *
 
 
@@ -18,21 +14,8 @@ input_spec = '''
 }
 '''
 
-def test_single_facts():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitTestSingle, globalName="GetGitInfo")
-        # Replication of BCGen.Operations.BCGengenerate()
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                        actor_system=asys,
-                                                        verbose=True)
-        gen = Generator.Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
-        assert rtype == "facts"
-        assert expected_facts == sorted(map(str, facts))
-    finally:
-        asys.shutdown()
+def test_example_facts(generated_facts):
+    assert expected_facts == list(map(str, generated_facts))
 
 
 class GitTestSingle(ActorTypeDispatcher):
@@ -62,6 +45,8 @@ class GitTestSingle(ActorTypeDispatcher):
     def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
         assert isinstance(msg.altloc_reqmsg, GitmodulesData)
         self.receiveMsg_GitmodulesData(msg.altloc_reqmsg, sender)
+
+gitactor = GitTestSingle
 
 
 expected_facts = sorted(filter(None, '''
@@ -93,6 +78,10 @@ def skiptest_single_raw_build_config():
     # ThespianWatch, so the swipl run takes the full PROLOG_TIMEOUT
     # for both; the multiprocTCPBase or multiprocUDPBase will support
     # ThespianWatch and are therefore much faster.
+    import Briareus.BCGen.Operations as BCGen
+    import Briareus.Input.Operations as BInput
+    import Briareus.BCGen.Generator as Generator
+    import Briareus.BuildSys.Hydra as BldSys
     asys = ActorSystem('multiprocTCPBase', transientUnique=True)
     try:
         # Generate canned info instead of actually doing git operations
@@ -120,63 +109,46 @@ bldcfg("TheRepo",regular,"feat1",standard,[bld("TheRepo","feat1",brr(1))],[]),
 bldcfg("TheRepo",regular,"master",standard,[bld("TheRepo","master",brr(1))],[])
 ]'''.replace('\n','')
 
-@pytest.fixture(scope="module")
-def single_internal_bldconfigs():
-    asys = ActorSystem('multiprocTCPBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitTestSingle, globalName="GetGitInfo")
-        gen = Generator.Generator(actor_system = asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(
-            *BInput.input_desc_and_VCS_info(input_spec,
-                                            actor_system=asys,
-                                            verbose=True))
-        yield cfgs
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
 
-def test_single_internal_count(single_internal_bldconfigs):
-    assert 5 == len(single_internal_bldconfigs.cfg_build_configs)
+def test_single_internal_count(generated_bldconfigs):
+    assert 5 == len(generated_bldconfigs.cfg_build_configs)
 
-def test_single_internal_master(single_internal_bldconfigs):
+def test_single_internal_master(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "master", "standard",
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
                          [])
-    assert expected in single_internal_bldconfigs.cfg_build_configs
+    assert expected in generated_bldconfigs.cfg_build_configs
 
-def test_single_internal_feat1(single_internal_bldconfigs):
+def test_single_internal_feat1(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "feat1", "standard",
                          [
                              BldRepoRev("TheRepo", "feat1", "project_primary"),
                          ],
                          [])
-    assert expected in single_internal_bldconfigs.cfg_build_configs
+    assert expected in generated_bldconfigs.cfg_build_configs
 
-def test_single_internal_dev(single_internal_bldconfigs):
+def test_single_internal_dev(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "dev", "standard",
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
                          [])
-    assert expected in single_internal_bldconfigs.cfg_build_configs
+    assert expected in generated_bldconfigs.cfg_build_configs
 
-def test_single_internal_toad(single_internal_bldconfigs):
+def test_single_internal_toad(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "toad", "standard",
                          [
                              BldRepoRev("TheRepo", "toad", "134"),
                          ],
                          [])
-    assert expected in single_internal_bldconfigs.cfg_build_configs
+    assert expected in generated_bldconfigs.cfg_build_configs
 
-def test_single_internal_frog(single_internal_bldconfigs):
+def test_single_internal_frog(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "frog", "standard",
                          [
                              BldRepoRev("TheRepo", "frog", "91"),
                          ],
                          [])
-    assert expected in single_internal_bldconfigs.cfg_build_configs
+    assert expected in generated_bldconfigs.cfg_build_configs

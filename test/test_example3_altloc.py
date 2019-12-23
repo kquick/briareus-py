@@ -1,15 +1,9 @@
-import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable
-import Briareus.Input.Operations as BInput
-import Briareus.BCGen.Generator as Generator
-import Briareus.BuildSys.Hydra as BldSys
 from Briareus.VCS.InternalMessages import PullReqInfo
-from thespian.actors import *
 from git_example1 import GitExample1
 from datetime import timedelta
 import json
 import pytest
-from datetime import datetime, timedelta
 
 
 # Like example3 except R3 and R10 are both explicitly listed with a
@@ -39,60 +33,20 @@ input_spec = '''
 }
 '''
 
-def setup_getgitinfo(asys):
-    gitinfo = asys.createActor(GitExample1, globalName="GetGitInfo")
-    r = asys.ask(gitinfo,
-                 ("pullreq", "R10",
-                  PullReqInfo("321", 'test R10 PR',
-                              'https://r10_xlated_url/pullpath/part',
-                              'devtest', 'r10_devtest_ref')),
-                 timedelta(seconds=1))
-    assert r == "ok: added pullreq for R10"
+gitactor = GitExample1
+gitactor_updates = [
+    ( ("pullreq", "R10",
+       PullReqInfo("321", 'test R10 PR',
+                   'https://r10_xlated_url/pullpath/part',
+                   'devtest', 'r10_devtest_ref')),
+      "ok: added pullreq for R10" ),
+]
+
+build_output_time_budget = timedelta(seconds=1, milliseconds=250)  # avg 0.52s
 
 @pytest.fixture(scope="module")
-def example_internal_bldconfigs():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        setup_getgitinfo(asys)
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec, verbose=True,
-                                                        actor_system=asys)
-        gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(inp, repo_info)
-        yield cfgs
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
-
-
-@pytest.fixture(scope="module")
-def example_hydra_builder_output():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        setup_getgitinfo(asys)
-        starttime = datetime.now()
-        input_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                               verbose=True,
-                                                               actor_system=asys)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(input_desc, repo_info)
-        endtime = datetime.now()
-        # This should be a proper test: checks the amount of time to run run the logic process.
-        assert endtime - starttime < timedelta(seconds=1, milliseconds=250)  # avg 0.52s
-        yield output[0]
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
-
-@pytest.fixture(scope="module")
-def example_hydra_jobsets(example_hydra_builder_output):
-    return example_hydra_builder_output[None]
+def example_hydra_jobsets(generated_hydra_builder_output):
+    return generated_hydra_builder_output[0][None]
 
 GS = [ "ghc822", "ghc844" ]
 top_level = [
@@ -108,26 +62,26 @@ top_level = [
     "pullreq devtest submodules",
 ]
 
-def test_example_internal_count(example_internal_bldconfigs):
+def test_example_internal_count(generated_bldconfigs):
     print('### bldcfgs:')
-    for each in example_internal_bldconfigs.cfg_build_configs:
+    for each in generated_bldconfigs.cfg_build_configs:
         print(each.projectname, each.branchtype, each.branchname, each.strategy)
-    assert len(GS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
+    assert len(GS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
 
-def test_example_internal_no_blah_regular_submods(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_blah_regular_submods(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "blah" and
                     each.strategy == "submodules")
 
-def test_example_internal_no_blah_regular_HEADs(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_blah_regular_HEADs(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "blah" and
                     each.strategy == "HEADs")
 
 
-def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
+def test_example_internal_bugfix9_pullreq_submods(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="pullreq",
                             branchname="bugfix9",
@@ -138,9 +92,9 @@ def test_example_internal_bugfix9_pullreq_submods(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
+def test_example_internal_bugfix9_pullreq_HEADs(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="pullreq",
                             branchname="bugfix9",
@@ -151,9 +105,9 @@ def test_example_internal_bugfix9_pullreq_HEADs(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_devtest_pullreq_submods(example_internal_bldconfigs):
+def test_example_internal_devtest_pullreq_submods(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="pullreq",
                             branchname="devtest",
@@ -164,10 +118,10 @@ def test_example_internal_devtest_pullreq_submods(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_devtest_pullreq_HEADs(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_devtest_pullreq_HEADs(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         print(each)
         print('')
     for each in [ BldConfig(projectname="R10",
@@ -180,32 +134,32 @@ def test_example_internal_devtest_pullreq_HEADs(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_no_bugfix9_regular_submods(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_bugfix9_regular_submods(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "bugfix9" and
                     each.strategy == "submodules")
 
-def test_example_internal_no_bugfix9_regular_HEADs(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_no_bugfix9_regular_HEADs(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "bugfix9" and
                     each.strategy == "HEADs")
 
-def test_example_internal_no_feat1_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_no_feat1_regular_submodules(generated_bldconfigs):
     # Because feat1 is not a branch in R10, and all other repos are
     # submodules, there is no submodule-based specification that can
     # reference the feat1 branch, so this configuration should be
     # suppressed.
-    for each in example_internal_bldconfigs.cfg_build_configs:
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "feat1" and
                     each.strategy == "submodules")
 
 
-def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_feat1_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="regular",
                             branchname="feat1",
@@ -216,9 +170,9 @@ def test_example_internal_feat1_regular_HEADs(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_master_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_master_regular_submodules(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="regular",
                             branchname="master",
@@ -229,9 +183,9 @@ def test_example_internal_master_regular_submodules(example_internal_bldconfigs)
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_master_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="regular",
                             branchname="master",
@@ -242,21 +196,21 @@ def test_example_internal_master_regular_HEADs(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_dev_regular_submodules(example_internal_bldconfigs):
+def test_example_internal_dev_regular_submodules(generated_bldconfigs):
     # Because dev is not a branch in R10, and all other repos are
     # submodules, there is no submodule-based specification that can
     # reference the dev branch, so this configuration should be
     # suppressed.
-    for each in example_internal_bldconfigs.cfg_build_configs:
+    for each in generated_bldconfigs.cfg_build_configs:
         assert not (each.branchtype == "regular" and
                     each.branchname == "dev" and
                     each.strategy == "submodules")
 
 
 
-def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
+def test_example_internal_dev_regular_HEADs(generated_bldconfigs):
     for each in [ BldConfig(projectname="R10",
                             branchtype="regular",
                             branchname="dev",
@@ -267,7 +221,7 @@ def test_example_internal_dev_regular_HEADs(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("R10", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
 
 def test_example_hydra_count(example_hydra_jobsets):

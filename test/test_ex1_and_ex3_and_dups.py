@@ -79,23 +79,8 @@ def inp_configs(testing_dir, example_hhd, example3_hhd, dup_hhd):
     ]
 
 
-def test_example_facts(testing_dir, inp_configs):
-    asys = ActorSystem(transientUnique=True)
-    try:
-        params = hh.Params(verbose=True, up_to=hh.UpTo("facts"),
-                           report_file=testing_dir.join("ex1_ex3_dups.hhr"))
-        prev_result = hh.GenResult(actor_system=asys)
-        result = []
-        for git, outf, inpcfg in inp_configs:
-            # Generate canned info instead of actually doing git operations
-            gitActor = asys.createActor(git, globalName="GetGitInfo")
-            with open(inpcfg.hhd, 'r') as inpf:
-                result.extend(hh.run_hh_gen(params, inpcfg, inpf.read(), None, prev_result))
-            asys.ask(gitActor, ActorExitRequest(), 1)
-            asys.ask(asys.createActor(git, globalName="GatherRepoInfo"), ActorExitRequest(), 1)
-        assert expected_facts == sorted(map(str, result))
-    finally:
-        asys.shutdown()
+def test_example_facts(generated_inp_config_facts):
+    assert expected_facts == sorted(map(str, generated_inp_config_facts))
 
 # Note: facts are currently duplicated for repos shared by multiple projects... this shouldn't be a huge issue.
 
@@ -117,30 +102,7 @@ expected_facts = sorted(filter(None,
 # (these tests will probably start succeeding automatically when the
 # above are addressed).
 
-@pytest.fixture(scope="module")
-def example_internal_bldconfigs(testing_dir, inp_configs):
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        starttime = datetime.now()
-        params = hh.Params(verbose=True, up_to=hh.UpTo("builder_configs"),
-                           report_file=testing_dir.join("ex1_ex3_dups.hhr"))
-        result = hh.GenResult(actor_system=asys)
-        for git, outf, inpcfg in inp_configs:
-            # Generate canned info instead of actually doing git operations
-            gitActor = asys.createActor(git, globalName="GetGitInfo")
-            with open(inpcfg.hhd, 'r') as inpf:
-                result = hh.run_hh_gen(params, inpcfg, inpf.read(), None, result)
-            asys.ask(gitActor, ActorExitRequest(), 1)
-            asys.ask(asys.createActor(git, globalName="GatherRepoInfo"), ActorExitRequest(), 1)
-        endtime = datetime.now()
-        # This should be a proper test: checks the amount of time to run run the logic process.
-        assert endtime - starttime < timedelta(seconds=2, milliseconds=500)  # avg 1.56s
-        yield result
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
+build_output_time_budget = timedelta(seconds=2, milliseconds=500)  # avg 1.56s
 
 ex_GS = texample.GS
 ex_CS = texample.CS
@@ -152,24 +114,24 @@ ex3_top_level = tex3.top_level
 dups_GS = tdups.GS
 dups_top_level = tdups.top_level
 
-def test_example_bldcfg_count(example_internal_bldconfigs):
+def test_example_bldcfg_count(generated_inp_config_bldconfigs):
     # Uncomment this to see all hydra jobnames
-    # for each in example_internal_bldconfigs.result_sets:
+    # for each in generated_inp_config_bldconfigs.result_sets:
     #     print([R for R in each.inp_desc.RL if R.project_repo][0].repo_name)
     #     for cfgnum, eachcfg in enumerate(each.build_cfgs.cfg_build_configs):
     #         print('',cfgnum,each.builder._jobset_name(eachcfg))
     #     print('')
-    ex_results = [ Res for Res in example_internal_bldconfigs.result_sets
+    ex_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                    if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'R1' ])][0]
     assert len(ex_GS) * len(ex_CS) * len(ex_top_level) == len(set(ex_results.build_cfgs.cfg_build_configs))
 
-def test_example3_bldcfg_count(example_internal_bldconfigs):
-    ex3_results = [ Res for Res in example_internal_bldconfigs.result_sets
+def test_example3_bldcfg_count(generated_inp_config_bldconfigs):
+    ex3_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                     if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'R10' ])][0]
     assert len(ex3_GS) * len(ex3_top_level) == len(set(ex3_results.build_cfgs.cfg_build_configs))
 
-def test_exampledups_bldcfg_count(example_internal_bldconfigs):
-    dup_results = [ Res for Res in example_internal_bldconfigs.result_sets
+def test_exampledups_bldcfg_count(generated_inp_config_bldconfigs):
+    dup_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                     if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'Repo1' ])][0]
     assert len(dups_GS) * len(dups_top_level) == len(set(dup_results.build_cfgs.cfg_build_configs))
 
@@ -179,12 +141,12 @@ def test_exampledups_bldcfg_count(example_internal_bldconfigs):
 # n.b to see builder (hydra) jobset names, see test_example_bldcfg_count above
 
 @pytest.fixture(scope="module")
-def example_empty_report(testing_dir, example_internal_bldconfigs):
+def example_empty_report(testing_dir, generated_inp_config_bldconfigs):
     params = hh.Params(verbose=True, up_to=None,
                        report_file=testing_dir.join("ex1_ex3_dups.hhr"))
-    for each in example_internal_bldconfigs.result_sets:
+    for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = []
-    return hh.run_hh_report(params, example_internal_bldconfigs, [])
+    return hh.run_hh_report(params, generated_inp_config_bldconfigs, [])
 
 
 def test_example_empty_report_summary(example_empty_report):
@@ -208,17 +170,17 @@ def test_example_empty_report_complete_failures(example_empty_report):
 # ----------------------------------------
 
 @pytest.fixture(scope="module")
-def example_report(testing_dir, example_internal_bldconfigs):
+def example_report(testing_dir, generated_inp_config_bldconfigs):
     params = hh.Params(verbose=True, up_to=None,
                        report_file=testing_dir.join("ex1_ex3_dups.hhr"))
-    for each in example_internal_bldconfigs.result_sets:
+    for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = {
-            "R1": texres.hydra_results,
+            "R1": texres.build_results,
             "R10": [],
-            "Repo1": tdups.hydra_results,
+            "Repo1": tdups.build_results,
         }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
     starttime = datetime.now()
-    rep = hh.run_hh_report(params, example_internal_bldconfigs,
+    rep = hh.run_hh_report(params, generated_inp_config_bldconfigs,
                            tdups.prior + texres.prior)
     endtime = datetime.now()
     # This should be a proper test: checks the amount of time to run run the logic process.

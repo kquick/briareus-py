@@ -1,15 +1,9 @@
-import Briareus.AnaRep.Operations as AnaRep
-import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, StatusReport, VarFailure)
-import Briareus.Input.Operations as BInput
-import Briareus.BCGen.Generator as Generator
-import Briareus.BuildSys.Hydra as BldSys
-from thespian.actors import *
 from git_exampledups import GitExample
 import json
 import pytest
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 # This test is similar to the small test_example2, except:
@@ -43,50 +37,14 @@ input_spec = '''
 }
 '''
 
-
-@pytest.fixture(scope="module")
-def example_internal_bldconfigs():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample, globalName="GetGitInfo")
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                        actor_system=asys,
-                                                        verbose=True)
-        gen = Generator.Generator(actor_system=asys, verbose=True)
-        (_rtype, cfgs) = gen.generate_build_configs(inp, repo_info)
-        yield cfgs
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
+gitactor = GitExample
 
 
 @pytest.fixture(scope="module")
-def example_hydra_builder_output():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample, globalName="GetGitInfo")
-        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                             actor_system=asys,
-                                                             verbose=True)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        output = bcgen.generate(inp_desc, repo_info)
-        yield output[0]
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
+def example_hydra_jobsets(generated_hydra_builder_output):
+    return generated_hydra_builder_output[0][None]
 
-@pytest.fixture(scope="module")
-def example_hydra_jobsets(example_hydra_builder_output):
-    return example_hydra_builder_output[None]
-
-hydra_results = [
+build_results = [
             { "name" : "develop.standard-ghc865",
               "nrtotal" : 4,
               "nrsucceeded": 3,
@@ -225,36 +183,10 @@ prior = [
 ]
 
 @pytest.fixture(scope="module")
-def example_hydra_results():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample, globalName="GetGitInfo")
-        starttime = datetime.now()
-        inp_desc, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                             actor_system=asys,
-                                                             verbose=True)
-        builder = BldSys.HydraBuilder(None)
-        bcgen = BCGen.BCGen(builder, actor_system=asys, verbose=True)
-        config_results = bcgen.generate(inp_desc, repo_info)
-        builder_cfgs, build_cfgs = config_results
-        anarep = AnaRep.AnaRep(verbose=True, actor_system=asys)
-        # n.b. the name values for build_results come from
-        # builder._jobset_name, which is revealed by this print loop.
-        for each in build_cfgs.cfg_build_configs:
-            print(builder._jobset_name(each))
-        builder._build_results = hydra_results
-        report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)], prior)
-        assert report[0] == 'report'
-        endtime = datetime.now()
-        # This should be a proper test: checks the amount of time to run run the logic process.
-        assert endtime - starttime < timedelta(seconds=1, milliseconds=500)  # avg 1.03s
-        yield (builder_cfgs, report[1])
-        asys.shutdown()
-        asys = None
-    finally:
-        if asys:
-            asys.shutdown()
+def example_hydra_results(generated_hydra_results):
+    return generated_hydra_results
+
+analysis_time_budget = timedelta(seconds=1, milliseconds=500)  # avg 1.03s
 
 GS = [ "ghc865", "ghc881" ]
 top_level = [
@@ -268,20 +200,8 @@ top_level = [
     "pullreq R101 Req8 dog",
 ]
 
-def test_example_facts():
-    asys = ActorSystem(transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample, globalName="GetGitInfo")
-        # Replication of BCGen.Operations.BCGengenerate()
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec, verbose=True,
-                                                        actor_system=asys)
-        gen = Generator.Generator(actor_system = asys)
-        (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
-        assert rtype == "facts"
-        assert expected_facts == sorted(map(str, facts))
-    finally:
-        asys.shutdown()
+def test_example_facts(generated_facts):
+    assert expected_facts == list(map(str, generated_facts))
 
 
 expected_facts = sorted(filter(None, '''
@@ -322,11 +242,11 @@ varvalue("Repo1", "ghcver", "ghc881").
 '''.split('\n')))
 
 
-def test_example_internal_count(example_internal_bldconfigs):
-    assert len(GS) * len(top_level) == len(set(example_internal_bldconfigs.cfg_build_configs))
+def test_example_internal_count(generated_bldconfigs):
+    assert len(GS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
 
 
-def test_example_internal_regular_master_standard(example_internal_bldconfigs):
+def test_example_internal_regular_master_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="regular",
                             branchname="master",
@@ -337,9 +257,9 @@ def test_example_internal_regular_master_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_regular_develop_standard(example_internal_bldconfigs):
+def test_example_internal_regular_develop_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="regular",
                             branchname="develop",
@@ -350,9 +270,9 @@ def test_example_internal_regular_develop_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr1_standard(example_internal_bldconfigs):
+def test_example_internal_pr1_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="pullreq",
                             branchname="master",
@@ -363,9 +283,9 @@ def test_example_internal_pr1_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr2r1_standard(example_internal_bldconfigs):
+def test_example_internal_pr2r1_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="pullreq",
                             branchname="master",
@@ -376,9 +296,9 @@ def test_example_internal_pr2r1_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr2r3_standard(example_internal_bldconfigs):
+def test_example_internal_pr2r3_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="pullreq",
                             branchname="develop",
@@ -389,9 +309,9 @@ def test_example_internal_pr2r3_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr1r3_standard(example_internal_bldconfigs):
+def test_example_internal_pr1r3_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="pullreq",
                             branchname="foo",
@@ -402,10 +322,10 @@ def test_example_internal_pr1r3_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr9r3_standard(example_internal_bldconfigs):
-    for each in example_internal_bldconfigs.cfg_build_configs:
+def test_example_internal_pr9r3_standard(generated_bldconfigs):
+    for each in generated_bldconfigs.cfg_build_configs:
         print(each)
         print('')
     for each in [ BldConfig(projectname="Repo1",
@@ -418,9 +338,9 @@ def test_example_internal_pr9r3_standard(example_internal_bldconfigs):
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
-def test_example_internal_pr101r3_prReq8r1_standard(example_internal_bldconfigs):
+def test_example_internal_pr101r3_prReq8r1_standard(generated_bldconfigs):
     for each in [ BldConfig(projectname="Repo1",
                             branchtype="pullreq",
                             branchname="dog",
@@ -431,7 +351,7 @@ def test_example_internal_pr101r3_prReq8r1_standard(example_internal_bldconfigs)
                             ],
                             bldvars=[BldVariable("Repo1", "ghcver", G)])
                   for G in GS]:
-        assert each in example_internal_bldconfigs.cfg_build_configs
+        assert each in generated_bldconfigs.cfg_build_configs
 
 
 def test_example_hydra_count(example_hydra_jobsets):
