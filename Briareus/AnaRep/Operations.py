@@ -89,6 +89,20 @@ class AnaRep(object):
             for each in build_results:
                 print('**',each)
 
+        declared_facts = [
+            # ----------------------------------------------------------------------
+            # Facts used for analysis and reporting
+
+            DeclareFact('email_domain_whitelist/1'),
+            DeclareFact('email_domain_blacklist/1'),
+            DeclareFact('email_user_blacklist/1'),
+
+            DeclareFact('action_type/2'),
+            DeclareFact('action_type/4'),
+            DeclareFact('project_owner/2'),
+
+        ]
+
         input_facts = functools.reduce(
             lambda facts, e: facts.union(get_input_facts(e.inp_desc.RL,
                                                          e.inp_desc.BL,
@@ -98,7 +112,8 @@ class AnaRep(object):
 
         prior_facts = mk_prior_facts(prior_report)
         built_facts = mk_built_facts(build_results)
-        facts = (sorted(list(input_facts), key=str) +
+        facts = (declared_facts +
+                 sorted(list(input_facts), key=str) +
                  sorted(list(prior_facts), key=str) +
                  sorted(list(built_facts), key=str))
         raw = '\n'.join([each.inp_desc.REP.get('logic', '') for each in result_sets])
