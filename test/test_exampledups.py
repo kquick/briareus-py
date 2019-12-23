@@ -34,6 +34,16 @@ input_spec = '''
 , "Variables" : {
       "ghcver" : [ "ghc865", "ghc881" ],
   }
+, "Reporting" : {
+      "logic": """
+project_owner("R1", "george@_company.com").
+
+project_owner("R3", "john@not_a_company.com").
+
+action_type(email, "fred@nocompany.com").
+action_type(email, "anne@nocompany.com", master_submodules_broken, _).
+      """
+  }
 }
 '''
 

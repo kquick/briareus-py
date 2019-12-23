@@ -76,17 +76,24 @@ action(notify(master_submodules_good, Project, CS)) :-
 %% ----------------------------------------------------------------------
 %% Action bindings
 
-action_type(email, "kquick@galois.com").
-action_type(email, "kquick@galois.com", master_submodules_broken, _).
-action_type(email, "kquick@galois.com", master_submodules_good, _).
-action_type(chat, "brittle", completely_broken, "sfe").
-action_type(chat, "brittle", master_submodules_broken, "sfe").
-action_type(chat, "brittle", master_submodules_good, "sfe").
+:- discontiguous email_domain_whitelist/1.
+:- discontiguous email_domain_blacklist/1.
+:- discontiguous email_user_blacklist/1.
+
+:- dynamic action_type/2.
+:- dynamic action_type/4.
+
+email_address_useable(Addr) :-
+    split_string(Addr, "@", " ", [_User|[Domain|[]]]),
+    findall(D, email_domain_whitelist(D), WL_Domains),
+    (length(WL_Domains, 0); member(Domain, WL_Domains)),
+    \+ email_domain_blacklist(Domain),
+    \+ email_user_blacklist(Addr)
+.
 
 action_type(email, Email, completely_broken, Project) :- project_owner(Project, Email).
 action_type(email, Email, master_submodules_broken, Project) :- project_owner(Project, Email).
 
-project_owner("sfe", "tristan@galois.com").
 
 do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.
 do_new(_, _, []).
@@ -98,7 +105,9 @@ do_notnew([]).
 
 do(email(Users, notify(What, P, CS), Notified)) :-
     action(notify(What, P, CS)),
-    setof(User, (action_type(email, User) ; action_type(email, User, What, P)), Users),
+    setof(User, ((action_type(email, User) ; action_type(email, User, What, P)),
+                 email_address_useable(User)
+                 ), Users),
     do_new(email, notify(What, P, CS), Notified).
 
 do(chat(Channels, notify(What, Item, Args), Posted)) :-

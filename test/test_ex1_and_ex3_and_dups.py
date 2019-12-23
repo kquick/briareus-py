@@ -1,7 +1,9 @@
 import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, CompletelyFailing,
-                            StatusReport, VarFailure)
+                            StatusReport, VarFailure,
+                            Notify,
+                            SendEmail)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
@@ -201,3 +203,17 @@ def test_example_report_varfailures(example_report):
     reps = example_report
     assert VarFailure(projrepo='R1', varname='c_compiler', varvalue='clang') in reps
     assert VarFailure(projrepo='Repo1', varname='ghcver', varvalue='ghc881') in reps
+
+def test_example_report_do_list(example_report):
+    reps = example_report
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='variable_failing', item='Repo1',
+                                         params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
+                     sent_to=[]) in reps
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     sent_to=[]) in reps

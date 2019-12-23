@@ -1,5 +1,7 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
-                            ProjectSummary, StatusReport, VarFailure)
+                            ProjectSummary, StatusReport, VarFailure,
+                            Notify,
+                            SendEmail)
 from git_example1 import GitExample1
 import json
 import pytest
@@ -215,10 +217,25 @@ def test_example_report_length(generated_hydra_results):
     additional_bldcfgs = 1 # status2 + status3
     num_varfailure = 1
     num_analysis = num_varfailure
-    num_actions = num_varfailure
-    num_do = num_varfailure
+    num_actions = num_varfailure  # Notify(what='variable_failing', ...)
+    num_do = num_varfailure  # SendEmail(fred@nocompany.com, variable_failing, ...)
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
                 + num_varfailure + prfailing + prsuccess - nrscheduled
                 + num_analysis + num_actions + num_do)
     assert expected == len(reps)
+
+def test_example_report_varfail_do_email(generated_hydra_results):
+    bldcfgs, reps = generated_hydra_results
+
+    for each in reps:
+        print('')
+        print(each)
+    print('')
+    print(len(reps))
+    assert SendEmail(recipients=['fred@nocompany.com'],
+                     notification=Notify(what='variable_failing', item='R1',
+                                         params=BldVariable(projrepo='R1',
+                                                            varname='c_compiler',
+                                                            varvalue='clang')),
+                     sent_to=[]) in reps
