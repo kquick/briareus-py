@@ -112,9 +112,13 @@ let
     #  project.hhSrc = URL or path to retrieve the hhd and hhb files from
     #  project.hhd   = filename for Briareus input specification (in hhSrc)
     #  project.hhb   = filename for Builder Backend configuration (in hhSrc)
+    #  project.builderURL = URL for the builder (optional)
 
     let inp_upd = project.hhSrc + "+" + (project.hhSubdir or "");
         name = dropExtension project.hhd;
+        builder_spec = if builtins.hasAttr "builderURL" project
+                       then "-U ${project.builderURL}"
+                       else "";
 
         # This script is run periodically to fetch the input Briareus
         # files for this project (in case they have changed) and
@@ -153,7 +157,7 @@ let
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${project.hhd} ${briareus_outfile name}
+             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${builder_spec} ${project.hhd} ${briareus_outfile name}
 	     set +x
              '';
 
