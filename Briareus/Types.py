@@ -126,9 +126,9 @@ class Notify(object):
 
 @attr.s(frozen=True)
 class SendEmail(object):
-    recipients = attr.ib(converter=sorted) # list of email addresses
+    recipients = attr.ib(converter=lambda l: sorted(list(set(l)))) # list of email addresses
     notification = attr.ib() # Notify object
-    sent_to = attr.ib() # list of addresses message has been sent to already
+    sent_to = attr.ib(converter=lambda l: sorted(list(set(l)))) # list of addresses message has been sent to already
 
 @attr.s(frozen=True)
 class PostChatMessage(object):
