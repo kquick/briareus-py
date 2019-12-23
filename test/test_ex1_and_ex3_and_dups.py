@@ -189,7 +189,7 @@ def generate_report(testdir, inp_config_bldconfigs, prior, reporting_logic_defs=
                            reporting_logic_defs=reporting_logic_defs)
     endtime = datetime.now()
     # This should be a proper test: checks the amount of time to run run the logic process.
-    assert endtime - starttime < timedelta(seconds=1, milliseconds=500)  # avg 1.02s
+    assert endtime - starttime < timedelta(seconds=2, milliseconds=500)  # avg 1.02s
     return rep
 
 def test_example_report_summary(example_report):
