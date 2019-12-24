@@ -68,6 +68,9 @@ action(notify(master_submodules_broken, Project, Configs)) :-
 action(notify(master_submodules_good, Project, CS)) :-
     is_project_repo(Project),
     \+ report(complete_failure(Project)),
+    findall(X, report(status_report(Status, project(Project), submodules, regular, "master", X, _XVars)),
+            XS),
+    length(XS, XSN), XSN > 0,
     findall(C, (report(status_report(Status, project(Project), submodules, regular, "master", C, _Vars)),
                 bad_status(Status)),
             CS),
