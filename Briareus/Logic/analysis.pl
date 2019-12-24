@@ -53,10 +53,12 @@ action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) 
 %% generate a notification if the master_submodules is broken (the
 %% most important build), ignoring any variables that are completely
 %% failing.
-action(notify(master_submodules_broken, Project, Configs)) :-
+
+action(notify(main_submodules_broken, Project, Configs)) :-
     is_project_repo(Project),
     \+ report(complete_failure(Project)),
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, "master", C, Vars)),
+    is_main_branch(Project, MainBr),
+    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars)),
                 bad_status(Status),
                 findall((N,V), (member(varvalue(Project, N, V), Vars),
                                 report(var_failure(Project, N, V))), XS),
@@ -65,16 +67,45 @@ action(notify(master_submodules_broken, Project, Configs)) :-
     length(CS, N), N > 0,
     sort(CS, Configs).
 
-action(notify(master_submodules_good, Project, CS)) :-
+action(notify(main_submodules_good, Project, CS)) :-
     is_project_repo(Project),
     \+ report(complete_failure(Project)),
-    findall(X, report(status_report(Status, project(Project), submodules, regular, "master", X, _XVars)),
+    is_main_branch(Project, MainBr),
+    % Has at least one submodules build
+    findall(X, report(status_report(Status, project(Project), submodules, regular, MainBr, X, _XVars)),
             XS),
     length(XS, XSN), XSN > 0,
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, "master", C, _Vars)),
+    % No submodules builds are failing
+    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, _Vars)),
                 bad_status(Status)),
             CS),
     length(CS, 0).
+
+action(notify(main_good, Project, CS)) :-
+    is_project_repo(Project),
+    \+ report(complete_failure(Project)),
+    is_main_branch(Project, MainBr),
+    % No submodules builds
+    \+ has_gitmodules(Project, MainBr),
+    % At least one standard build succeeding
+    report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+    good_status(Status),
+    !,
+    % No failing standard builds
+    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+                bad_status(Status)),
+            CS),
+    length(CS, 0).
+
+action(notify(main_broken, Project, CS)) :-
+    is_project_repo(Project),
+    \+ report(complete_failure(Project)),
+    is_main_branch(Project, MainBr),
+    \+ has_gitmodules(Project, MainBr),
+    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+                bad_status(Status)),
+            CS),
+    length(CS, CSN), CSN > 0.
 
 %% ----------------------------------------------------------------------
 %% Action bindings
@@ -94,9 +125,9 @@ email_address_useable(Addr) :-
     \+ email_user_blacklist(Addr)
 .
 
+action_type(email, Email, main_broken, Project) :- project_owner(Project, Email).
 action_type(email, Email, completely_broken, Project) :- project_owner(Project, Email).
-action_type(email, Email, master_submodules_broken, Project) :- project_owner(Project, Email).
-
+action_type(email, Email, main_submodules_broken, Project) :- project_owner(Project, Email).
 
 do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.
 do_new(_, _, []).

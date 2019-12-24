@@ -174,8 +174,10 @@ logic_result_expr = {
     "chat": lambda *args: PostChatMessage(*args),
     "merge_pr": "merge_pr",
     "completely_broken": "completely_broken",
-    "master_submodules_broken": "master_submodules_broken",
-    "master_submodules_good": "master_submodules_good",
+    "main_submodules_broken": "main_submodules_broken",
+    "main_submodules_good": "main_submodules_good",
+    "main_good": "main_good",
+    "main_broken": "main_broken",
     "variable_failing": "variable_failing",
 
 

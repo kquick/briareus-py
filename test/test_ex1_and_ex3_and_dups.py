@@ -225,7 +225,7 @@ def test_example_report_do_list(example_report):
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs):
@@ -276,7 +276,7 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=["george@nocompany.com", "sally@not_a_company.com"]) in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
@@ -310,7 +310,7 @@ def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
@@ -346,7 +346,7 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfigs):
@@ -377,7 +377,7 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=[]) in reps
 
 @patch('Briareus.Actions.SendEmail.send_email')
@@ -407,7 +407,7 @@ def test_example_report_take_actions(send_email, example_report):
                                          params=BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=recipients) in rep
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='master_submodules_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', item='Repo1', params=[]),
                      sent_to=recipients) in rep
     send_email.assert_has_calls([call(set(recipients), ANY, ANY),
                                  call(set(recipients), ANY, ANY),

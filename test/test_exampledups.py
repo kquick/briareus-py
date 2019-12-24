@@ -41,7 +41,7 @@ project_owner("R1", "george@_company.com").
 project_owner("R3", "john@not_a_company.com").
 
 action_type(email, "fred@nocompany.com").
-action_type(email, "anne@nocompany.com", master_submodules_broken, _).
+action_type(email, "anne@nocompany.com", main_submodules_broken, _).
       """
   }
 }
