@@ -1,0 +1,5 @@
+The submodules build on the main branch of {n.item} is succeeding!
+
+This is the expected main build used for development and downstream
+consumption.  This is a good baseline status for the health of the
+rest of the builds for {n.item}.
