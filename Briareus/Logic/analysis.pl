@@ -118,9 +118,9 @@ email_address_useable(Addr) :-
     \+ email_user_blacklist(Addr)
 .
 
-action_type(email, Email, main_broken, Project) :- project_owner(Project, Email).
-action_type(email, Email, completely_broken, Project) :- project_owner(Project, Email).
-action_type(email, Email, main_submodules_broken, Project) :- project_owner(Project, Email).
+action_type(email, Email, Project, main_broken) :- project_owner(Project, Email).
+action_type(email, Email, Project, completely_broken) :- project_owner(Project, Email).
+action_type(email, Email, Project, main_submodules_broken) :- project_owner(Project, Email).
 
 % do_new inherits Previous from any prior specification of this type.
 % Using this method, the Previous (updated by performing the
@@ -139,7 +139,7 @@ do_notnew([]).
 do(email(Users, notify(What, P, CS), Notified)) :-
     Notification = notify(What, P, CS),
     action(Notification),
-    setof(User, ((action_type(email, User) ; action_type(email, User, What, P)),
+    setof(User, ((action_type(email, User, P) ; action_type(email, User, What, P)),
                  email_address_useable(User)
                  ), Users),
     do_new(email, Notification, Notified).

@@ -36,12 +36,12 @@ input_spec = '''
   }
 , "Reporting" : {
       "logic": """
-project_owner("R1", "george@_company.com").
+project_owner("Repo1", "george@_company.com").
 
-project_owner("R3", "john@not_a_company.com").
+project_owner("Repo3", "john@not_a_company.com").
 
-action_type(email, "fred@nocompany.com").
-action_type(email, "anne@nocompany.com", main_submodules_broken, _).
+action_type(email, "fred@nocompany.com", "Repo1").
+action_type(email, "anne@nocompany.com", "Repo1", main_submodules_broken).
       """
   }
 }
