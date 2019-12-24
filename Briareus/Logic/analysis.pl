@@ -88,7 +88,7 @@ action(notify(main_good, Project, CS)) :-
     % No submodules builds
     \+ has_gitmodules(Project, MainBr),
     % At least one standard build succeeding
-    report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+    report(status_report(Status, project(Project), standard, regular, MainBr, _Cfg, _BVars)),
     good_status(Status),
     !,
     % No failing standard builds
