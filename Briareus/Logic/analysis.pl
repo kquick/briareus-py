@@ -129,6 +129,12 @@ action_type(email, Email, main_broken, Project) :- project_owner(Project, Email)
 action_type(email, Email, completely_broken, Project) :- project_owner(Project, Email).
 action_type(email, Email, main_submodules_broken, Project) :- project_owner(Project, Email).
 
+% do_new inherits Previous from any prior specification of this type.
+% Using this method, the Previous (updated by performing the
+% notifications) will eventually match the Target set, at which point
+% the notification processing does nothing.  When the Notification is
+% no longer generated, then the do is no longer expressed and both
+% previous and new versions are removed.
 do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.
 do_new(_, _, []).
 
