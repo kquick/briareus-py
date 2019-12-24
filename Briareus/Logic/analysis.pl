@@ -110,13 +110,6 @@ action(notify(main_broken, Project, CS)) :-
 %% ----------------------------------------------------------------------
 %% Action bindings
 
-:- discontiguous email_domain_whitelist/1.
-:- discontiguous email_domain_blacklist/1.
-:- discontiguous email_user_blacklist/1.
-
-:- dynamic action_type/2.
-:- dynamic action_type/4.
-
 email_address_useable(Addr) :-
     split_string(Addr, "@", " ", [_User|[Domain|[]]]),
     findall(D, email_domain_whitelist(D), WL_Domains),
