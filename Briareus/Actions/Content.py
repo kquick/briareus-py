@@ -50,7 +50,7 @@ def gen_content(action_type, notification):
        The content is the fully expanded text (appropriate to the
        action_type) describing the notification in appropriate detail.
     """
-    gen = notify_generators.get(notification.what, None)
+    gen = notify_generators.get(notification.what, FileContent())
     if not gen:
         return 'Build Issue', str(notification)
     return gen(action_type, notification)
