@@ -18,14 +18,16 @@ class FileContent(object):
         fromdir = os.path.dirname(sys.modules['Briareus.Actions'].__file__)
         content_fname = os.path.join(fromdir, '{' + action_type + '}' + ntype + '.txt')
         tagline_fname = os.path.join(fromdir, '{' + action_type + '}' + ntype + '.tag')
+
         if not os.path.exists(content_fname):
             content_fname = os.path.join(fromdir, ntype + '.txt')
-        if not os.path.exists(tagline_fname):
-            tagline_fname = os.path.join(fromdir, ntype + '.tag')
         if os.path.exists(content_fname):
             content = open(content_fname, 'r').read().format(n=notification)
         else:
             content = str(notification)
+
+        if not os.path.exists(tagline_fname):
+            tagline_fname = os.path.join(fromdir, ntype + '.tag')
         if os.path.exists(tagline_fname):
             tagline = open(tagline_fname, 'r').read().format(n=notification)
         else:
