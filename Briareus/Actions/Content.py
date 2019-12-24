@@ -34,6 +34,7 @@ class FileContent(object):
 
 notify_generators = {
     'variable_failing': FileContent(),
+    'completely_broken': FileContent(),
 }
 
 def gen_content(action_type, notification):
