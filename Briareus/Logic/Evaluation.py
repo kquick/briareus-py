@@ -65,6 +65,7 @@ def run_logic_analysis(analysis_fname, facts, raw_logic='', actor_system=None, v
                           args = ["-f", factfile, "-l", os.path.join(local_path, analysis_fname)],
                           logger=None if verbose else False,  # disable logging unless verbose
                           logtag="{swipl}",
+                          max_bufsize=5*1024*1024,
                           timeout=PROLOG_TIMEOUT,
             )
             cmdrslt = asys.ask(runner, cmd, PROLOG_TIMEOUT)
@@ -74,7 +75,14 @@ def run_logic_analysis(analysis_fname, facts, raw_logic='', actor_system=None, v
                     warn = cmdrslt.stderr.strip()
                     if warn:
                         print(warn, file=sys.stderr)
-                    return cmdrslt.stdout.strip()
+                    try:
+                        return cmdrslt.stdout.strip()
+                    except AttributeError as ex:
+                        print("If cmdrslt.stdout is a tuple, that means the middle of the"
+                              " output was elided by thespian runcommand; fix this by"
+                              " increasing the max_bufsize argument to Command in the code above!",
+                              file=sys.stderr)
+                        raise
             raise RuntimeError('FAIL: ' + str(cmdrslt))
 
         finally:
