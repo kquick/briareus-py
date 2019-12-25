@@ -211,12 +211,17 @@ def prior_fact_VarFailure(prior):
 def prior_fact_SendEmail(prior):
     targets = [ '"%s"' % A for A in prior.recipients ]
     sent = [ '"%s"' % A for A in prior.sent_to ]
+    asStrList = lambda: '[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']'
     params_logic = {
         'variable_failing': ('varvalue('
                              '      "{prior.notification.params.projrepo}"'
                              '    , "{prior.notification.params.varname}"'
                              '    , "{prior.notification.params.varvalue}"'
                              '  )'),
+        'main_submodules_broken': asStrList,
+        'main_submodules_good': asStrList,
+        'main_broken': asStrList,
+        'main_good': asStrList,
     }.get(prior.notification.what, str(prior.notification.params))
     return Fact(('email('
                  '[ {send_to} ]'
