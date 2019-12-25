@@ -211,23 +211,24 @@ def prior_fact_VarFailure(prior):
 def prior_fact_SendEmail(prior):
     targets = [ '"%s"' % A for A in prior.recipients ]
     sent = [ '"%s"' % A for A in prior.sent_to ]
+    # n.b. asStrList and params_logic is a lambda to avoid the computation cost of *all* elements
     asStrList = lambda: '[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']'
     params_logic = {
-        'variable_failing': ('varvalue('
-                             '      "{prior.notification.params.projrepo}"'
-                             '    , "{prior.notification.params.varname}"'
-                             '    , "{prior.notification.params.varvalue}"'
-                             '  )'),
-        'main_submodules_broken': asStrList,
+        'variable_failing': lambda: ('varvalue('
+                                     '      "{prior.notification.params.projrepo}"'
+                                     '    , "{prior.notification.params.varname}"'
+                                     '    , "{prior.notification.params.varvalue}"'
+                                     '  )'),
+        'main_submodules_broken': asStrList, # KWQ: tests for these!
         'main_submodules_good': asStrList,
         'main_broken': asStrList,
         'main_good': asStrList,
-    }.get(prior.notification.what, str(prior.notification.params))
+    }.get(prior.notification.what, lambda: str(prior.notification.params))
     return Fact(('email('
                  '[ {send_to} ]'
                  ', notify({prior.notification.what}'
                  '  , "{prior.notification.item}"'
-                 '  , ' + params_logic +
+                 '  , ' + params_logic() +
                  ')'
                  ', [ {sent_to} ]'
                  ')'
