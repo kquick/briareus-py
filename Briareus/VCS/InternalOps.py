@@ -248,6 +248,14 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                                          p.pullreq_ref or
                                                          p.pullreq_branch))
 
+        # Debug vvv
+        # Hypothesis: this occurs during the small window where the
+        # pull request was identified and then it is merged and then
+        # additional data is attempted to be collected for it.
+        for p in msg.pullreqs:
+            if p.pullreq_srcurl is None:
+                logging.critical('ERR: srcurl is None for pullreq %s in msg %s', p, msg)
+        # Debug ^^^
         self.pullreqs.update(set([
             PRInfo(pr_target_repo=msg.reponame,
                    pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,
@@ -258,7 +266,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
                    pr_branch=p.pullreq_branch,
                    pr_ident=str(p.pullreq_number),  # PR idents must be strings
                    pr_title=p.pullreq_title)
-            for p in msg.pullreqs]))
+            for p in msg.pullreqs
+            if p.pullreq_srcurl is not None]))
         self.got_response(response_name='pull_reqs_data')
 
     def _url_for_repo(self, repo_name):
