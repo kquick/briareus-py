@@ -19,7 +19,7 @@ input_spec = '''
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
-:- discontiguous subrepo/1.
+:- discontiguous subrepo/2.
 :- discontiguous main_branch/2.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
@@ -30,8 +30,8 @@ expected_facts = sorted(filter(None, '''
 project("R10").
 default_main_branch("master").
 repo("R10").
-subrepo("R3").
-subrepo("R4").
+subrepo("R10", "R3").
+subrepo("R10", "R4").
 branch("R10", "master").
 branch("R3", "master").
 branch("R3", "blah").

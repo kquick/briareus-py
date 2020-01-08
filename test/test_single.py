@@ -53,7 +53,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
 :- discontiguous main_branch/2.
-:- discontiguous subrepo/1.
+:- discontiguous subrepo/2.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.

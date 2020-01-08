@@ -62,7 +62,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous main_branch/2.
 :- discontiguous branchreq/2.
-:- discontiguous subrepo/1.
+:- discontiguous subrepo/2.
 :- discontiguous pullreq/3.
 :- discontiguous branch/2.
 :- discontiguous submodule/5.
@@ -74,8 +74,8 @@ repo("R4").
 default_main_branch("master").
 main_branch("R10", "develop").
 main_branch("R4", "primary").
-subrepo("R3").
-subrepo("R4").
+subrepo("R10", "R3").
+subrepo("R10", "R4").
 branchreq("R10", "dev").
 branchreq("R10", "feat1").
 branch("R4", "primary").

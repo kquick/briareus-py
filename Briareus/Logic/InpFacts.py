@@ -48,7 +48,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # is that identified repositories may be changed in different
         # branches of the Project repo, but primary repositories are
         # always considered for all build configurations.
-        DeclareFact('subrepo/1'),
+        DeclareFact('subrepo/2'),
 
         # Identifies a pull request that was found by probing the VCS.
         # The format is: pullreq(Repo, PR_Ident, PR_Branch).  The
@@ -96,7 +96,8 @@ def get_input_facts(RL, BL, VAR, repo_info):
     project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]
     branch_facts  = [ Fact('branchreq("%s", "%s")'  % (r.repo_name, b.branch_name))
                       for r in projects for b in BL ]
-    subrepo_facts = [ Fact('subrepo("%s")' % r.repo_name)
+    subrepo_facts = [ Fact('subrepo("%s", "%s")'
+                           % (project.repo_name, r.repo_name))
                       for r in repo_info['subrepos'] ]
 
     # n.b. repo_info['pullreqs'] are of type PRInfo from InternalOps;

@@ -10,18 +10,18 @@ has_gitmodules(R, B) :-
     bagof(B, V^S^P^(is_project_repo(R), (proj_repo_branch(R, B); pullreq(R,_,B)), submodule(R, P, B, S, V)), BHG),
     \+ length(BHG, 0).
 
-all_repos_no_subs(ALLR) :- findall(R, (repo(R), \+ subrepo(R)), ALLR).
-all_repos(ALLR) :- findall(R, (repo(R) ; subrepo(R)), ALLR).
+all_repos_no_subs(ProjRepo, ALLR) :- findall(R, (repo(R), \+ subrepo(ProjRepo, R)), ALLR).
+all_repos(ProjRepo, ALLR) :- findall(R, (repo(R) ; subrepo(ProjRepo, R)), ALLR).
 all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
 build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
     is_project_repo(ProjRepo),
     branch_type(BranchType, Branch, PR_ID),
     strategy(Strategy, ProjRepo, Branch),
-    all_repos(RL),
+    all_repos(ProjRepo, RL),
     all_vars(ProjRepo, VL),
     varcombs(ProjRepo, VL, VARS),
-    reachable_branch(Strategy, BranchType, Branch),
+    reachable_branch(ProjRepo, Strategy, BranchType, Branch),
     reporevs(RL, ProjRepo, BranchType, Branch, PR_ID, Strategy, BLDS)
 .
 
@@ -33,12 +33,12 @@ build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
 % the generated build will (a) not have anything referencing the
 % target branch, and (b) be identical to the master.submodules
 % build, so it can be skipped.
-reachable_branch(standard,   _,       _).
-reachable_branch(heads,      _,       _).
-reachable_branch(_,          pullreq, _).
-reachable_branch(submodules, regular, Branch) :-
+reachable_branch(_,        standard,   _,       _).
+reachable_branch(_,        heads,      _,       _).
+reachable_branch(_,        _,          pullreq, _).
+reachable_branch(ProjRepo, submodules, regular, Branch) :-
     branch(R, Branch),
-    all_repos_no_subs(TLR),
+    all_repos_no_subs(ProjRepo, TLR),
     member(R, TLR),
     !.  % only necessary to find one case.
 
@@ -80,7 +80,7 @@ strategy(S, R, B) :-
 
 reporevs([], _, _, _, _, _, []).
 reporevs([R|Rs], ProjRepo, BranchType, Branch, PR_ID, Strategy, Result) :-
-    (repo(R) ; subrepo(R)),
+    (repo(R) ; subrepo(ProjRepo, R)),
     reporevs(Rs, ProjRepo, BranchType, Branch, PR_ID, Strategy, RevSpecs),
     reporev(R, ProjRepo, BranchType, Branch, PR_ID, Strategy, RevSpec),
     build_revspecs(RevSpec, RevSpecs, Result),
@@ -88,7 +88,7 @@ reporevs([R|Rs], ProjRepo, BranchType, Branch, PR_ID, Strategy, Result) :-
 .
 %% If this is a subrepo that is not utilized on this ProjRepo branch, skip it
 reporevs([R|Rs], ProjRepo, BranchType, Branch, PR_ID, Strategy, Result) :-
-    subrepo(R),
+    subrepo(ProjRepo, R),
     reporevs(Rs, ProjRepo, BranchType, Branch, PR_ID, Strategy, RevSpecs),
     build_revspecs(skip, RevSpecs, Result).
 

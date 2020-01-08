@@ -49,7 +49,7 @@ action_type(email, "anne@nocompany.com", "R1", master_submodules_broken).
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
 :- discontiguous repo/1.
-:- discontiguous subrepo/1.
+:- discontiguous subrepo/2.
 :- discontiguous main_branch/2.
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
@@ -64,10 +64,10 @@ repo("R2").
 repo("R3").
 repo("R5").
 repo("R6").
-subrepo("R2").
-subrepo("R3").
-subrepo("R4").
-subrepo("R7").
+subrepo("R1", "R2").
+subrepo("R1", "R3").
+subrepo("R1", "R4").
+subrepo("R1", "R7").
 branchreq("R1", "master").
 branchreq("R1", "feat1").
 branchreq("R1", "dev").
