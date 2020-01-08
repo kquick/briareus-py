@@ -18,6 +18,7 @@
 
 import attr
 import functools
+from Briareus import print_each, print_titled
 from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
@@ -85,9 +86,7 @@ class AnaRep(object):
             result_sets, [])
 
         if self.verbose:
-            print('## CORRELATED BUILD RESULTS:')
-            for each in build_results:
-                print('**',each)
+            print_each('CORRELATED BUILD RESULTS', build_results, '**')
 
         declared_facts = [
             # ----------------------------------------------------------------------
@@ -120,9 +119,7 @@ class AnaRep(object):
                                                 for each in result_sets])
 
         if self.verbose or self._up_to == 'built_facts':
-            print('## BUILT FACTS:')
-            for each in facts:
-                print(str(each))
+            print_each('BUILT FACTS', facts)
             print(raw)
         if self._up_to == 'built_facts':
             return (up_to, facts)
@@ -132,8 +129,7 @@ class AnaRep(object):
                                actor_system=self._actor_system,
                                verbose=self.verbose)
         if self.verbose or self._up_to == 'raw_built_analysis':
-            print('## RAW BUILT ANALYSIS:')
-            print(str(r))
+            print_titled('RAW BUILT ANALYSIS', r)
         if self._up_to == 'raw_built_analysis':
             return (self._up_to, r)
 

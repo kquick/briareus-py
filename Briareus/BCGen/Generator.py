@@ -1,5 +1,6 @@
 # Core BCGen functionality to process input specification into build configurations
 
+from Briareus import print_titled, print_each
 from Briareus.Types import logic_result_expr
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 from Briareus.Logic.InpFacts import get_input_facts
@@ -29,17 +30,14 @@ class Generator(object):
                                 input_descr.VAR,
                                 repo_info)
         if self.verbose or up_to == 'facts':
-            print('%% FACTS:')
-            for f in facts:
-                print(str(f))
+            print_each('FACTS', facts)
         if up_to == "facts":
             return (up_to, facts)
         r = run_logic_analysis('build_config', facts,
                                actor_system=self._actor_system,
                                verbose=self.verbose)
         if self.verbose or up_to == 'raw_logic_output':
-            print('## RAW_LOGIC_OUTPUT:')
-            print(str(r))
+            print_titled('RAW_LOGIC_OUTPUT', r)
         if up_to == "raw_logic_output":
             return (up_to, r)
         if not r:
