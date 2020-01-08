@@ -1,7 +1,7 @@
 /* Rules and reasoning -------------------------------------------------------------- */
 
 %% Test if an argument is a Project Repo
-is_project_repo(R) :- repo(R), project(R).
+is_project_repo(R) :- repo(R, R), project(R).
 
 proj_repo_branch(R, B) :- is_project_repo(R), branchreq(R, B).
 proj_repo_branch(R, B) :- is_project_repo(R), is_main_branch(R, B), \+ branchreq(R, B).
@@ -10,8 +10,8 @@ has_gitmodules(R, B) :-
     bagof(B, V^S^P^(is_project_repo(R), (proj_repo_branch(R, B); pullreq(R,_,B)), submodule(R, P, B, S, V)), BHG),
     \+ length(BHG, 0).
 
-all_repos_no_subs(ProjRepo, ALLR) :- findall(R, (repo(R), \+ subrepo(ProjRepo, R)), ALLR).
-all_repos(ProjRepo, ALLR) :- findall(R, (repo(R) ; subrepo(ProjRepo, R)), ALLR).
+all_repos_no_subs(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R), \+ subrepo(ProjRepo, R)), ALLR).
+all_repos(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R) ; subrepo(ProjRepo, R)), ALLR).
 all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
 build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, BLDS, VARS)) :-
@@ -80,7 +80,7 @@ strategy(S, R, B) :-
 
 reporevs([], _, _, _, _, _, []).
 reporevs([R|Rs], ProjRepo, BranchType, Branch, PR_ID, Strategy, Result) :-
-    (repo(R) ; subrepo(ProjRepo, R)),
+    (repo(ProjRepo, R) ; subrepo(ProjRepo, R)),
     reporevs(Rs, ProjRepo, BranchType, Branch, PR_ID, Strategy, RevSpecs),
     reporev(R, ProjRepo, BranchType, Branch, PR_ID, Strategy, RevSpec),
     build_revspecs(RevSpec, RevSpecs, Result),
@@ -135,8 +135,8 @@ reporev(R, ProjRepo, _BType,  B, PR_ID, heads, RepoRev) :-
     is_main_branch(R, MB),
     bldwith(RepoRev, R, MB, PR_ID, brr(06)).
 
-reporev(R, _ProjRepo, pullreq, B, PR_ID, _Strategy, RepoRev) :-
-    repo(R),
+reporev(R, ProjRepo, pullreq, B, PR_ID, _Strategy, RepoRev) :-
+    repo(ProjRepo, R),
     pullreq(R, I, B),
     ((is_main_branch(R, B), PR_ID == I); \+ is_main_branch(R, B)),
     bldwith(RepoRev, R, B, I, brr(03)).
@@ -189,13 +189,13 @@ reporev(R, ProjRepo, regular, B, PR_ID, heads, RepoRev) :-
     !.
 
 reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
-    repo(R),
+    repo(ProjRepo, R),
     branch(R, B),
     \+ submodule(ProjRepo, _I, B, R, _),
     bldwith(RepoRev, R, B, "project_primary", brr(01)).
 
 reporev(R, ProjRepo, _BType,  B, _PR_ID, _Strategy,  RepoRev) :-
-    repo(R),
+    repo(ProjRepo, R),
     \+ submodule(ProjRepo, _I, B, R, _),
     \+ branch(R, B),
     is_main_branch(R, MB),

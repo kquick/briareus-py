@@ -17,7 +17,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # Identifies a repository (by name, not URL, so
         # forks are all assumed to be identical
         # repositories.)
-        DeclareFact('repo/1'),
+        DeclareFact('repo/2'),
 
         # Identifies the repo that is the "Project"
         # repo.  The "Project" repo is the only one
@@ -90,7 +90,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
                      # globally true.  When this varied support is
                      # necesary, this fact might need a projectname
                      # addition.
-                     [ Fact('repo("%s")'    % r.repo_name)   for r in RL ] +
+                     [ Fact('repo("%s", "%s")'    % (project.repo_name, r.repo_name))   for r in RL ] +
                      [ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch))
                        for r in RL if r.main_branch != "master" ])
     project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]

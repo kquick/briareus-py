@@ -216,7 +216,7 @@ def test_example_facts(generated_facts):
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
-:- discontiguous repo/1.
+:- discontiguous repo/2.
 :- discontiguous subrepo/2.
 :- discontiguous main_branch/2.
 :- discontiguous submodule/5.
@@ -227,9 +227,9 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varvalue/3.
 project("Repo1").
 default_main_branch("master").
-repo("Repo1").
-repo("Repo2").
-repo("Repo3").
+repo("Repo1", "Repo1").
+repo("Repo1", "Repo2").
+repo("Repo1", "Repo3").
 branchreq("Repo1", "master").
 branchreq("Repo1", "develop").
 pullreq("Repo1", "1", "master").

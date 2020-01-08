@@ -51,7 +51,7 @@ gitactor = GitTestSingle
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.
-:- discontiguous repo/1.
+:- discontiguous repo/2.
 :- discontiguous main_branch/2.
 :- discontiguous subrepo/2.
 :- discontiguous submodule/5.
@@ -61,7 +61,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("TheRepo").
-repo("TheRepo").
+repo("TheRepo", "TheRepo").
 branchreq("TheRepo", "master").
 default_main_branch("master").
 branchreq("TheRepo", "feat1").
