@@ -53,7 +53,8 @@ varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
     varcombs(ProjRepo, VNS, VNSVS).
 
 branch_type(pullreq, B, PR_ID) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((PR_ID,B), XS).
-branch_type(regular, B, project_primary) :- proj_repo_branch(_, B).
+branch_type(regular, B, project_primary) :-
+    setof(BR, R^proj_repo_branch(R,BR), BRS), member(B, BRS).
 
 useable_submodules(R, B) :-
     (branch(R, B), has_gitmodules(R, B));
