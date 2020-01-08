@@ -11,6 +11,7 @@ class BldConfig(object):
     branchtype = attr.ib()  # default="regular"
     branchname = attr.ib()
     strategy   = attr.ib()  # default="standard"
+    description= attr.ib()  # placeholder
     blds       = attr.ib(factory=frozenset, converter=frozenset)  # list of BldRepoRev
     bldvars    = attr.ib(factory=frozenset, converter=frozenset)  # list of BldVariable
 

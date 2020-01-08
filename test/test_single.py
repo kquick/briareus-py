@@ -115,6 +115,7 @@ def test_single_internal_count(generated_bldconfigs):
 
 def test_single_internal_master(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "master", "standard",
+                         "cfg-placeholder",
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
@@ -123,6 +124,7 @@ def test_single_internal_master(generated_bldconfigs):
 
 def test_single_internal_feat1(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "feat1", "standard",
+                         "cfg-placeholder",
                          [
                              BldRepoRev("TheRepo", "feat1", "project_primary"),
                          ],
@@ -131,6 +133,7 @@ def test_single_internal_feat1(generated_bldconfigs):
 
 def test_single_internal_dev(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "dev", "standard",
+                         "cfg-placeholder",
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
@@ -139,6 +142,7 @@ def test_single_internal_dev(generated_bldconfigs):
 
 def test_single_internal_toad(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "toad", "standard",
+                         "cfg-placeholder",
                          [
                              BldRepoRev("TheRepo", "toad", "134"),
                          ],
@@ -147,6 +151,7 @@ def test_single_internal_toad(generated_bldconfigs):
 
 def test_single_internal_frog(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "frog", "standard",
+                         "cfg-placeholder",
                          [
                              BldRepoRev("TheRepo", "frog", "91"),
                          ],

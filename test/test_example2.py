@@ -202,6 +202,7 @@ def test_example_internal_count(generated_bldconfigs):
 
 def test_example_internal_regular_develop_submodules(generated_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "develop", "submodules",
+                            "cfg-placeholder",
                             [
                                 BldRepoRev("Repo1", "develop", "project_primary"),
                                 BldRepoRev("Repo2", "r2_develop_head", "project_primary"),
@@ -216,6 +217,7 @@ def test_example_internal_regular_develop_submodules(generated_bldconfigs):
 
 def test_example_internal_regular_develop_HEADs(generated_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "develop", "HEADs",
+                            "cfg-placeholder",
                             [
                                 BldRepoRev("Repo1", "develop", "project_primary"),
                                 BldRepoRev("Repo2", "develop", "project_primary"),
@@ -230,6 +232,7 @@ def test_example_internal_regular_develop_HEADs(generated_bldconfigs):
 
 def test_example_internal_regular_master_submodules(generated_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "master", "submodules",
+                            "cfg-placeholder",
                             [
                                 BldRepoRev("Repo1", "master", "project_primary"),
                                 BldRepoRev("Repo2", "r2_master_head", "project_primary"),
@@ -244,6 +247,7 @@ def test_example_internal_regular_master_submodules(generated_bldconfigs):
 
 def test_example_internal_regular_master_HEADs(generated_bldconfigs):
     for each in [ BldConfig("Repo1", "regular", "master", "HEADs",
+                            "cfg-placeholder",
                             [
                                 BldRepoRev("Repo1", "master", "project_primary"),
                                 BldRepoRev("Repo2", "master", "project_primary"),
