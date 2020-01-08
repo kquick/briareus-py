@@ -152,6 +152,10 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
             r = run_hh_gen_with_files(inpf.read(), inpcfg, None, outfname,
                                       params=params,
                                       prev_gen_result=prev_gen_result)
+    if r is None:
+        # If r is None, then an --up-to probably halted production
+        return None
+
     for fname in r[1]:
         if fname:
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
