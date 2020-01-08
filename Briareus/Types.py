@@ -11,9 +11,36 @@ class BldConfig(object):
     branchtype = attr.ib()  # default="regular"
     branchname = attr.ib()
     strategy   = attr.ib()  # default="standard"
-    description= attr.ib()  # placeholder
+    description= attr.ib()  # PR_Solo, PR_Repogroup, PR_Grouped, BranchReq, MainBranch (or string placeholder)
     blds       = attr.ib(factory=frozenset, converter=frozenset)  # list of BldRepoRev
     bldvars    = attr.ib(factory=frozenset, converter=frozenset)  # list of BldVariable
+
+@attr.s(frozen=True)
+class BranchReq(object):
+    projectname = attr.ib() # string
+    branchname  = attr.ib() # string
+
+@attr.s(frozen=True)
+class MainBranch(object):
+    projectname = attr.ib() # string
+    branchname  = attr.ib() # string
+
+def pr_type(typespec, *args):
+    return eval(typespec)(*args)
+
+@attr.s(frozen=True)
+class PR_Solo(object):
+    reponame   = attr.ib() # string
+    pullreq_id = attr.ib() # string, never project_primary
+
+@attr.s(frozen=True)
+class PR_Repogroup(object):
+    pullreq_id = attr.ib() # string, never project_primary
+    reponames  = attr.ib() # [string]
+
+@attr.s(frozen=True)
+class PR_Grouped(object):
+    branchname = attr.ib() # string
 
 @attr.s(frozen=True)
 class BldRepoRev(object):
@@ -150,6 +177,12 @@ logic_result_expr = {
     "standard": "standard",
     "project_primary": "project_primary",
     "bldcfg": lambda *args: BldConfig(*args),
+    "branchreq": BranchReq,
+    "is_main_branch": MainBranch,
+    "pr_type": pr_type,
+    "pr_solo": "PR_Solo",
+    "pr_repogroup": "PR_Repogroup",
+    "pr_grouped": "PR_Grouped",
     "bld": lambda *args: BldRepoRev(*args),
     "brr": lambda n: n,
     "varvalue": lambda *args: BldVariable(*args),

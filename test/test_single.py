@@ -3,16 +3,18 @@
 import json
 import pytest
 from thespian.actors import *
-from Briareus.Types import BldConfig, BldRepoRev
+from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grouped
 from Briareus.VCS.InternalMessages import *
 
 
 input_spec = '''
 {
   "Repos" : [ ("TheRepo", "the_repo_url") ]
-, "Branches" : [ "master", "feat1", "dev" ]
+, "Branches" : [ "feat1", "dev" ]
 }
 '''
+# n.b. "master" is not listed in Branches, but a configuration for
+# master will be generated because it is the main branch for TheRepo.
 
 def test_example_facts(generated_facts):
     assert expected_facts == list(map(str, generated_facts))
@@ -62,7 +64,6 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous varvalue/3.
 project("TheRepo").
 repo("TheRepo", "TheRepo").
-branchreq("TheRepo", "master").
 default_main_branch("master").
 branchreq("TheRepo", "feat1").
 branchreq("TheRepo", "dev").
@@ -111,11 +112,11 @@ bldcfg("TheRepo",regular,"master",standard,[bld("TheRepo","master",brr(1))],[])
 
 
 def test_single_internal_count(generated_bldconfigs):
-    assert 5 == len(generated_bldconfigs.cfg_build_configs)
+    assert 4 == len(generated_bldconfigs.cfg_build_configs)
 
 def test_single_internal_master(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "master", "standard",
-                         "cfg-placeholder",
+                         MainBranch("TheRepo", "master"),
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
@@ -124,7 +125,7 @@ def test_single_internal_master(generated_bldconfigs):
 
 def test_single_internal_feat1(generated_bldconfigs):
     expected = BldConfig("TheRepo", "regular", "feat1", "standard",
-                         "cfg-placeholder",
+                         BranchReq("TheRepo", "feat1"),
                          [
                              BldRepoRev("TheRepo", "feat1", "project_primary"),
                          ],
@@ -132,17 +133,19 @@ def test_single_internal_feat1(generated_bldconfigs):
     assert expected in generated_bldconfigs.cfg_build_configs
 
 def test_single_internal_dev(generated_bldconfigs):
+    # The VCS info indicates there is no "dev" branch for TheRepo, so
+    # this build configuration should not exist.
     expected = BldConfig("TheRepo", "regular", "dev", "standard",
-                         "cfg-placeholder",
+                         BranchReq("TheRepo", "dev"),
                          [
                              BldRepoRev("TheRepo", "master", "project_primary"),
                          ],
                          [])
-    assert expected in generated_bldconfigs.cfg_build_configs
+    assert expected not in generated_bldconfigs.cfg_build_configs
 
 def test_single_internal_toad(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "toad", "standard",
-                         "cfg-placeholder",
+                         PR_Grouped("toad"),
                          [
                              BldRepoRev("TheRepo", "toad", "134"),
                          ],
@@ -151,7 +154,7 @@ def test_single_internal_toad(generated_bldconfigs):
 
 def test_single_internal_frog(generated_bldconfigs):
     expected = BldConfig("TheRepo", "pullreq", "frog", "standard",
-                         "cfg-placeholder",
+                         PR_Grouped("frog"),
                          [
                              BldRepoRev("TheRepo", "frog", "91"),
                          ],

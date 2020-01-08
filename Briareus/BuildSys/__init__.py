@@ -1,5 +1,8 @@
 # Support for various backend builders
 
+from Briareus.Types import PR_Solo
+
+
 def buildcfg_name(bldcfg, input_desc, repo_info):
     fix_branchname = lambda bn: bn.replace('/', '~~')
     if bldcfg.bldvars:
@@ -89,6 +92,7 @@ def buildcfg_name(bldcfg, input_desc, repo_info):
             if BRR.repover in [ r.main_branch
                                 for r in input_desc.RL
                                 if BRR.reponame == r.repo_name ] or \
+               isinstance(bldcfg.description, PR_Solo) or \
                len([ True
                         for PR in repo_info['pullreqs']
                         if PR.pr_target_repo == BRR.reponame and

@@ -1,4 +1,5 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
+                            PR_Grouped, PR_Solo, BranchReq,
                             ProjectSummary, StatusReport, VarFailure)
 from git_exampledups import GitExample
 import json
@@ -261,7 +262,7 @@ def test_example_internal_regular_master_standard(generated_bldconfigs):
                             branchtype="regular",
                             branchname="master",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=BranchReq("Repo1", "master"),
                             blds=[BldRepoRev("Repo1", "master", "project_primary"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "project_primary"),
@@ -275,7 +276,7 @@ def test_example_internal_regular_develop_standard(generated_bldconfigs):
                             branchtype="regular",
                             branchname="develop",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=BranchReq("Repo1", "develop"),
                             blds=[BldRepoRev("Repo1", "develop", "project_primary"),
                                   BldRepoRev("Repo2", "develop", "project_primary"),
                                   BldRepoRev("Repo3", "develop", "project_primary"),
@@ -289,7 +290,7 @@ def test_example_internal_pr1_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Solo("Repo1", "1"),
                             blds=[BldRepoRev("Repo1", "master", "1"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "project_primary"),
@@ -303,7 +304,7 @@ def test_example_internal_pr2r1_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Solo("Repo1", "2"),
                             blds=[BldRepoRev("Repo1", "master", "2"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "project_primary"),
@@ -317,7 +318,7 @@ def test_example_internal_pr2r3_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="develop",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("develop"),
                             blds=[BldRepoRev("Repo1", "develop", "project_primary"),
                                   BldRepoRev("Repo2", "develop", "project_primary"),
                                   BldRepoRev("Repo3", "develop", "2"),
@@ -331,7 +332,7 @@ def test_example_internal_pr1r3_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="foo",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("foo"),
                             blds=[BldRepoRev("Repo1", "master", "project_primary"),
                                   BldRepoRev("Repo2", "foo", "project_primary"),
                                   BldRepoRev("Repo3", "foo", "1"),
@@ -348,7 +349,7 @@ def test_example_internal_pr9r3_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Solo("Repo3", "9"),
                             blds=[BldRepoRev("Repo1", "master", "project_primary"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "9"),
@@ -362,7 +363,7 @@ def test_example_internal_pr101r3_prReq8r1_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="dog",
                             strategy="standard",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("dog"),
                             blds=[BldRepoRev("Repo1", "dog", "Req8"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "dog", "101"),
@@ -381,7 +382,7 @@ def test_example_hydra_master(example_hydra_jobsets):
     expected = dict([
         ( "master.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr1:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: brr33:Repo1, brr33:Repo2, brr33:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -428,7 +429,7 @@ def test_example_hydra_develop(example_hydra_jobsets):
     expected = dict([
         ( "develop.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr1:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: brr33:Repo1, brr33:Repo2, brr33:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -475,7 +476,7 @@ def test_example_hydra_R1PR1(example_hydra_jobsets):
     expected = dict([
         ( "PR1-master.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR1-brr3:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: PR1-brr31:Repo1, brr33:Repo2, brr33:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -522,7 +523,7 @@ def test_example_hydra_R1PR2(example_hydra_jobsets):
     expected = dict([
         ( "PR2-master.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR2-brr3:Repo1, brr1:Repo2, brr1:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: PR2-brr31:Repo1, brr33:Repo2, brr33:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -569,7 +570,7 @@ def test_example_hydra_R3PR1(example_hydra_jobsets):
     expected = dict([
         ( "PR-foo.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr2:Repo1, brr1:Repo2, PR1-brr3:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: brr33:Repo1, brr30:Repo2, PR1-brr31:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -616,7 +617,7 @@ def test_example_hydra_R3PR2(example_hydra_jobsets):
     expected = dict([
         ( "PR-develop.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr1:Repo1, brr1:Repo2, PR2-brr3:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: brr30:Repo1, brr30:Repo2, PR2-brr31:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -663,7 +664,7 @@ def test_example_hydra_R3PR9(example_hydra_jobsets):
     expected = dict([
         ( "PR9-master.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr1:Repo1, brr1:Repo2, PR9-brr3:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: brr33:Repo1, brr33:Repo2, PR9-brr31:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -710,7 +711,7 @@ def test_example_hydra_R3PR101_R1_PRReq8(example_hydra_jobsets):
     expected = dict([
         ( "PR-dog.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PRReq8-brr3:Repo1, brr2:Repo2, PR101-brr3:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: PRReq8-brr31:Repo1, brr33:Repo2, PR101-brr31:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,

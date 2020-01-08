@@ -1,4 +1,4 @@
-from Briareus.Types import BldConfig, BldRepoRev, BldVariable
+from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
 from Briareus.VCS.InternalMessages import PullReqInfo
 from git_example1 import GitExample1
 from datetime import timedelta
@@ -86,7 +86,7 @@ def test_example_internal_bugfix9_pullreq_submods(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="bugfix9",
                             strategy="submodules",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("bugfix9"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "r3_master_head^9", "project_primary"),
                                   BldRepoRev("R4", "bugfix9", "8192"),
@@ -100,7 +100,7 @@ def test_example_internal_bugfix9_pullreq_HEADs(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="bugfix9",
                             strategy="HEADs",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("bugfix9"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "master", "project_primary"),
                                   BldRepoRev("R4", "bugfix9", "8192"),
@@ -114,7 +114,7 @@ def test_example_internal_devtest_pullreq_submods(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="devtest",
                             strategy="submodules",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("devtest"),
                             blds=[BldRepoRev("R10", "devtest", "321"),
                                   BldRepoRev("R3", "r3_master_head^7", "project_primary"),
                                   BldRepoRev("R4", "r4_master_head^11", "project_primary"),
@@ -131,7 +131,7 @@ def test_example_internal_devtest_pullreq_HEADs(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="devtest",
                             strategy="HEADs",
-                            description="cfg-placeholder",
+                            description=PR_Grouped("devtest"),
                             blds=[BldRepoRev("R10", "devtest", "321"),
                                   BldRepoRev("R3", "master", "project_primary"),
                                   BldRepoRev("R4", "master", "project_primary"),
@@ -168,7 +168,7 @@ def test_example_internal_feat1_regular_HEADs(generated_bldconfigs):
                             branchtype="regular",
                             branchname="feat1",
                             strategy="HEADs",
-                            description="cfg-placeholder",
+                            description=BranchReq("R10", "feat1"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "master", "project_primary"),
                                   BldRepoRev("R4", "feat1", "project_primary"),
@@ -182,7 +182,7 @@ def test_example_internal_master_regular_submodules(generated_bldconfigs):
                             branchtype="regular",
                             branchname="master",
                             strategy="submodules",
-                            description="cfg-placeholder",
+                            description=BranchReq("R10", "master"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "r3_master_head^9", "project_primary"),
                                   BldRepoRev("R4", "r4_master_head^1", "project_primary"),
@@ -196,7 +196,7 @@ def test_example_internal_master_regular_HEADs(generated_bldconfigs):
                             branchtype="regular",
                             branchname="master",
                             strategy="HEADs",
-                            description="cfg-placeholder",
+                            description=BranchReq("R10", "master"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "master", "project_primary"),
                                   BldRepoRev("R4", "master", "project_primary"),
@@ -222,7 +222,7 @@ def test_example_internal_dev_regular_HEADs(generated_bldconfigs):
                             branchtype="regular",
                             branchname="dev",
                             strategy="HEADs",
-                            description="cfg-placeholder",
+                            description=BranchReq("R10", "dev"),
                             blds=[BldRepoRev("R10", "master", "project_primary"),
                                   BldRepoRev("R3", "master", "project_primary"),
                                   BldRepoRev("R4", "master", "project_primary"),
@@ -241,7 +241,7 @@ def test_example_hydra_master_submodules(example_hydra_jobsets):
     expected = dict([
         ( "master.submodules-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr1:R10, brr4:R3, brr4:R4, ghcver=%s" % (G),
+            "description": "Build configuration: brr34:R10, brr34:R3, brr34:R4, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -288,7 +288,7 @@ def test_example_hydra_master_heads(example_hydra_jobsets):
     expected = dict([
           ("master.HEADs-%s" % (G), {
              "checkinterval": 600,
-             "description": "Build configuration: brr1:R10, brr5:R3, brr5:R4, ghcver=%s" % (G),
+             "description": "Build configuration: brr32:R10, brr32:R3, brr32:R4, ghcver=%s" % (G),
              "emailoverride": "",
              "enabled": 1,
              "enableemail": False,
@@ -335,7 +335,7 @@ def test_example_hydra_feat1_heads(example_hydra_jobsets):
     expected = dict([
         ( "feat1.HEADs-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr2:R10, brr14:R3, brr15:R4, ghcver=%s" % (G),
+            "description": "Build configuration: brr32:R10, brr32:R3, brr32:R4, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -382,7 +382,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
     expected = dict([
         ( "dev.HEADs-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr2:R10, brr14:R3, brr14:R4, ghcver=%s" % (G),
+            "description": "Build configuration: brr32:R10, brr32:R3, brr32:R4, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -429,7 +429,7 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
     expected = dict([
         ( "PR-bugfix9.submodules-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr2:R10, brr11:R3, PR8192-brr10:R4, ghcver=%s" % (G),
+            "description": "Build configuration: brr34:R10, brr34:R3, PR8192-brr31:R4, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -476,7 +476,7 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
     expected = dict([
         ( "PR-bugfix9.HEADs-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: brr2:R10, brr12:R3, PR8192-brr10:R4, ghcver=%s" % (G),
+            "description": "Build configuration: brr32:R10, brr32:R3, PR8192-brr31:R4, ghcver=%s" % (G),
              "emailoverride": "",
              "enabled": 1,
              "enableemail": False,
@@ -525,7 +525,7 @@ def test_example_hydra_master_devtest_submodules(example_hydra_jobsets):
     expected = dict([
         ( "PR-devtest.submodules-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR321-brr3:R10, brr9:R3, brr9:R4, ghcver=%s" % (G),
+            "description": "Build configuration: PR321-brr31:R10, brr34:R3, brr34:R4, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -572,7 +572,7 @@ def test_example_hydra_master_devtest_heads(example_hydra_jobsets):
     expected = dict([
         ( "PR-devtest.HEADs-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PR321-brr3:R10, brr7:R3, brr7:R4, ghcver=%s" % (G),
+            "description": "Build configuration: PR321-brr31:R10, brr32:R3, brr32:R4, ghcver=%s" % (G),
              "emailoverride": "",
              "enabled": 1,
              "enableemail": False,
