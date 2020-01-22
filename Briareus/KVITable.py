@@ -403,7 +403,7 @@ class CenterCap(object):
     def __call__(self, val):
         return self.__class__(self._valstr, val)
     def render(self, width, cap):
-        raise NotImplemented('subclass must define a render method')
+        raise NotImplementedError('subclass must define a render method')
 
 class CenterCap_ASCII(CenterCap):
     def render(self, width, cap):
