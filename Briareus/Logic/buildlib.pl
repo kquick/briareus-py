@@ -12,6 +12,10 @@ all_repos_no_subs(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R), \+ subrepo(P
 all_repos(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R) ; subrepo(ProjRepo, R)), ALLR).
 all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
 
+repo_in_project(ProjRepo, Repo) :-
+    setof(R, (repo(ProjRepo, R) ; subrepo(ProjRepo, R)), RS),
+    member(Repo, RS).
+
 % proj_repo_branch: does the branch exist for the specified project?
 proj_repo_branch(R, B) :- is_project_repo(R), branchreq(R, B).
 proj_repo_branch(R, B) :- is_project_repo(R), is_main_branch(R, B), \+ branchreq(R, B).

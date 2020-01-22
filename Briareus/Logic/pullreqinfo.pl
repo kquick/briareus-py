@@ -1,5 +1,8 @@
 :- consult(buildlib).
 
+% ----------------------------------------------------------------------
+% PR Configuration Types
+
 % A pr_solo is a PR that should not be built with any other PRs,
 % because the PR is against the main branch (probably the repo was
 % forked and the PR generated from the fork without creating a branch
@@ -56,6 +59,9 @@ pr_type(pr_grouped, BranchName) :-
     length(PRList, NumPRs),
     NumPRs > 0.
 
+% ----------------------------------------------------------------------
+% PR Configurations
+
 % A pr_config describes a configuration for a pull request; this is a
 % subset of a build configuration that primarily describes the
 % PR-related information.  The PRCfg output is an array of
@@ -82,3 +88,18 @@ pr_config(pr_type(pr_grouped, BranchName), PRCfg) :-
                     ; (branch(Repo, BranchName),
                        \+pullreq(Repo, I, BranchName), R = branchcfg(Repo, BranchName))),
           PRCfg).
+
+% ----------------------------------------------------------------------
+% Misc support
+
+branch_for_prtype(ProjRepo, pr_type(pr_solo, Repo, _), Branch) :-
+    repo_in_project(ProjRepo, Repo)
+    , is_main_branch(Repo, Branch)
+.
+branch_for_prtype(ProjRepo, pr_type(pr_repogroup, _, RepoList), Branch) :-
+    maplist(repo_in_project(ProjRepo), RepoList)
+    , nth0(0, RepoList, R0)
+    , is_main_branch(R0, Branch)
+.
+branch_for_prtype(_ProjRepo, pr_type(pr_grouped, Branch), Branch).
+

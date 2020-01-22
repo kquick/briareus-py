@@ -8,29 +8,22 @@ build_config2(bldcfg(ProjRepo, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-
     , finish_config(ProjRepo, CFG, Branch, Strategy, BLDS, VARS)
     .
 
-build_config2(bldcfg(ProjRepo, BranchType, Branch, Strategy, Cfg, BLDS, VARS)) :-
+build_config2(bldcfg(ProjRepo, regular, Branch, Strategy, branchreq(ProjRepo, Branch), BLDS, VARS)) :-
     is_project_repo(ProjRepo)
     % Note that there might also be a pullreq for this branch, but the
     % pullreq is typically from a forked repo, and this branch was
     % specifically requested, so make the branchreq build distinct
     % from the pullreq build.
     , branchreq(ProjRepo, Branch)
-    % , \+ branch_covered_by_pullreq(Branch)
-    , Cfg = branchreq(ProjRepo, Branch)
-    , BranchType = regular
-    , CFG = []
-    , finish_config(ProjRepo, CFG, Branch, Strategy, BLDS, VARS)
+    , finish_config(ProjRepo, [], Branch, Strategy, BLDS, VARS)
     , is_branch_reachable(ProjRepo, Strategy, Branch)
     .
 
-build_config2(bldcfg(ProjRepo, BranchType, Branch, Strategy, Cfg, BLDS, VARS)) :-
+build_config2(bldcfg(ProjRepo, regular, Branch, Strategy, is_main_branch(ProjRepo, Branch), BLDS, VARS)) :-
     is_project_repo(ProjRepo)
     , is_main_branch(ProjRepo, Branch)
     , \+ branchreq(ProjRepo, Branch)
-    , Cfg = is_main_branch(ProjRepo, Branch)
-    , BranchType = regular
-    , CFG = []
-    , finish_config(ProjRepo, CFG, Branch, Strategy, BLDS, VARS)
+    , finish_config(ProjRepo, [], Branch, Strategy, BLDS, VARS)
     , is_branch_reachable(ProjRepo, Strategy, Branch)
     .
 
@@ -60,17 +53,6 @@ join_prblds_remblds(PRBLDS, REMBLDS, BLDS) :-
 
 bld_repo_in(RLIST, BLD) :- build_repo(BLD, R), member(R, RLIST).
 
-branch_for_prtype(ProjRepo, pr_type(pr_solo, Repo, _), Branch) :-
-    repo_in_project(ProjRepo, Repo)
-    , is_main_branch(Repo, Branch)
-.
-branch_for_prtype(ProjRepo, pr_type(pr_repogroup, _, RepoList), Branch) :-
-    maplist(repo_in_project(ProjRepo), RepoList)
-    , nth0(0, RepoList, R0)
-    , is_main_branch(R0, Branch)
-.
-branch_for_prtype(_ProjRepo, pr_type(pr_grouped, Branch), Branch).
-
 is_branch_reachable(ProjRepo, standard,   Branch) :- repo(ProjRepo, R), branch(R, Branch), !.
 is_branch_reachable(_PrjRepo, heads,      _Branch). % :- repo(ProjRepo, R), branch(R, Branch), !.  % KWQ: increases failures
 is_branch_reachable(ProjRepo, submodules, Branch) :-
@@ -80,10 +62,6 @@ is_branch_reachable(ProjRepo, submodules, Branch) :-
     , !  % only necessary to find one case.
 .
 
-
-repo_in_project(ProjRepo, Repo) :-
-    setof(R, (repo(ProjRepo, R) ; subrepo(ProjRepo, R)), RS),
-    member(Repo, RS).
 
 pr_builds([], []).
 pr_builds([prcfg(R,I,B)|PRCFGS], [bld(R,B,I,brr(31))|BLDS]) :-
