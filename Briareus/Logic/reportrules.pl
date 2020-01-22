@@ -16,6 +16,7 @@ good_status(fixed).
 
 bad_status(failed).
 bad_status(badconfig).
+bad_status(pending).  % as in not good_status
 
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
@@ -58,6 +59,13 @@ report(status_report(badconfig, project(ProjRepo), Strategy, BranchType, Branch,
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch, _),
     bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, _, _, configError).
+
+report(status_report(pending, project(ProjRepo), Strategy, BranchType, Branch, Bldcfg, Vars)) :-
+    is_project_repo(ProjRepo),
+    strategy(Strategy, ProjRepo, Branch),
+    branch_type(BranchType, Branch, _),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, _, N, configValid),
+    N > 0.
 
 report(complete_failure(ProjRepo)) :-
     is_project_repo(ProjRepo),
