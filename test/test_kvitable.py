@@ -33,6 +33,55 @@ def test_non_leaf_kvitable_add_refused():
     assert 'non-leaf' in str(idxerr.value)
     assert 'foo' in str(idxerr.value)
 
+def test_frozen_kvitable_add_key_key_refused():
+    kvit = KVITable({'foo':['bar','baz']}, kv_frozen=True)
+    kvit.add("hi", foo='bar')
+    with pytest.raises(IndexError) as idxerr:
+        kvit.add("oops", ('dog', "bark"), foo='baz')
+    assert 'kv_frozen' in str(idxerr.value)
+
+def test_non_frozen_kvitable_add_key():
+    kvit = KVITable({'foo':['bar','baz']}, kv_frozen=False)
+    kvit.add("hi", foo='bar')
+    kvit.add("yo", foo='baz', dog='woof')
+    rows = kvit.get_rows()
+    assert [
+        [ 'bar', '', 'hi' ],
+        [ 'baz', 'woof', 'yo'],
+    ] == rows
+    show = kvit.render()
+    assert '\n'.join([
+        '| foo |  dog | Value |',
+        '+-----+------+-------+',
+        '| bar |      |    hi |',
+        '| baz | woof |    yo |',
+    ]) == show
+
+def test_non_frozen_kvitable_add_deep_key():
+    kvit = KVITable({'foo':['bar','baz'],
+                     'moon':['beam', 'pie'],
+    },
+                    kv_frozen=False,
+                    valuecol_name='says',
+                    keyval_factory=lambda key: '?')
+    kvit.add("hi", foo='bar', moon='pie')
+    kvit.add("yo", foo='baz', moon='beam', dog='woof')
+    kvit.add("Excellent!", foo='Bill', moon='Ted', dog='arf arf')
+    rows = kvit.get_rows()
+    assert [
+        [ 'bar', 'pie', '?', 'hi' ],
+        [ 'baz', 'beam', 'woof', 'yo'],
+        [ 'Bill', 'Ted', 'arf arf', 'Excellent!'],
+    ] == rows
+    show = kvit.render()
+    assert '\n'.join([
+        '|  foo | moon |     dog |       says |',
+        '+------+------+---------+------------+',
+        '|  bar |  pie |       ? |         hi |',
+        '|  baz | beam |    woof |         yo |',
+        '| Bill |  Ted | arf arf | Excellent! |',
+    ]) == show
+
 def test_kvitable_cannot_extend_leaf():
     kvit = KVITable()
     kvit.add("hi", ('moo', "cow"), foo='bar')
@@ -436,4 +485,109 @@ def test_ptable():
         '| Melbourne | 1566 |    3806092 |           646.9 |',
         '|     Perth | 5386 |    1554769 |           869.4 |',
         '|    Sydney | 2058 |    4336374 |          1214.8 |',
+    ]) == show
+
+@pytest.fixture()
+def zoo_table():
+    kvit = KVITable({'Location': ['San Diego', 'LA', 'Miami', 'New York'],
+                     'Biome': ['Savannah', 'Jungle', 'Polar'],
+                     'Category': ['Animal', 'Reptile', 'Bird'],
+                     'Diet': ['Herbivore', 'Carnivore'],
+                     'Name': [],
+                     },
+                    valuecol_name='Count',
+                    default_factory=int,
+                    kv_frozen=False)
+    inc = lambda v: v+1
+    kvit.add(3, ('Diet', 'Carnivore'), ('Category', "Animal"), ('Biome', "Savannah"), Name='Lion', Location='New York')
+    kvit.add(2, ('Diet', 'Carnivore'), ('Category', "Animal"), ('Biome', "Savannah"), Name='Lion', Location='Miami')
+    kvit.add(4, ('Diet', 'Carnivore'), ('Category', "Animal"), ('Biome', "Savannah"), Name='Lion', Location='LA')
+    kvit.add(8, ('Diet', 'Carnivore'), ('Category', "Animal"), ('Biome', "Savannah"), Name='Lion', Location='San Diego')
+    kvit.add(2, Location='LA', Biome='Savannah', Category='Animal', Name='Giraffe', Diet='Herbivore')
+    kvit.add(1, Location='LA', Biome='Jungle', Category='Animal', Name='Hippo', Diet='Herbivore')
+    kvit.add(3, Location='LA', Biome='Savannah', Category='Animal', Diet='Herbivore', Name='Rhino')
+    kvit.add(20, Location='Miami', Biome='Polar', Category='Bird', Diet='Carnivore', Subtype='Gentoo', Name='Penguin')
+    kvit.add(8, Location='San Diego', Biome='Polar', Category='Bird', Diet='Carnivore', Subtype='Emperor', Name='Penguin')
+    kvit.add(2, Location='San Diego', Biome='Polar', Category='Bird', Diet='Carnivore', Subtype='Gentoo', Name='Penguin')
+    kvit.add(3, Location='Miami', Biome='Savannah', Category='Animal', Diet='Herbivore', Name='Giraffe', Subtype='Reticulated')
+    kvit.add(inc, Category='Animal', Diet='Carnivore', Biome="Savannah", Location='San Diego', Name='Lion', Subtype='')
+    kvit.add(inc, Location='San Diego', Biome='Polar', Category='Animal', Subtype='Polar', Name='Bear', Diet='Omnivore')
+    kvit.add(inc, Location='San Diego', Biome='Jungle', Category='Animal', Subtype='Sun', Name='Bear', Diet='Omnivore')
+    kvit.add(inc, Location='San Diego', Biome='Plains', Category='Animal', Subtype='Brown', Name='Bear', Diet='Omnivore')
+    kvit.add(inc, Location='San Diego', Biome='Plains', Category='Animal', Subtype='Black', Name='Bear', Diet='Omnivore')
+    return kvit
+
+def test_zoo_default_factory(zoo_table):
+    assert 4 == zoo_table.get( ('Location', 'LA'), Name='Lion', Diet='Carnivore', Category='Animal', Biome='Savannah', Subtype='')
+    assert 0 == zoo_table.get( ('Location', 'LA'), Name='Lion', Diet='Carnivore', Category='Animal', Biome='Polar', Subtype='')
+
+def test_zoo_flat_render(zoo_table):
+    show = zoo_table.render(row_repeat=False, row_group=['Location', 'Biome', 'Category'])
+    assert '\n'.join([
+        '|  Location |    Biome | Category |      Diet |    Name |     Subtype | Count |',
+        '+-----------+----------+----------+-----------+---------+-------------+-------+',
+        '| San Diego | Savannah |   Animal | Carnivore |    Lion |             |     9 |',
+        '|           +----------+----------+-----------+---------+-------------+-------+',
+        '|           |   Jungle |   Animal |  Omnivore |    Bear |         Sun |     1 |',
+        '|           +----------+----------+-----------+---------+-------------+-------+',
+        '|           |    Polar |   Animal |  Omnivore |    Bear |       Polar |     1 |',
+        '|           |          +----------+-----------+---------+-------------+-------+',
+        '|           |          |     Bird | Carnivore | Penguin |      Gentoo |     2 |',
+        '|           |          |          |           |         |     Emperor |     8 |',
+        '|           +----------+----------+-----------+---------+-------------+-------+',
+        '|           |   Plains |   Animal |  Omnivore |    Bear |       Brown |     1 |',
+        '|           |          |          |           |         |       Black |     1 |',
+        '+-----------+----------+----------+-----------+---------+-------------+-------+',
+        '|        LA | Savannah |   Animal | Herbivore | Giraffe |             |     2 |',
+        '|           |          |          |           |   Rhino |             |     3 |',
+        '|           |          |          | Carnivore |    Lion |             |     4 |',
+        '|           +----------+----------+-----------+---------+-------------+-------+',
+        '|           |   Jungle |   Animal | Herbivore |   Hippo |             |     1 |',
+        '+-----------+----------+----------+-----------+---------+-------------+-------+',
+        '|     Miami | Savannah |   Animal | Herbivore | Giraffe | Reticulated |     3 |',
+        '|           |          |          | Carnivore |    Lion |             |     2 |',
+        '|           +----------+----------+-----------+---------+-------------+-------+',
+        '|           |    Polar |     Bird | Carnivore | Penguin |      Gentoo |    20 |',
+        '+-----------+----------+----------+-----------+---------+-------------+-------+',
+        '|  New York | Savannah |   Animal | Carnivore |    Lion |             |     3 |',
+        '+-----------+----------+----------+-----------+---------+-------------+-------+',
+    ]) == show
+
+def test_zoo_no_subtype_colstack_render(zoo_table):
+    kv = zoo_table.keyvals()
+    subtype_idx = list(kv.keys()).index('Subtype')
+    del kv['Subtype']
+    zt2 = KVITable(kv,
+                   valuecol_name='Count',
+                   default_factory=int,
+                   kv_frozen=False)
+    for row in zoo_table.get_rows():
+        del row[subtype_idx]
+        zt2.add(lambda v: v + row[-1], *tuple(zip(kv, row[:-1])))
+    show = zt2.render(row_repeat=False, row_group=['Location', 'Biome', 'Category'], colstack_at='Name')
+    assert '\n'.join([
+        '|  Location |    Biome | Category |      Diet | Lion | Giraffe | Hippo | Rhino | Penguin | Bear | <- Name',
+        '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '| San Diego | Savannah |   Animal | Carnivore |    9 |         |       |       |         |      |',
+        '|           +----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |   Jungle |   Animal |  Omnivore |      |         |       |       |         |    1 |',
+        '|           +----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |    Polar |   Animal |  Omnivore |      |         |       |       |         |    1 |',
+        '|           |          +----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |          |     Bird | Carnivore |      |         |       |       |      10 |      |',
+        '|           +----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |   Plains |   Animal |  Omnivore |      |         |       |       |         |    2 |',
+        '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|        LA | Savannah |   Animal | Herbivore |      |       2 |       |     3 |         |      |',
+        '|           |          |          | Carnivore |    4 |         |       |       |         |      |',
+        '|           +----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |   Jungle |   Animal | Herbivore |      |         |     1 |       |         |      |',
+        '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|     Miami | Savannah |   Animal | Herbivore |      |       3 |       |       |         |      |',
+        '|           |          |          | Carnivore |    2 |         |       |       |         |      |',
+        '|           +----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|           |    Polar |     Bird | Carnivore |      |         |       |       |      20 |      |',
+        '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
+        '|  New York | Savannah |   Animal | Carnivore |    3 |         |       |       |         |      |',
+        '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
     ]) == show

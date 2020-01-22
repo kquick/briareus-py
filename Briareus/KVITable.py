@@ -53,18 +53,34 @@ class KVITable(object):
        combination for each key.
     """
 
-    def __init__(self, kv=list(), valuecol_name=None, kv_frozen=False):
+    def __init__(self, kv=list(), valuecol_name=None, kv_frozen=False,
+                 default_factory=None,
+                 keyval_factory=None,
+    ):
         """Initialize KVI table.
 
             * kv = array of keys OR dict of keys:[values]
 
             * kv_frozen = True if new keys and values can be provided via the .add method.
+
+            * valuecol_name is the name of the value column (if needed), and defaults to "Value"
+
+            * default_factory allows the table to act similar to a collections.defaultdict.
+
+            * keyval_factory is a function that takes a previously
+              undefined key and returns the default value to be used
+              for entries that did not previously have that key.
+
         """
         self._kv_frozen = kv_frozen
-        self._kv = kv if isinstance(kv, dict) else { e:[] for e in kv }   # Presumes 3.7 stable ordering dict behavior
+        self._kv = kv if isinstance(kv, dict) else { e:[] for e in kv }   # Presumes py3.7 stable ordering dict behavior
         self._entries = dict()  # dict_0(key = value for self._kv.keys()[0], value = dict_1(...)))
         self._valuecol_name = valuecol_name or 'Value'  # Name used for the value column (when needed)
+        self._default_factory = default_factory
+        self._keyval_factory = keyval_factory or (lambda key: '')
 
+    def keyvals(self):
+        return self._kv.copy()
 
     def add(self, entryval, *kv_tuples, **kv_spec):
         """Add value to (or overwrite) KVITable at position indexed by KV*,
@@ -82,49 +98,84 @@ class KVITable(object):
         use of *kv_tuples allows for situations where the K is not a
         valid keyword (e.g. it contains spaces).
 
+        Note that as a special feature, entryval can be a callable
+        which takes a single argument and returns a value.  The
+        single argument is the current entry value at that location
+        and the returned value is the new value to store.  This is
+        useful when table items are being updated with new information
+        (e.g. a count); the use of the default_factory argument is
+        recommended in conjunction with this ability.
+
         """
         kseq = list(self._kv.keys())
         kvt = list(kv_tuples)
         for each in kvt:
             if not isinstance(each, tuple) or len(each) != 2:
                 raise ValueError("kv arguments must each be a tuple of (key,value)")
-        self._entries = self._addseq(entryval, self._entries, kseq, kvt + list(kv_spec.items()))
+        _, self._entries = self._addseq(entryval, self._entries, kseq, kvt + list(kv_spec.items()))
 
     def _addseq(self, entryval, tableentries, kseq, kvtuples):
-        if not isinstance(tableentries, dict):
-            raise IndexError('KVITable attempt to overwrite leaf value at %s of %s'
-                             % (str(kseq), str(list(self._kv.keys()))))
+        if (kseq or kvtuples) and not isinstance(tableentries, dict):
+            raise IndexError('KVITable attempt to overwrite leaf value at %s of %s = %s'
+                             % (str(kseq), str(list(self._kv.keys())), tableentries))
         if kseq:
             if not kvtuples:
                 raise IndexError('KVITable add to non-leaf; remaining keys: %s' % str(kseq))
             kvtdict = dict(kvtuples)
             key = kseq[0]
             rem_kseq = kseq[1:]
-            val = kvtdict[key]  # raises IndexError if key is missing
+            val = kvtdict[key]  # raises KeyError if add call is missing a key
             del kvtdict[key]
             if val not in self._kv[key]:
                 if self._kv_frozen:
                     raise IndexError('KVITable is kv_frozen but got new value for key %s: %s' % (str(key), str(val)))
                 self._kv[key].append(val)
             vsubtable = tableentries.get(val, dict())
-            tableentries[val] = self._addseq(entryval, vsubtable, rem_kseq, list(kvtdict.items()))
-            return tableentries
+            alk, tableentries[val] = self._addseq(entryval, vsubtable, rem_kseq, list(kvtdict.items()))
+            if alk:
+                tableentries = self._add_key_layer(val, alk, tableentries)
+            return ([key] + alk if alk else []), tableentries
         if kvtuples:
             if self._kv_frozen:
                 raise IndexError("KVITable is kv_frozen but add has extra: %s" % str(kvtuples))
             (key,val) = kvtuples[0]
-            tableentries[val] = self._addseq(entryval, dict(), [], kvtuples[1:])
-            # Now that the recursive add is successful extend
-            # self._kv, but since this returning from depth-first
-            # recursion, the key at this level should be the *first*
-            # in the list of keys, so instead of just "self._kv[key] =
-            # [val]", create a new dict with this key added first.
-            self._kv = dict([(key, [val])] + list(self._kv.items()))
-            return tableentries
+            # Must update _kv (building downwards) before performing
+            # bottom-up recursion of additional layers of kvtuples;
+            # the exception handler removes this added key if the
+            # recursive addition fails.
+            self._kv[key] = [val]
+            try:
+                newkeylayer, tableentries[val] = self._addseq(entryval, dict(), [], kvtuples[1:])
+            except Exception:
+                del self._kv[key]
+                raise
+            if newkeylayer:
+                tableentries = self._add_key_layer(val, newkeylayer, tableentries)
+            return [key] + newkeylayer, tableentries
         # return the actual value; the tableentries passed in for this should have been an empty dict
-        if len(tableentries) > 0:
+        if isinstance(tableentries, dict) and len(tableentries) > 0:
             raise IndexError('KVITable attempt to set value when not at leaf: %s' % str(tableentries))
-        return entryval
+        if callable(entryval):
+            if isinstance(tableentries, dict):
+                # This was a default from the recursion
+                return [], entryval(self._default_factory())
+            return [], entryval(tableentries)
+        return [], entryval
+
+    def _add_key_layer(self, except_for_val, newkeys, tableentries):
+        if newkeys:
+            key = newkeys[0]
+            remkeys = newkeys[1:]
+            curvals = [v for v in tableentries.keys() if v != except_for_val]  # for stable iteration
+            for val in curvals:
+                if remkeys:
+                    tableentries[val] = self._add_key_layer(None, remkeys, tableentries[val])
+                else:
+                    newval = self._keyval_factory(key)
+                    tableentries[val] = dict([(newval, tableentries[val])])
+                    if newval not in self._kv[key]:
+                        self._kv[key].append(newval)
+        return tableentries
 
     def get(self, *kv_tuples, **kv_spec):
         """Get table value at position indexed by KV*,
@@ -146,18 +197,33 @@ class KVITable(object):
             kvtdict = dict(kvtuples)
             key = kseq[0]
             rem_kseq = kseq[1:]
-            val = kvtdict[key]  # raises IndexError if key is missing
+            val = kvtdict[key]  # raises KeyError if key is missing
             del kvtdict[key]
-            vsubtable = tableentries[val]  # raises IndexError if key is missing
+            if self._default_factory:
+                if val not in tableentries:
+                    return self._default_factory()
+            vsubtable = tableentries[val]  # raises KeyError if key is missing
             return self._getseq(vsubtable, rem_kseq, list(kvtdict.items()))
         if kvtuples:
             raise IndexError("KVITable get with extra KV indexing: %s" % str(kvtuples))
+        if isinstance(tableentries, dict) and len(tableentries) == 0:
+            return self._default_factory()
         return tableentries
 
     def render(self, format='ascii', hide_blank_rows=True,
                colstack_at=None,
                row_repeat=True,
                row_group=None):
+        """Return the rendering of the table in the specified format (default=ascii).
+
+            * hide_blank_rows is True (default) to remove rows for which there is no value(s)
+
+            * row_repeat is True (default) if an identical entry is to be repeated in subsequent rows
+
+            * row_group is a list of key values to be grouped with separator lines
+
+            * colstack_at is the column key where keys should be stacked columns with vals as each column header
+        """
         kseq = list(self._kv.keys())
         kvwidths = [ max(len(key), max(map(len, [as_string(v) for v in self._kv[key]]))) for key in kseq ]
         return { 'ascii' : self._render_ascii }[format](kseq,
