@@ -36,7 +36,8 @@ report(status_report(fixed, project(ProjRepo), Strategy, BranchType, Branch, Bld
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch, _),
     bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid),
-    prior_status(failed, project(ProjRepo), Strategy, BranchType, Branch, Bldname, PriorVars),
+    prior_status(PrevSts, project(ProjRepo), Strategy, BranchType, Branch, Bldname, PriorVars),
+    bad_status(PrevSts),
     listcmp(Vars, PriorVars).
 
 report(status_report(initial_success, project(ProjRepo), Strategy, BranchType, Branch, Bldname, Vars)) :-
