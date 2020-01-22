@@ -69,7 +69,7 @@ class HydraBuilder(BuilderBase.Builder):
                      if self._conf_file else {})
         project_name = input_cfg.get('project_name', 'unnamed')
         out_bldcfg_json = json.dumps(
-            # Sort by key output stability
+            # Sort by key for output stability
             { buildcfg_name(each, input_desc, repo_info) :
               self._jobset(input_desc, bldcfgs, input_cfg, each)
               for each in bldcfgs.cfg_build_configs },
