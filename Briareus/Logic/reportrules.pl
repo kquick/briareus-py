@@ -15,6 +15,7 @@ good_status(initial_success).
 good_status(fixed).
 
 bad_status(failed).
+bad_status(N) :- integer(N).
 bad_status(badconfig).
 bad_status(pending).  % as in not good_status
 
@@ -47,11 +48,11 @@ report(status_report(initial_success, project(ProjRepo), Strategy, BranchType, B
                 listcmp(Vars, PriorVars)), PS),
     length(PS, 0).
 
-report(status_report(failed, project(ProjRepo), Strategy, BranchType, Branch, Bldcfg, Vars)) :-
+report(status_report(N, project(ProjRepo), Strategy, BranchType, Branch, Bldname, Vars)) :-
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldcfg, _, _, N, 0, configValid),
+    bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldname, _, _, N, 0, configValid),
     N > 0.
 
 report(status_report(badconfig, project(ProjRepo), Strategy, BranchType, Branch, Bldcfg, Vars)) :-

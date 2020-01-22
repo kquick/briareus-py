@@ -90,7 +90,7 @@ class ProjectSummary(object):
 
 @attr.s(frozen=True)
 class StatusReport(object):
-    status    = attr.ib()  # string "success" or "failed"
+    status    = attr.ib()  # string "succeeded", "fixed", "initial_success", "pending", "badconfig", or int count of failing build jobs.
     project   = attr.ib()  # string name of project
     strategy  = attr.ib()  # string: submodules, heads, standard
     branchtype= attr.ib()  # string: regular, pullreq
