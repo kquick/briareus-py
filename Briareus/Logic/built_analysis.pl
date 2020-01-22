@@ -1,4 +1,4 @@
-:- [reporules,buildcfg,reportrules,analysis],
+:- [buildcfg,reportrules,analysis],
    setof(X, report(X), CFGS),
    findall(A, analysis(A), AS),
    findall(N, action(N), NS),
