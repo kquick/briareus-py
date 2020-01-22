@@ -71,10 +71,12 @@ let
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -C ${inpcfg} -r ${briareus_rundir}/${name}.hhr
 
-             cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
-             chmod +w ${briareus_rundir}/${name}_sts.html
-             ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr >> ${briareus_rundir}/${name}_sts.html
-             echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
+             mkdir -p ${briareus_rundir}/html;
+             htmlout="${briareus_rundir}/html/${name}_sts.html";
+             cp ${briareus}/html/status_hdr.html $htmlout
+             chmod +w $htmlout
+             ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr >> $htmlout
+             echo '</body></html>' >> $htmlout
              set +x
       '';
 
@@ -168,11 +170,13 @@ let
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${builder_spec} ${project.hhd} ${briareus_outfile name}
 
-             cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
-             chmod +w ${briareus_rundir}/${name}_sts.html
-             ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr >> ${briareus_rundir}/${name}_sts.html
-             echo "<br><hr><p><i>Updated: $(date)</i></p>" >>  ${briareus_rundir}/${name}_sts.html
-             echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
+             mkdir -p ${briareus_rundir}/html;
+             htmlout="${briareus_rundir}/html/${name}_sts.html";
+             cp ${briareus}/html/status_hdr.html $htmlout
+             chmod +w $htmlout
+             ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr >> $htmlout
+             echo "<br><hr><p><i>Updated: $(date)</i></p>" >>  $htmlout
+             echo '</body></html>' >> $htmlout
 
 	     set +x
              '';
