@@ -279,7 +279,7 @@ class KVITable__Render_ASCII(KVITable__Render_):
     def __init__(self, *args, valstr=None, entrystr=None, **kw):
         super(KVITable__Render_ASCII, self).__init__(*args, **kw)
         self._valstr = valstr or as_string
-        self._entrystr = entrystr or as_string
+        self._entrystr = entrystr or (lambda _, v: as_string(v))
 
     def render(self):
         kseq = list(self._table._kv.keys())
@@ -314,7 +314,8 @@ class KVITable__Render_ASCII(KVITable__Render_):
             ]
         # colstack_at wasn't recognized, so devolve to a non-colstack table
         valwidth = lambda: [ max(len(self._valstr(self._table._valuecol_name)),
-                                 max([len(self._entrystr(row[-1]))
+                                 max([len(self._entrystr(zip(self._table._kv.keys(), row[:-1]),
+                                                         row[-1]))
                                       for row in self._table.get_rows()])) ]  # KWQ
         return [ (FmtLine(valwidth), [self._valstr(self._table._valuecol_name)], '') ]
 
@@ -347,14 +348,14 @@ class KVITable__Render_ASCII(KVITable__Render_):
             raise RuntimeError('Called _hdrvalstep with empty kseq after matching colstack_at in kseq')
 
     def _ascii_renderseq(self, fmt, kseq, tablecells):
-        rows = self._ascii_rows(kseq, tablecells)
+        rows = self._ascii_rows(kseq, tablecells, [])
         return [ fmt.render(row) for _,row in rows ]
 
-    def _ascii_rows(self, kseq, tablecells):
+    def _ascii_rows(self, kseq, tablecells, path):
         if kseq:
             key = kseq[0]
             if self._colstack_at == key:
-                return [(False, self._ascii_multival_rows(kseq, tablecells))]
+                return [(False, self._ascii_multival_rows(kseq, tablecells, path))]
             rem_keys = kseq[1:]
             ret = []
             for each in self._table._kv[key]:
@@ -364,7 +365,10 @@ class KVITable__Render_ASCII(KVITable__Render_):
                 ret.extend( [ (s, [self._valstr(each
                                                 if (self._row_repeat or n == 0) and not s
                                                 else '')] + l)
-                              for n,(s,l) in enumerate(self._ascii_rows(rem_keys, eachval)) ])
+                              for n,(s,l) in enumerate(self._ascii_rows(
+                                      rem_keys,
+                                      eachval,
+                                      path + [(key, each)])) ])
                 addgrpline = self._row_group is not None and key in self._row_group
                 if addgrpline:
                     grpline = (True, [ Separator() ] * len(ret[0][1]))
@@ -373,20 +377,21 @@ class KVITable__Render_ASCII(KVITable__Render_):
                     else:
                         ret.append( grpline )
             return ret
-        return [ (False, [' ' if tablecells == dict() else self._entrystr(tablecells)]) ]
+        return [ (False, [' ' if tablecells == dict() else self._entrystr(path, tablecells)]) ]
 
-    def _ascii_multival_rows(self, kseq, tablecells):
-        return [self._entrystr(entry)
-                for _path,entry in self._table._get_entries_matching({},
-                                                                     ([], { k:self._table._kv[k] for k in kseq }),
-                                                                     tablecells,
-                                                                     include_blanks=True,
+    def _ascii_multival_rows(self, kseq, tablecells, pathstart):
+        return [self._entrystr(pathstart + path,entry)
+                for path,entry in self._table._get_entries_matching(
+                        {},
+                        ([], { k:self._table._kv[k] for k in kseq }),
+                        tablecells,
+                        include_blanks=True,
                 )]
 
     def cellwidths(self, entrystr, **path):
         """Get a list of the widths of every value in the table that matches
            the (possibly partial) path elements."""
-        return [ len(entrystr(e)) for p,e in self._table.get_entries_matching(**path) ]  # KWQ
+        return [ len(entrystr(p,e)) for p,e in self._table.get_entries_matching(**path) ]
 
 
 class Separator(object): pass
@@ -452,7 +457,7 @@ class KVITable__Render_HTML(KVITable__Render_):
     def __init__(self, *args, valstr=None, entrystr=None, **kw):
         super(KVITable__Render_HTML, self).__init__(*args, **kw)
         self._valstr = (lambda v: RenderVal(valstr(v))) if valstr else RenderVal
-        self._entrystr = (lambda e: RenderCell(entrystr(e))) if entrystr else RenderCell
+        self._entrystr = (lambda p,e: RenderCell(p, entrystr(p,e))) if entrystr else RenderCell
 
     def render(self):
         kseq = list(self._table._kv.keys())
@@ -523,21 +528,21 @@ class KVITable__Render_HTML(KVITable__Render_):
             raise RuntimeError('Called _hdrvalstep with empty kseq after matching colstack_at in kseq')
 
     def _html_renderseq(self, fmt, kseq, tablecells):
-        rows = self._html_rows(kseq, tablecells)
+        rows = self._html_rows(kseq, tablecells, [])
         return [ fmt.render(row) for _,row in rows ]
 
-    def _html_rows(self, kseq, tablecells):
+    def _html_rows(self, kseq, tablecells, path):
         if kseq:
             key = kseq[0]
             if self._colstack_at == key:
-                return [(False, self._html_multival_rows(kseq, tablecells))]
+                return [(False, self._html_multival_rows(kseq, tablecells, path))]
             rem_keys = kseq[1:]
             ret = []
             for each in self._table._kv[key]:
                 if each not in tablecells and self._hide_blank_rows:
                     continue
                 eachval = tablecells.get(each, dict())
-                rightrows = self._html_rows(rem_keys, eachval)
+                rightrows = self._html_rows(rem_keys, eachval, path + [(key, each)])
                 addgrpline = self._row_group is not None and key in self._row_group
                 if self._row_repeat:
                     ret.extend( [ (s, [self._valstr(each).add_class('last_in_group' if s else None)] + l)
@@ -552,11 +557,11 @@ class KVITable__Render_HTML(KVITable__Render_):
                 if addgrpline:
                     ret[-1] = (True, [ each.add_class('last_in_group') for each in ret[-1][1] ])
             return ret
-        return [ (False, [' ' if tablecells == dict() else self._entrystr(tablecells)]) ]  # no need for first elem
+        return [ (False, [' ' if tablecells == dict() else self._entrystr(path, tablecells)]) ]  # no need for first elem
 
-    def _html_multival_rows(self, kseq, tablecells):
-        return [self._entrystr(entry)
-                for _path,entry in self._table._get_entries_matching(
+    def _html_multival_rows(self, kseq, tablecells, pathstart):
+        return [self._entrystr(pathstart + path,entry)
+                for path,entry in self._table._get_entries_matching(
                         {},
                         ([], { k:self._table._kv[k] for k in kseq }),
                         tablecells,
@@ -614,7 +619,7 @@ class RenderVal(HTML__TableElem):
         super(RenderVal, self).__init__(val, tag='th', classes=["kvitable_th"])
 
 class RenderCell(HTML__TableElem):
-    def __init__(self, entry):
+    def __init__(self, _path, entry):
         super(RenderCell, self).__init__(entry, tag='td', classes=["kvitable_td"])
 
 class FmtLine_HTML(object):
