@@ -285,8 +285,9 @@ class KVITable(object):
             if len(kseq) == 1:
                 # Reached a leaf
                 titles = self._kv[key]
-                fmt = FmtLine([ max(len(as_string(val)), max(self.cellwidths(**{key: val})))
-                                for val in self._kv[key] ])
+                fmt = FmtLine([ max(len(as_string(val)),
+                                    max([0] + self.cellwidths(**{key: val})))
+                                for val in titles ])
                 return [ (fmt, titles, ' <- ' + key) ]
             else:
                 subhdrs = self._hdrvalstep(kseq[1:])
