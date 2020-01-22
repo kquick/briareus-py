@@ -219,7 +219,7 @@ class KVITable(object):
                         if include_blanks or val in path_tablecells
                       ], [])
 
-    def render(self, format='ascii', hide_blank_rows=True,
+    def render(self, as_format='ascii', hide_blank_rows=True,
                colstack_at=None,
                row_repeat=True,
                row_group=None,
@@ -248,7 +248,7 @@ class KVITable(object):
         return {
             'ascii' : KVITable__Render_ASCII,
             'html' : KVITable__Render_HTML,
-        }[format](self,
+        }[as_format](self,
                   hide_blank_rows=hide_blank_rows,
                   colstack_at=colstack_at,
                   row_repeat=row_repeat,
