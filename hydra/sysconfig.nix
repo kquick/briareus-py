@@ -50,6 +50,8 @@ let
     let
       startMin = if projnum == null then 0 else projnum;
 
+      builder_URL = '/hydra/jobset';
+
       # This script is run periodically to fetch the input Briareus
       # files for this project (in case they have changed) and
       # re-run briareus to generate new build configurations (which
@@ -68,6 +70,11 @@ let
 
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -C ${inpcfg} -r ${briareus_rundir}/${name}.hhr
+
+             cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
+             chmod +w ${briareus_rundir}/${name}_sts.html
+             ${briareus}/bin/hh_status -f html -U ${builder_URL} >> ${briareus_rundir}/${name}_sts.html
+             echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
              set +x
       '';
 
@@ -160,6 +167,12 @@ let
 
              # Run Briareus to generate build configs for Hydra
              ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${builder_spec} ${project.hhd} ${briareus_outfile name}
+
+             cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
+             chmod +w ${briareus_rundir}/${name}_sts.html
+             ${briareus}/bin/hh_status -f html -U ${project.builderURL} >> ${briareus_rundir}/${name}_sts.html
+             echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
+
 	     set +x
              '';
 
