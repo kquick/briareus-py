@@ -1,3 +1,4 @@
+:- consult(buildlib).
 :- consult(pullreqinfo).
 
 build_config2(bldcfg(ProjRepo, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-

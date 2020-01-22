@@ -1,18 +1,6 @@
 /* Rules and reasoning -------------------------------------------------------------- */
 
-%% Test if an argument is a Project Repo
-is_project_repo(R) :- repo(R, R), project(R).
-
-proj_repo_branch(R, B) :- is_project_repo(R), branchreq(R, B).
-proj_repo_branch(R, B) :- is_project_repo(R), is_main_branch(R, B), \+ branchreq(R, B).
-
-has_gitmodules(R, B) :-
-    bagof(B, V^S^P^(is_project_repo(R), (proj_repo_branch(R, B); pullreq(R,_,B)), submodule(R, P, B, S, V)), BHG),
-    \+ length(BHG, 0).
-
-all_repos_no_subs(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R), \+ subrepo(ProjRepo, R)), ALLR).
-all_repos(ProjRepo, ALLR) :- findall(R, (repo(ProjRepo, R) ; subrepo(ProjRepo, R)), ALLR).
-all_vars(ProjRepo, ALLV) :- findall(VN, varname(ProjRepo, VN), ALLV).
+:- consult(buildlib).
 
 build_config(bldcfg(ProjRepo, BranchType, Branch, Strategy, "cfg-placeholder", BLDS, VARS)) :-
     is_project_repo(ProjRepo),
@@ -42,36 +30,7 @@ reachable_branch(ProjRepo, submodules, regular, Branch) :-
     member(R, TLR),
     !.  % only necessary to find one case.
 
-is_main_branch(Repo, Branch) :-
-    branch(Repo, Branch),
-    (main_branch(Repo, Branch) ; (default_main_branch(Branch), \+ main_branch(Repo, _))).
-
-varcombs(_, [], []).
-varcombs(ProjRepo, [VN|VNS], [varvalue(ProjRepo,VN,VVS)|VNSVS]) :-
-    varname(ProjRepo, VN),
-    varvalue(ProjRepo, VN,VVS),
-    varcombs(ProjRepo, VNS, VNSVS).
-
-branch_type(pullreq, B, PR_ID) :- setof((PI,PB), R^pullreq(R, PI, PB), XS), member((PR_ID,B), XS).
-branch_type(regular, B, project_primary) :-
-    setof(BR, R^proj_repo_branch(R,BR), BRS), member(B, BRS).
-
-useable_submodules(R, B) :-
-    (branch(R, B), has_gitmodules(R, B));
-    (is_main_branch(R, MB), has_gitmodules(R, MB), \+ branch(R, B)).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-strategy_plan(submodules, R, B) :- (branch_type(pullreq, B, _I) ; branchreq(R, B); is_main_branch(R, B)), useable_submodules(R, B).
-strategy_plan(heads,      R, B) :-  (branchreq(R, B); is_main_branch(R, B)), useable_submodules(R, B).
-strategy_plan(heads,      R, B) :-  branch_type(pullreq, B, _I), submodule(R, _I2, _B, _SR, _SRRef).
-strategy_plan(standard,   R, B) :- (branch_type(pullreq, B, _I)
-                              ; branchreq(R, B)
-                              ; is_main_branch(R, B)
-                              ), \+ strategy_plan(heads, R, B).
-
-strategy(S, R, B) :-
-    setof(ST, strategy_plan(ST,R,B), SS), member(S, SS).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

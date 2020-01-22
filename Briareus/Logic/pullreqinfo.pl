@@ -1,3 +1,5 @@
+:- consult(buildlib).
+
 % A pr_solo is a PR that should not be built with any other PRs,
 % because the PR is against the main branch (probably the repo was
 % forked and the PR generated from the fork without creating a branch
