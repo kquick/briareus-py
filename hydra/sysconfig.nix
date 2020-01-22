@@ -50,7 +50,7 @@ let
     let
       startMin = if projnum == null then 0 else projnum;
 
-      builder_URL = '/hydra/jobset';
+      builder_URL = "/hydra/jobset";
 
       # This script is run periodically to fetch the input Briareus
       # files for this project (in case they have changed) and
