@@ -2,6 +2,7 @@ import os.path
 import fcntl
 import pprint
 import time
+import sys
 from Briareus.Types import *
 
 def get_prior_report(report_fname, with_lock=True):
@@ -27,8 +28,9 @@ def get_prior_report(report_fname, with_lock=True):
        If the input file does not exist, it is created and locked, but
        remains empty.
 
-       If the input cannot be processed correctly, the file is still
-       open and locked but the data is None instead of a list.
+       If the input cannot be processed correctly, an error is written
+       to stderr and the file is still open and locked but the data is
+       None instead of a list.
 
     """
     if os.path.exists(report_fname):
@@ -45,15 +47,24 @@ def get_prior_report(report_fname, with_lock=True):
                     raise
                 else:
                     time.sleep(1)
+    return repf, read_report_from(repf)
+
+def read_report_from(repf):
+    """Reads the contents of a report from the specified open file
+       descriptor.  This entry point does not perform any locking and
+       simply reads the current file and returns the report data.  If
+       the report cannot be read, an error is written to stderr and
+       this function returns None.
+    """
     try:
         rep = repf.read()
         if rep:
-            return repf, [ eval(l, globals(), {})
-                           for l in rep.split('\n\n')
-                           if l.strip() ]
+            return [ eval(l, globals(), {})
+                     for l in rep.split('\n\n')
+                     if l.strip() ]
     except Exception as e:
-        print('Warning: unable to process prior report data:', str(e))
-    return repf, None
+        print('Warning: unable to process prior report data:', str(e), file=sys.stderr)
+    return None
 
 def write_report_output(reportf, report):
     for each in report:
