@@ -266,7 +266,7 @@ class HydraBuilder(BuilderBase.Builder):
                 nrsucceeded=get_or_show(e, 'nrsucceeded'),
                 nrfailed=get_or_show(e, 'nrfailed'),
                 nrscheduled=get_or_show(e, 'nrscheduled'),
-                cfgerror=get_or_show(e, 'haserrormsg'),
+                cfgerror=get_or_show(e, 'haserrormsg') or bool(get_or_show(e, "fetcherrormsg")),
             )
             for e in r if e['name'] == n
         ] + ['No results available for jobset ' + n])[0]
