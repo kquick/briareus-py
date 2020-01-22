@@ -31,6 +31,7 @@ setup(
     ],
     python_requires = '>=3.3',
     # install_requires=[],  # for pip
-    entry_points={ 'console_scripts': [ 'hh=Briareus.hh:main' ], },
+    entry_points={ 'console_scripts': [ 'hh=Briareus.hh:main',
+                                        'hh_status=Briareus.hh_status:main'], },
     # project_urls={ 'Bug Reports': ?, 'Source': ? },
 )
