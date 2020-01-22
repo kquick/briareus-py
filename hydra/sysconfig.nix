@@ -171,6 +171,7 @@ let
              cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
              chmod +w ${briareus_rundir}/${name}_sts.html
              ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr >> ${briareus_rundir}/${name}_sts.html
+             echo "<br><hr><p><i>Updated: $(date)</i></p>" >>  ${briareus_rundir}/${name}_sts.html
              echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
 
 	     set +x
