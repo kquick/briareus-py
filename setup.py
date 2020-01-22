@@ -26,7 +26,9 @@ setup(
                         'Actions/*.tag',  # Include Action taglines
                        ],
                  },
-    data_files=[('hydra', ['hydra/sysconfig.nix', 'hydra/copy_hh.nix'])],
+    data_files=[('hydra', ['hydra/sysconfig.nix', 'hydra/copy_hh.nix']),
+                ('html',  ['html/status_hdr.html']),
+    ],
     python_requires = '>=3.3',
     # install_requires=[],  # for pip
     entry_points={ 'console_scripts': [ 'hh=Briareus.hh:main' ], },
