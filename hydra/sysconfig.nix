@@ -73,7 +73,7 @@ let
 
              cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
              chmod +w ${briareus_rundir}/${name}_sts.html
-             ${briareus}/bin/hh_status -f html -U ${builder_URL} >> ${briareus_rundir}/${name}_sts.html
+             ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr >> ${briareus_rundir}/${name}_sts.html
              echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
              set +x
       '';
@@ -170,7 +170,7 @@ let
 
              cp ${briareus}/html/status_hdr.html ${briareus_rundir}/${name}_sts.html
              chmod +w ${briareus_rundir}/${name}_sts.html
-             ${briareus}/bin/hh_status -f html -U ${project.builderURL} >> ${briareus_rundir}/${name}_sts.html
+             ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr >> ${briareus_rundir}/${name}_sts.html
              echo '</body></html>' >> ${briareus_rundir}/${name}_sts.html
 
 	     set +x
