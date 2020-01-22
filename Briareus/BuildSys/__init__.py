@@ -2,9 +2,42 @@
 
 from Briareus.Types import PR_Solo
 
+def fix_branchname(branchname):
+    """Git (and other VCS tools) allows all sorts of characters in a
+       branch name (a common form often seen is "bugfix/foo"), but a
+       Hydra jobset and a URL specification are much more restricted.
+       This function ensures that a valid jobset and URL specification
+       are generated for the branch.
+
+    """
+    # Although this is a generic Builder fixup, the Hydra restriction
+    # should be reasonable for most Builders, and if not then this can
+    # be moved to builder-specific functionality at a future date.
+    #
+    # Per hydra/src/lib/Hydra/Helper/CatalystUtils.pm,
+    #   projectNameRE = "(?:[A-Za-z_][A-Za-z0-9-_]*)"
+    #   jobsetNameRE  = "(?:[A-Za-z_][A-Za-z0-9-_\.]*)";
+    #
+    # Essentially, this means that only alphanumerics, underscores,
+    # dashes, and periods are allowed.
+    #
+    # The man page for git check-ref-format describes the rules for
+    # how references are named in git.
+    #
+    # At present, there is no attempt to handle 100% character
+    # conversion; this is an evolving fixup based on what has been
+    # encountered to-date.
+    #
+    # Also note:
+    #
+    #  * A conversion from jobset name back to branch name (bijection)
+    #    is convenient, but not necessary.
+    #
+    #  * The jobset name does not have to be a valid branch name
+    return branchname.replace('/', '..')
+
 
 def buildcfg_name(bldcfg, input_desc, repo_info):
-    fix_branchname = lambda bn: bn.replace('/', '~~')
     if bldcfg.bldvars:
         vnames = sorted([ v.varname for v in bldcfg.bldvars ])
         vdict = dict( [(v.varname, v.varvalue) for v in bldcfg.bldvars] )
