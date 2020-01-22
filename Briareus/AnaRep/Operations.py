@@ -164,17 +164,21 @@ def mk_built_facts(build_results):
         list(filter(None, [ built_fact(r) for r in build_results ])))
 
 def prior_fact(prior):
+    # Could be handled as the default for the .get() below, but
+    # requiring explicit entries helps find this prior handling when
+    # new report data is added.
+    prior_ignored = lambda p: None
     return { 'ProjectSummary': prior_fact_ProjectSummary,
              'StatusReport': prior_fact_StatusReport,
              'VarFailure': prior_fact_VarFailure,
-             'CompletelyFailing': lambda p: None,  # ignored as a prior
-             'ConfigError': lambda p: None, # ignored as a prior
-             'PR_Success': lambda p: None, # ignored as a prior
-             'PR_Failure': lambda p: None, # ignored as a prior
-             'PR_Failing': lambda p: None, # ignored as a prior  # KWQ: old
-             'SepHandledVar': lambda p: None, # ignored as a prior
-             'MergeablePR': lambda p: None, # ignored as a prior
-             'Notify': lambda p: None, # ignored as a prior
+             'CompletelyFailing': prior_ignored,
+             'ConfigError': prior_ignored,
+             'PR_Success': prior_ignored,
+             'PR_Failure': prior_ignored,
+             'PR_Failing': prior_ignored,
+             'SepHandledVar': prior_ignored,
+             'MergeablePR': prior_ignored,
+             'Notify': prior_ignored,
              'SendEmail': prior_fact_SendEmail, # ignored as a prior
              'PostChatMessage': lambda p: None, # ignored as a prior
     }[prior.__class__.__name__](prior)
