@@ -180,7 +180,8 @@ def prior_fact(prior):
              'MergeablePR': prior_ignored,
              'Notify': prior_ignored,
              'SendEmail': prior_fact_SendEmail, # ignored as a prior
-             'PostChatMessage': lambda p: None, # ignored as a prior
+             'PostChatMessage': prior_ignored,
+             'PendingStatus' : prior_ignored,
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):

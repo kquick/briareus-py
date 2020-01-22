@@ -99,6 +99,19 @@ class StatusReport(object):
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
 
 @attr.s(frozen=True)
+class PendingStatus(object):
+    """Just like StatusReport, but no 'status' field because there will
+       (maybe) be a StatusReport from a previous build and this
+       indicates there is a new build in progress.
+    """
+    project   = attr.ib()  # string name of project
+    strategy  = attr.ib()  # string: submodules, heads, standard
+    branchtype= attr.ib()  # string: regular, pullreq
+    branch    = attr.ib()  # string: branch name
+    buildname = attr.ib()  # string name of build on builder
+    bldvars   = attr.ib(converter=sorted)  # list of BldVariable
+
+@attr.s(frozen=True)
 class VarFailure(BldVariable): pass
 
 @attr.s(frozen=True)
@@ -188,6 +201,7 @@ logic_result_expr = {
     "varvalue": lambda *args: BldVariable(*args),
 
     "status_report": StatusReport,
+    "pending_status": PendingStatus,
     "succeeded": "succeeded",
     "failed": "failed",
     "fixed": "fixed",

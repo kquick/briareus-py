@@ -61,12 +61,27 @@ report(status_report(badconfig, project(ProjRepo), Strategy, BranchType, Branch,
     branch_type(BranchType, Branch, _),
     bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, _, configError).
 
-report(status_report(pending, project(ProjRepo), Strategy, BranchType, Branch, Bldname, Vars)) :-
+% Note, pending_status is different than status_report because
+% status_report wants to track transitions (fixed v.s. initial vis
+% still good) and with only one layer of history, introducing a
+% status_report(pending, ...) would obscure the previous results.
+report(pending_status(project(ProjRepo), Strategy, BranchType, Branch, Bldname, Vars)) :-
     is_project_repo(ProjRepo),
     strategy(Strategy, ProjRepo, Branch),
     branch_type(BranchType, Branch, _),
     bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid),
     N > 0.
+
+% This preserves the previous status for a pending build
+report(status_report(Sts, project(ProjRepo), Strategy, BranchType, Branch, Bldname, Vars)) :-
+    is_project_repo(ProjRepo)
+    , strategy(Strategy, ProjRepo, Branch)
+    , branch_type(BranchType, Branch, _)
+    , bldres(ProjRepo, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid)
+    , N > 0
+    , prior_status(Sts, project(ProjRepo), Strategy, BranchType, Branch, Bldname, PriorVars)
+    , listcmp(Vars, PriorVars)
+    .
 
 report(complete_failure(ProjRepo)) :-
     is_project_repo(ProjRepo),
