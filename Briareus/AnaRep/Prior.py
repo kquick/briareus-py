@@ -3,6 +3,7 @@ import fcntl
 import pprint
 import time
 import sys
+import errno
 from Briareus.Types import *
 
 def get_prior_report(report_fname, with_lock=True):
@@ -43,7 +44,7 @@ def get_prior_report(report_fname, with_lock=True):
                 fcntl.flock(repf.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
             except IOError as e:
-                if e.errno != EAGAIN:
+                if e.errno != errno.EAGAIN:
                     raise
                 else:
                     time.sleep(1)
