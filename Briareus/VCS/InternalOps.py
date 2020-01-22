@@ -252,6 +252,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
         # Hypothesis: this occurs during the small window where the
         # pull request was identified and then it is merged and then
         # additional data is attempted to be collected for it.
+        #
+        # Alternative (verified): gitlab is kinda broken because a
+        # private fork of a private repo doesn't inherit the
+        # permissions from the original repo and therefore is not
+        # visible to users that can access the original repo.  This
+        # manifests in 404 when attempting to follow the link to the
+        # merge source, and from the API perspective it causes the
+        # pullreq_srcurl to be None.  Since not much information can
+        # be gathered about these PR's they are ignored.
         for p in msg.pullreqs:
             if p.pullreq_srcurl is None:
                 logging.critical('ERR: srcurl is None for pullreq %s in msg %s', p, msg)
