@@ -615,3 +615,68 @@ def test_zoo_no_subtype_colstack_render(zoo_table):
         '|  New York | Savannah |   Animal | Carnivore |    3 |         |       |       |         |      |',
         '+-----------+----------+----------+-----------+------+---------+-------+-------+---------+------+',
     ]) == show
+
+
+@pytest.fixture()
+def build_kvitable():
+    kvit = KVITable({'system': [ 'x86_64-linux', 'x86_64-darwin' ],
+                     'Branch': ['master', 'develop', 'PR-feature'],
+                     'Strategy': ['submodules', 'HEADs'],
+                     'ghcver': ['ghc844', 'ghc865', 'ghc882'],
+                     },
+                    kv_frozen=True)
+    kvit.add('+', system='x86_64-linux', Strategy='submodules', ghcver='ghc844', Branch='PR-feature')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='HEADs', ghcver='ghc865', Branch='PR-feature')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='submodules', ghcver='ghc882', Branch='develop')
+    kvit.add('+', system='x86_64-linux', Strategy='HEADs', ghcver='ghc865', Branch='develop')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='submodules', ghcver='ghc844', Branch='master')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='HEADs', ghcver='ghc844', Branch='master')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='HEADs', ghcver='ghc865', Branch='master')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='HEADs', ghcver='ghc882', Branch='master')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='submodules', ghcver='ghc865', Branch='master')
+    kvit.add('+', system='x86_64-linux', Strategy='HEADs', ghcver='ghc844', Branch='develop')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='HEADs', ghcver='ghc882', Branch='PR-feature')
+    kvit.add('FAIL*1', system='x86_64-linux', Strategy='submodules', ghcver='ghc882', Branch='PR-feature')
+    kvit.add('+', system='x86_64-linux', Strategy='submodules', ghcver='ghc865', Branch='PR-feature')
+    kvit.add('+', system='x86_64-linux', Strategy='submodules', ghcver='ghc844', Branch='develop')
+    kvit.add('+', system='x86_64-linux', Strategy='HEADs', ghcver='ghc844', Branch='develop')
+    kvit.add('+', system='x86_64-darwin', Strategy='HEADs', ghcver='ghc844', Branch='develop')
+    return kvit
+
+def test_no_seplines_on_multirow_non_grouped(build_kvitable):
+    show = build_kvitable.render(row_repeat=False, row_group=['Branch'], colstack_at='ghcver')
+    assert '\n'.join([
+        '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
+        '+---------------+------------+------------+--------+--------+--------+',
+        '|  x86_64-linux |     master | submodules | FAIL*1 | FAIL*1 |        |',
+        '|               |            |      HEADs | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|               |    develop | submodules |      + |        | FAIL*1 |',
+        '|               |            |      HEADs |      + |      + |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|               | PR-feature | submodules |      + |      + | FAIL*1 |',
+        '|               |            |      HEADs |        | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |      + |        |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        # Note ^^^^ no seplines under system because it wasn't included in the row_group
+    ]) == show
+
+def test_no_seplines_on_repeated_non_grouped(build_kvitable):
+    show = build_kvitable.render(row_repeat=True, row_group=['Branch'], colstack_at='ghcver')
+    assert '\n'.join([
+        '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
+        '+---------------+------------+------------+--------+--------+--------+',
+        '|  x86_64-linux |     master | submodules | FAIL*1 | FAIL*1 |        |',
+        '|  x86_64-linux |     master |      HEADs | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|  x86_64-linux |    develop | submodules |      + |        | FAIL*1 |',
+        '|  x86_64-linux |    develop |      HEADs |      + |      + |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|  x86_64-linux | PR-feature | submodules |      + |      + | FAIL*1 |',
+        '|  x86_64-linux | PR-feature |      HEADs |        | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |      + |        |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        # Note ^^^^ no seplines under system because it wasn't included in the row_group
+    ]) == show
