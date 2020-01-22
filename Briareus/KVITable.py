@@ -3,7 +3,7 @@ from functools import reduce
 class Separator(object): pass
 class CenterCap(object):
     def __init__(self, val):
-        self._val = val if isinstance(val, str) else str(val)
+        self._val = val
     def render(self, width, cap):
         l = len(self._val)
         clen,rlen = divmod(width - l - 2, 2)
@@ -215,7 +215,9 @@ class KVITable(object):
     def render(self, format='ascii', hide_blank_rows=True,
                colstack_at=None,
                row_repeat=True,
-               row_group=None):
+               row_group=None,
+               valstr=as_string,
+               entrystr=as_string):
         """Return the rendering of the table in the specified format (default=ascii).
 
             * hide_blank_rows is True (default) to remove rows for which there is no value(s)
@@ -225,20 +227,35 @@ class KVITable(object):
             * row_group is a list of key values to be grouped with separator lines
 
             * colstack_at is the column key where keys should be stacked columns with vals as each column header
+
+            * valstr is a function to convert the Val (column headers
+              or row titles) to a rendered string; the default is to
+              simply convert the value to a string (if necessary).
+
+            * entrystr is a function to convert the table entry to a
+              renderable string; the default is to simply convert the
+              value to a string (if necessary).
+
         """
         kseq = list(self._kv.keys())
-        kvwidths = [ max(len(key), max(map(len, [as_string(v) for v in self._kv[key]]))) for key in kseq ]
+        kvwidths = [ max(len(valstr(key)), max(map(len, [valstr(v)
+                                                         for v in self._kv[key]])))
+                     for key in kseq ]
         return { 'ascii' : self._render_ascii }[format](kseq,
                                                         kvwidths,
                                                         hide_blank_rows=hide_blank_rows,
                                                         colstack_at=colstack_at,
                                                         row_repeat=row_repeat,
                                                         row_group=row_group,
+                                                        valstr=valstr,
+                                                        entrystr=entrystr,
         )
 
-    def _render_ascii(self, kseq, kvwidths, hide_blank_rows, colstack_at, row_repeat, row_group):
+    def _render_ascii(self, kseq, kvwidths, hide_blank_rows, colstack_at, row_repeat, row_group, valstr, entrystr):
         fmt, hdr = self._ascii_renderhdrs(kseq,
                                           kvwidths,
+                                          valstr=valstr,
+                                          entrystr=entrystr,
                                           colstack_at=colstack_at,
         )
         body = self._ascii_renderseq(fmt, kseq, self._entries,
@@ -246,57 +263,59 @@ class KVITable(object):
                                      colstack_at=colstack_at,
                                      row_repeat=row_repeat,
                                      row_group=row_group,
+                                     valstr=valstr,
+                                     entrystr=entrystr,
         )
         return '\n'.join(hdr+body)
 
-    def _ascii_renderhdrs(self, kseq, kvwidths, colstack_at=None):
-        hrows = self._hdrstep(kseq, kvwidths, colstack_at)
+    def _ascii_renderhdrs(self, kseq, kvwidths, valstr, entrystr, colstack_at=None):
+        hrows = self._hdrstep(kseq, kvwidths, colstack_at, valstr=valstr, entrystr=entrystr)
         fmt = hrows[-1][0]
         return fmt, ([ fmt.render(hdrvals) + trailer
                        for fmt, hdrvals, trailer in hrows ] +
                      [ fmt.render([Separator()] * len(fmt)) ])
 
 
-    def _hdrstep(self, kseq, kvwidths, colstack_at):
+    def _hdrstep(self, kseq, kvwidths, colstack_at, valstr, entrystr):
         # Returns [ (FmtLine, hdrvals, trailer) ] where each entry is a header line, top to bottom
         if kseq:
             key = kseq[0]
             if colstack_at == key:
                 # Switch over to column stacking mode computation
-                return self._hdrvalstep(kseq)
+                return self._hdrvalstep(kseq, valstr, entrystr)
             # still a row-oriented key+val configuration
             keyw = kvwidths[0]
-            nexthdrs = self._hdrstep(kseq[1:], kvwidths[1:], colstack_at)
+            nexthdrs = self._hdrstep(kseq[1:], kvwidths[1:], colstack_at, valstr, entrystr)
             return [
                 (fmt.add_col_left(keyw),
                  # first line shows hdrval for non-colstack'd columns, others are blank
-                 ([key] if i == 0 else ['']) + hdrvals,
+                 ([valstr(key)] if i == 0 else ['']) + hdrvals,
                  trailer)
                 for i, (fmt, hdrvals, trailer) in enumerate(nexthdrs)
             ]
         # colstack_at wasn't recognized, so devolve to a non-colstack table
-        valwidth = max(len(self._valuecol_name),
-                       max([len(as_string(row[-1])) for row in self.get_rows()]))
-        return [ (FmtLine([valwidth]), [self._valuecol_name], '') ]
+        valwidth = max(len(valstr(self._valuecol_name)),
+                       max([len(entrystr(row[-1])) for row in self.get_rows()]))
+        return [ (FmtLine([valwidth]), [valstr(self._valuecol_name)], '') ]
 
-    def _hdrvalstep(self, kseq):
+    def _hdrvalstep(self, kseq, valstr, entrystr):
         if kseq:
             key = kseq[0]
             if len(kseq) == 1:
                 # Reached a leaf
                 titles = self._kv[key]
-                fmt = FmtLine([ max(len(as_string(val)),
-                                    max([0] + self.cellwidths(**{key: val})))
+                fmt = FmtLine([ max(len(valstr(val)),
+                                    max([0] + self.cellwidths(entrystr, **{key: val})))
                                 for val in titles ])
-                return [ (fmt, titles, ' <- ' + key) ]
+                return [ (fmt, [ valstr(t) for t in titles], ' <- ' + key) ]
             else:
-                subhdrs = self._hdrvalstep(kseq[1:])
+                subhdrs = self._hdrvalstep(kseq[1:], valstr, entrystr)
                 subhdrs_width = sum([subfmt.width() for subfmt,_,_ in subhdrs])
                 vals = self._kv[key]
                 numvals = len(vals)
                 return [
-                    (FmtLine([ max(len(val), subhdrs_width) for val in vals]),
-                     [ CenterCap(val) for val in vals ],
+                    (FmtLine([ max(len(valstr(val)), subhdrs_width) for val in vals]),
+                     [ CenterCap(valstr(val)) for val in vals ],
                      ' <- ' + key)
                 ] + [ (fmt.repeat(numvals), titles * numvals, trailer)
                       for fmt, titles, trailer in subhdrs ]
@@ -307,23 +326,29 @@ class KVITable(object):
             # which should be impossible.
             raise RuntimeError('Called _hdrvalstep with empty kseq after matching colstack_at in kseq')
 
-    def _ascii_renderseq(self, fmt, kseq, tablecells, hide_blank_rows, colstack_at, row_repeat, row_group):
+    def _ascii_renderseq(self, fmt, kseq, tablecells, hide_blank_rows, colstack_at, row_repeat, row_group,
+                         valstr, entrystr):
         rows = self._ascii_rows(kseq, tablecells,
                                 hide_blank_rows=hide_blank_rows,
                                 row_repeat=row_repeat,
                                 row_group=row_group,
                                 colstack_at=colstack_at,
+                                valstr=valstr,
+                                entrystr=entrystr,
         )
         return [ fmt.render(row) for _,row in rows ]
 
-    def _ascii_rows(self, kseq, tablecells, hide_blank_rows, row_repeat, row_group, colstack_at):
+    def _ascii_rows(self, kseq, tablecells, hide_blank_rows, row_repeat, row_group, colstack_at,
+                    valstr, entrystr):
         if kseq:
             key = kseq[0]
             if colstack_at == key:
                 return [(False, self._ascii_multival_rows(kseq, tablecells,
-                                                         hide_blank_rows=hide_blank_rows,
-                                                         row_repeat=row_repeat,
-                                                         row_group=row_group,
+                                                          hide_blank_rows=hide_blank_rows,
+                                                          row_repeat=row_repeat,
+                                                          row_group=row_group,
+                                                          valstr=valstr,
+                                                          entrystr=entrystr,
                 ))]
             rem_keys = kseq[1:]
             ret = []
@@ -331,12 +356,14 @@ class KVITable(object):
                 if each not in tablecells and hide_blank_rows:
                     continue
                 eachval = tablecells.get(each, dict())
-                ret.extend( [ (s, [each if (row_repeat or n == 0) and not s else ''] + l)
+                ret.extend( [ (s, [valstr(each) if (row_repeat or n == 0) and not s else ''] + l)
                               for n,(s,l) in enumerate(self._ascii_rows(rem_keys, eachval,
                                                                         hide_blank_rows=hide_blank_rows,
                                                                         row_repeat=row_repeat,
                                                                         row_group=row_group,
                                                                         colstack_at=colstack_at,
+                                                                        valstr=valstr,
+                                                                        entrystr=entrystr,
                               )) ])
                 addgrpline = row_group is not None and key in row_group
                 if addgrpline:
@@ -346,14 +373,15 @@ class KVITable(object):
                     else:
                         ret.append( grpline )
             return ret
-        return [ (False, [' ' if tablecells == dict() else tablecells]) ]
+        return [ (False, [' ' if tablecells == dict() else entrystr(tablecells)]) ]
 
-    def _ascii_multival_rows(self, kseq, tablecells, hide_blank_rows, row_repeat, row_group):
-        return [val
-                for _path,val in self._get_entries_matching({},
-                                                            ([], { k:self._kv[k] for k in kseq }),
-                                                            tablecells,
-                                                            include_blanks=True,
+    def _ascii_multival_rows(self, kseq, tablecells, hide_blank_rows, row_repeat, row_group,
+                             valstr, entrystr):
+        return [entrystr(entry)
+                for _path,entry in self._get_entries_matching({},
+                                                              ([], { k:self._kv[k] for k in kseq }),
+                                                              tablecells,
+                                                              include_blanks=True,
                 )]
 
     def get_rows(self):
@@ -373,10 +401,10 @@ class KVITable(object):
             return ret
         return [ [tablecells] ]
 
-    def cellwidths(self, **path):
+    def cellwidths(self, entrystr, **path):
         """Get a list of the widths of every value in the table that matches
            the (possibly partial) path elements."""
-        return [ len(as_string(e)) for p,e in self.get_entries_matching(**path) ]
+        return [ len(entrystr(e)) for p,e in self.get_entries_matching(**path) ]
 
     def get_entries_matching(self, **path):
         """Return every entry in the table that matches the (possibly partial)

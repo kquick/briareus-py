@@ -403,6 +403,28 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
         '+----------+-------+------+------+------+',
         ]) == show
 
+def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj(medium_kvitable):
+    show = medium_kvitable.render(colstack_at='optimization',
+                                  row_repeat=False,
+                                  row_group=['compiler'],
+                                  valstr=lambda v: '[' + (v if isinstance(v, str) else str(v)) + ']',
+                                  entrystr=lambda e: '<' + (e if isinstance(e, str) else str(e)) + '>',
+    )
+    assert '\n'.join([
+        '| [compiler] | [debug] |    [0] |    [1] |    [3] | <- optimization',
+        '+------------+---------+--------+--------+--------+',
+        '|     [gcc7] |   [yes] | <good> |     <> | <ugly> |',
+        '|            |    [no] |  <bad> | <good> |     <> |',
+        '+------------+---------+--------+--------+--------+',
+        '|     [gcc8] |   [yes] | <good> |  <bad> | <True> |',
+        '+------------+---------+--------+--------+--------+',
+        '|   [clang6] |   [yes] |   <ok> |     <> |     <> |',
+        '+------------+---------+--------+--------+--------+',
+        '|   [clang7] |   [yes] |     <> |     <> | <good> |',
+        '|            |    [no] | <good> | <good> | <good> |',
+        '+------------+---------+--------+--------+--------+',
+        ]) == show
+
 def test_medium_kvitable_render_skip_blank_rows_stack_two(medium_kvitable):
     show = medium_kvitable.render(colstack_at='debug')
     assert '\n'.join([
