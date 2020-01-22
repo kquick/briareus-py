@@ -128,7 +128,7 @@ prior = [
                  buildname='master.submodules-ghc844',
                  bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc844')
                  ]),
-    StatusReport(status='failed', project='Repo1',
+    StatusReport(status=1, project='Repo1',
                  strategy='HEADs', branchtype="regular", branch="master",
                  buildname='master.HEADs-ghc865',
                  bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
@@ -302,7 +302,7 @@ def test_example_report_status1(example_hydra_results):
 
 def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="develop",
                         buildname='develop.HEADs-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -327,7 +327,7 @@ def test_example_report_status5(example_hydra_results):
 
 def test_example_report_status6(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -353,7 +353,7 @@ def test_example_report_status8(example_hydra_results):
 def test_example_report_status9(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # This one had a prior success
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -378,7 +378,7 @@ def test_example_report_status11(example_hydra_results):
 
 def test_example_report_status12(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -397,7 +397,8 @@ def test_example_report_length(example_hydra_results):
     num_do = num_varfailure
     expected = ((len(top_level) * len(GS)) +
                 len(['ProjectSummary', 'ConfigError'])
-                - nrscheduled + num_varfailure
+                # - nrscheduled
+                + num_varfailure
                 + num_analysis + num_actions + num_do
     )
     for each in reps:

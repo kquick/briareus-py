@@ -90,7 +90,7 @@ prior = [
                  bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
                           BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
                  ]),
-    StatusReport(status='failed', project='R1',
+    StatusReport(status=2, project='R1',
                  strategy="HEADs", branchtype="regular", branch="master",
                  buildname='master.HEADs-gnucc-ghc865',
                  bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc865'),
@@ -125,7 +125,7 @@ def test_example_report_summary(example_hydra_results):
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for a single entry
-    assert StatusReport(status='failed', project='R1',
+    assert StatusReport(status=2, project='R1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
                         buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
@@ -152,7 +152,7 @@ def test_example_report_statusMany(example_hydra_results):
                                 if C == 'gnucc' and G == 'ghc865' and S == 'HEADs' and B == 'master'
                                 else 'succeeded'
                                 if C == 'gnucc' and G == 'ghc844' and S == 'HEADs' and B == 'master'
-                                else 'failed'
+                                else 2
                                 if C == 'clang'
                                 else 'initial_success'),
                         project='R1',
@@ -176,7 +176,7 @@ def test_example_report_status2(example_hydra_results):
             S = 'submodules'
             B = 'PR-blah' # PR1-PR111-blah
             r = StatusReport(
-                status=('failed'
+                status=(2
                         if C == 'clang'
                         else 'initial_success'),
                 project='R1',
@@ -197,7 +197,7 @@ def test_example_report_status3(example_hydra_results):
             S = 'HEADs'
             B = 'PR-blah' # PR1-PR11-PR111-PR1111-blah
             r = StatusReport(
-                status=('failed'
+                status=(2
                         if C == 'clang'
                         else 'initial_success'),
                 project='R1',

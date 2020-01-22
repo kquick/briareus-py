@@ -777,7 +777,7 @@ def test_example_report_summary(example_hydra_results):
 
 def test_example_report_status2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="develop",
                         buildname='PR-develop.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -785,7 +785,7 @@ def test_example_report_status2(example_hydra_results):
 
 def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="foo",
                         buildname='PR-foo.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -793,7 +793,7 @@ def test_example_report_status3(example_hydra_results):
 
 def test_example_report_status4(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="master",
                         buildname='PR1-master.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -801,7 +801,7 @@ def test_example_report_status4(example_hydra_results):
 
 def test_example_report_status4_2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="master",
                         buildname='PR2-master.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -809,7 +809,7 @@ def test_example_report_status4_2(example_hydra_results):
 
 def test_example_report_status5(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="regular", branch="develop",
                         buildname='develop.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -817,7 +817,7 @@ def test_example_report_status5(example_hydra_results):
 
 def test_example_report_status6(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert StatusReport(status='failed', project='Repo1',
+    assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="regular", branch="master",
                         buildname='master.standard-ghc881',
                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
@@ -884,7 +884,7 @@ def test_example_report_length(example_hydra_results):
     expected = ((len(top_level) * len(GS)) +
                 len(['ProjectSummary', 'ConfigError'])
                 - 1 # PR[2]-develop.standard-ghc865 has ntotal and others as zero
-                + num_varfailure + prfailing + prsuccess - nrscheduled
+                + num_varfailure + prfailing + prsuccess # - nrscheduled
                 + num_analysis + num_actions + num_do
                 + 4
     )
