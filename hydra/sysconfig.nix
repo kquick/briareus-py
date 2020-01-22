@@ -76,6 +76,7 @@ let
              cp ${briareus}/html/status_hdr.html $htmlout
              chmod +w $htmlout
              ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr >> $htmlout
+             echo "<br><hr><p><i>Updated: $(date)</i></p>" >>  $htmlout
              echo '</body></html>' >> $htmlout
              set +x
       '';
