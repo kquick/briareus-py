@@ -34,7 +34,7 @@ def fix_branchname(branchname):
     #    is convenient, but not necessary.
     #
     #  * The jobset name does not have to be a valid branch name
-    return branchname.replace('/', '..')
+    return branchname.replace('/', '__')
 
 
 def buildcfg_name(bldcfg, input_desc, repo_info):
