@@ -25,13 +25,15 @@ def test_empty_frozen_kvitable_add_refused():
         kvit.add("hi", ('moo', "cow"), foo='bar')
     assert "frozen" in str(idxerr.value)
 
-def test_non_leaf_kvitable_add_refused():
+def test_non_leaf_kvitable_add_uses_default_key_val():
     kvit = KVITable()
     kvit.add("hi", ('moo', "cow"), foo='bar')
-    with pytest.raises(IndexError) as idxerr:
-        kvit.add("oops", ('moo', "dog"))
-    assert 'non-leaf' in str(idxerr.value)
-    assert 'foo' in str(idxerr.value)
+    kvit.add("oops", ('moo', "dog"))
+    rows = kvit.get_rows()
+    assert [
+        ['cow', 'bar', 'hi'],
+        ['dog', '', 'oops'],
+    ] == rows
 
 def test_frozen_kvitable_add_key_key_refused():
     kvit = KVITable({'foo':['bar','baz']}, kv_frozen=True)
@@ -510,7 +512,7 @@ def zoo_table():
     kvit.add(8, Location='San Diego', Biome='Polar', Category='Bird', Diet='Carnivore', Subtype='Emperor', Name='Penguin')
     kvit.add(2, Location='San Diego', Biome='Polar', Category='Bird', Diet='Carnivore', Subtype='Gentoo', Name='Penguin')
     kvit.add(3, Location='Miami', Biome='Savannah', Category='Animal', Diet='Herbivore', Name='Giraffe', Subtype='Reticulated')
-    kvit.add(inc, Category='Animal', Diet='Carnivore', Biome="Savannah", Location='San Diego', Name='Lion', Subtype='')
+    kvit.add(inc, Category='Animal', Diet='Carnivore', Biome="Savannah", Location='San Diego', Name='Lion')
     kvit.add(inc, Location='San Diego', Biome='Polar', Category='Animal', Subtype='Polar', Name='Bear', Diet='Omnivore')
     kvit.add(inc, Location='San Diego', Biome='Jungle', Category='Animal', Subtype='Sun', Name='Bear', Diet='Omnivore')
     kvit.add(inc, Location='San Diego', Biome='Plains', Category='Animal', Subtype='Brown', Name='Bear', Diet='Omnivore')

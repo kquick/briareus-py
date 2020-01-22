@@ -119,13 +119,15 @@ class KVITable(object):
             raise IndexError('KVITable attempt to overwrite leaf value at %s of %s = %s'
                              % (str(kseq), str(list(self._kv.keys())), tableentries))
         if kseq:
-            if not kvtuples:
-                raise IndexError('KVITable add to non-leaf; remaining keys: %s' % str(kseq))
             kvtdict = dict(kvtuples)
             key = kseq[0]
             rem_kseq = kseq[1:]
-            val = kvtdict[key]  # raises KeyError if add call is missing a key
-            del kvtdict[key]
+            if self._keyval_factory:
+                val = kvtdict[key] if key in kvtdict else self._keyval_factory(key)
+            else:
+                val = kvtdict[key]  # raises KeyError if add call is missing a key
+            if key in kvtdict:
+                del kvtdict[key]
             if val not in self._kv[key]:
                 if self._kv_frozen:
                     raise IndexError('KVITable is kv_frozen but got new value for key %s: %s' % (str(key), str(val)))
