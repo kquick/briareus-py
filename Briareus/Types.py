@@ -207,6 +207,7 @@ logic_result_expr = {
     "fixed": "fixed",
     "initial_success": "initial_success",
     "badconfig": "bad_config",
+    "bad_config": "bad_config",
     "pending": "pending",
     "var_failure": lambda *args: VarFailure(*args),
     "pr_success": lambda *args: PR_Success(*args),
