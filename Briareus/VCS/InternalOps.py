@@ -592,7 +592,7 @@ def to_access_url(url, for_repo, repolocs): # KWQ: use for_repo to get "git@" po
 
     # The input URL can be in http form or already in ssh form.
     if url.startswith("git@"):
-        url_path = _remove_trailer(url[len('git@'):], '.git').split(':')[0]
+        url_path = _remove_trailer(url[len('git@'):], '.git').split(':')[1]
     else:
         parsed = urlparse(url)
         # n.b. assumes there are no params, query, or fragment
