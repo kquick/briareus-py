@@ -4,10 +4,6 @@ from collections import defaultdict
 from Briareus.KVITable import KVITable
 from Briareus.Types import (StatusReport, PendingStatus, Notify)
 
-# KWQ: in the project-specific, show trending (or at least how many fail)
-# KWQ: can we get a track from builder of number of builds and trends?
-# KWQ: maybe make s2n and kyber have saw-script jobs as an input and run tests based on that input?  Less duplication of build instructions and simpler/faster specification?  Does away with hard-coding in kyber and s2n specifications?
-
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
 
