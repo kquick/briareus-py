@@ -1,7 +1,7 @@
 from Briareus.Logic.Evaluation import DeclareFact, Fact
 
 
-def get_input_facts(RL, BL, VAR, repo_info):
+def get_input_facts(PNAME, RL, BL, VAR, repo_info):
 
     if not RL:
         return []  # dummy run, build nothing
@@ -10,7 +10,8 @@ def get_input_facts(RL, BL, VAR, repo_info):
 
     if len(projects) > 1:
         raise AssertionError("only one 'project' allowed in input specification.")
-    project = projects[0] if projects else None
+    project_repo = projects[0] if projects else None
+    project_name = PNAME
 
     declare_facts = [
 
@@ -19,14 +20,13 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # repositories.)
         DeclareFact('repo/2'),
 
-        # Identifies the repo that is the "Project"
-        # repo.  The "Project" repo is the only one
-        # where submodules are looked up, and the
-        # "Project" also serves as the "top-level"
-        # identification of the group of repositories
-        # (there may be multiple Projects under
+        # Specifies the Project Name and identifies the repo that is
+        # the "Project" repo.  The "Project" repo is the only one
+        # where submodules are looked up, and the "Project" also
+        # serves as the "top-level" identification of the group of
+        # repositories (there may be multiple Projects under
         # consideration).
-        DeclareFact('project/1'),
+        DeclareFact('project/2'),
 
         # Specifies the name of the main branch for the associated
         # repository.  The first argument is the Project repo and the
@@ -38,7 +38,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
 
         # Specifies a branch that the user would like to have built.
         # The branch request is associated with the Project
-        # specification from which it came: branchreq(ProjectRepo,
+        # specification from which it came: branchreq(ProjectName,
         # BranchName)
         DeclareFact('branchreq/2'),
 
@@ -82,6 +82,7 @@ def get_input_facts(RL, BL, VAR, repo_info):
         # obtained from the user's input specification.  Format is:
         # varvalue(ProjectRepo, VarName, VarValue)
         DeclareFact('varvalue/3'),
+
     ]
 
     repo_facts    = ([ Fact('default_main_branch("master")') ] +
@@ -90,14 +91,15 @@ def get_input_facts(RL, BL, VAR, repo_info):
                      # globally true.  When this varied support is
                      # necesary, this fact might need a projectname
                      # addition.
-                     [ Fact('repo("%s", "%s")'    % (project.repo_name, r.repo_name))   for r in RL ] +
+                     [ Fact('repo("%s", "%s")'    % (project_name, r.repo_name))   for r in RL ] +
                      [ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch))
                        for r in RL if r.main_branch != "master" ])
-    project_facts = [ Fact('project("%s")' % r.repo_name)   for r in projects ]
-    branch_facts  = [ Fact('branchreq("%s", "%s")'  % (r.repo_name, b.branch_name))
+    project_facts = [ Fact('project("%s", "%s")' % (project_name, r.repo_name))
+                      for r in projects ]
+    branch_facts  = [ Fact('branchreq("%s", "%s")'  % (project_name, b.branch_name))
                       for r in projects for b in BL ]
     subrepo_facts = [ Fact('subrepo("%s", "%s")'
-                           % (project.repo_name, r.repo_name))
+                           % (project_repo.repo_name, r.repo_name))
                       for r in repo_info['subrepos'] ]
 
     # n.b. repo_info['pullreqs'] are of type PRInfo from InternalOps;
@@ -126,35 +128,32 @@ def get_input_facts(RL, BL, VAR, repo_info):
                          for rb in repo_info['branches'] ]
 
     submodules_facts = []
-    if project:
-        pn = project.repo_name
-        # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;
-        # the actual definition is not imported here because Python is
-        # duck-typed.
-        submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)
-                                              for e in repo_info['submodules']
-                                              if (e.sm_repo_name == pn
-                                                  and e.sm_branch == bname
-                                                  and e.sm_pullreq_id == pr_id
-                                                 )]
-        for bn in set([b.branch_name for b in BL] + [project.main_branch]):
-            for repover in submods_data(bn, None):
-                submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
-                                              % (pn, bn) % repover) )
-        for p in pullreqs:
-            if p.pr_target_repo == project.repo_name:
-                for repover in submods_data(p.pr_branch, p.pr_ident):
-                    submodules_facts.append(
-                        Fact('submodule("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%%s", "%%s")'
-                             % p.__dict__ % repover) )
+    # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;
+    # the actual definition is not imported here because Python is
+    # duck-typed.
+    submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)
+                                          for e in repo_info['submodules']
+                                          if (e.sm_repo_name == project_repo.repo_name
+                                              and e.sm_branch == bname
+                                              and e.sm_pullreq_id == pr_id
+                                             )]
+    for bn in set([b.branch_name for b in BL] + [project_repo.main_branch]):
+        for repover in submods_data(bn, None):
+            submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
+                                          % (project_repo.repo_name, bn) % repover) )
+    for p in pullreqs:
+        if p.pr_target_repo == project_repo.repo_name:
+            for repover in submods_data(p.pr_branch, p.pr_ident):
+                submodules_facts.append(
+                    Fact('submodule("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%%s", "%%s")'
+                         % p.__dict__ % repover) )
 
     varname_facts = []
     varval_facts = []
-    for r in projects:
-        for var in VAR:
-            varname_facts.append( Fact('varname("%s", "%s")' % (r.repo_name, var.variable_name)) )
-            varval_facts.extend( [ Fact('varvalue("%s", "%s", "%s")' %
-                                        (r.repo_name, var.variable_name, val))
+    for var in VAR:
+        varname_facts.append( Fact('varname("%s", "%s")' % (project_name, var.variable_name)) )
+        varval_facts.extend( [ Fact('varvalue("%s", "%s", "%s")' %
+                                        (project_name, var.variable_name, val))
                                    for val in var.variable_values ] )
 
     return (declare_facts +

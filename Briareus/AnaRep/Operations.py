@@ -69,10 +69,7 @@ class AnaRep(object):
 
 
         summary = ProjectSummary(
-            project_name='+'.join([r.repo_name
-                                   for e in result_sets
-                                   for r in e.inp_desc.RL
-                                   if r.project_repo]),
+            project_name='+'.join([e.inp_desc.PNAME for e in result_sets]),
             bldcfg_count = sum([len(e.build_cfgs.cfg_build_configs) for e in result_sets]),
             subrepo_count = sum([len(e.build_cfgs.cfg_subrepos) for e in result_sets]),
             pullreq_count = sum([len(e.build_cfgs.cfg_pullreqs) for e in result_sets]))
@@ -103,7 +100,8 @@ class AnaRep(object):
         ]
 
         input_facts = functools.reduce(
-            lambda facts, e: facts.union(get_input_facts(e.inp_desc.RL,
+            lambda facts, e: facts.union(get_input_facts(e.inp_desc.PNAME,
+                                                         e.inp_desc.RL,
                                                          e.inp_desc.BL,
                                                          e.inp_desc.VAR,
                                                          e.repo_info)),
@@ -193,7 +191,7 @@ def prior_fact_ProjectSummary(prior):
     ).format(p=prior))
 
 def prior_fact_StatusReport(prior):
-    vars = [ 'varvalue("{v.projrepo}", "{v.varname}", "{v.varvalue}")'.format(v=v)
+    vars = [ 'varvalue("{v.project}", "{v.varname}", "{v.varvalue}")'.format(v=v)
              for v in prior.bldvars ]
     return Fact(
         ('prior_status({p.status}'
@@ -216,7 +214,7 @@ def prior_fact_SendEmail(prior):
     asStrList = lambda: '[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']'
     params_logic = {
         'variable_failing': lambda: ('varvalue('
-                                     '      "{prior.notification.params.projrepo}"'
+                                     '      "{prior.notification.params.project}"'
                                      '    , "{prior.notification.params.varname}"'
                                      '    , "{prior.notification.params.varvalue}"'
                                      '  )'),

@@ -46,9 +46,9 @@ action(notify(merge_pr, Branch, RIS)) :-  % Project
     report(mergeable_pr(Branch, RIS)).
 
 action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) :-
-    is_project_repo(Project),
-    report(var_failure(Project, VarName, VarValue)),
-    analysis(var_handled_separately(Project, VarName, VarValue)).
+    project(Project, _)
+    , report(var_failure(Project, VarName, VarValue))
+    , analysis(var_handled_separately(Project, VarName, VarValue)).
 
 %% generate a notification if the master_submodules is broken (the
 %% most important build), ignoring any variables that are completely

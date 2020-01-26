@@ -59,7 +59,7 @@ top_level = [
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous repo/2.
-:- discontiguous project/1.
+:- discontiguous project/2.
 :- discontiguous main_branch/2.
 :- discontiguous branchreq/2.
 :- discontiguous subrepo/2.
@@ -68,7 +68,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
-project("R10").
+project("R10", "R10").
 repo("R10", "R10").
 repo("R10", "R4").
 default_main_branch("master").

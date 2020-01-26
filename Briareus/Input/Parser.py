@@ -15,6 +15,7 @@ class BISParser(object):
         # print(x['Repos'])
         # print(x['Branches'])
         repos = set([Desc.RepoDesc(*r, project_repo=(n == 0)) for n,r in enumerate(x['Repos'])])
+        pname = x.get('Name', [r.repo_name for r in repos if r.project_repo][0])
         branches = set([Desc.BranchDesc(b) for b in x['Branches']])
         repo_locs = set([Desc.RepoLoc(*r) for r in x.get('RepoLoc', list())])
         bldvars = [ Desc.VariableDesc(n,v)
@@ -24,6 +25,7 @@ class BISParser(object):
                            BL=sorted(list(branches)),
                            VAR=bldvars,
                            RX=sorted(list(repo_locs)),
-                           REP=reporting)
+                           REP=reporting,
+                           PNAME=pname)
         if self.verbose: print('Input description: ', r)
         return r

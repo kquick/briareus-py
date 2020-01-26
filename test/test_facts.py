@@ -16,6 +16,7 @@ def test_example_facts(generated_facts):
 
 
 expected_inp = D.InputDesc(
+    PNAME="Project #1",
     RL = sorted([ D.RepoDesc(repo_name="R1", repo_url="r1_url", project_repo=True),
                   D.RepoDesc(repo_name="R2", repo_url="r2_url"),
                   D.RepoDesc(repo_name="R3", repo_url="r3_url"),
@@ -32,22 +33,22 @@ expected_inp = D.InputDesc(
                            variable_values=["gnucc", "clang"]),
     ],
     REP = {'logic': """
-project_owner("R1", "george@_company.com").
+project_owner("Project #1", "george@_company.com").
 
 project_owner("R3", "john@not_a_company.com").
 
-action_type(email, "fred@nocompany.com", "R1").
-action_type(email, "eddy@nocompany.com", "R1").
-action_type(email, "sam@not_a_company.com", "R1").
-action_type(email, "john@_company.com", "R1").
-action_type(email, "anne@nocompany.com", "R1", master_submodules_broken).
+action_type(email, "fred@nocompany.com", "Project #1").
+action_type(email, "eddy@nocompany.com", "Project #1").
+action_type(email, "sam@not_a_company.com", "Project #1").
+action_type(email, "john@_company.com", "Project #1").
+action_type(email, "anne@nocompany.com", "Project #1", master_submodules_broken).
       """
     }
     )
 
 
 expected_facts = sorted(filter(None, '''
-:- discontiguous project/1.
+:- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
 :- discontiguous main_branch/2.
@@ -57,20 +58,20 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/3.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
-project("R1").
-repo("R1", "R1").
+project("Project #1", "R1").
+repo("Project #1", "R1").
 default_main_branch("master").
-repo("R1", "R2").
-repo("R1", "R3").
-repo("R1", "R5").
-repo("R1", "R6").
+repo("Project #1", "R2").
+repo("Project #1", "R3").
+repo("Project #1", "R5").
+repo("Project #1", "R6").
 subrepo("R1", "R2").
 subrepo("R1", "R3").
 subrepo("R1", "R4").
 subrepo("R1", "R7").
-branchreq("R1", "master").
-branchreq("R1", "feat1").
-branchreq("R1", "dev").
+branchreq("Project #1", "master").
+branchreq("Project #1", "feat1").
+branchreq("Project #1", "dev").
 branch("R1", "master").
 branch("R1", "feat1").
 branch("R2", "bugfix9").
@@ -101,13 +102,13 @@ submodule("R1", project_primary, "feat1", "R4", "r4_feat1_head^2").
 submodule("R1", "1", "blah", "R2", "r2_master_head^22").
 submodule("R1", "1", "blah", "R3", "r3_master_head").
 submodule("R1", "1", "blah", "R7", "r7_master_head^4").
-varname("R1", "ghcver").
-varname("R1", "c_compiler").
-varvalue("R1", "ghcver", "ghc844").
-varvalue("R1", "ghcver", "ghc865").
-varvalue("R1", "ghcver", "ghc881").
-varvalue("R1", "c_compiler", "gnucc").
-varvalue("R1", "c_compiler", "clang").
+varname("Project #1", "ghcver").
+varname("Project #1", "c_compiler").
+varvalue("Project #1", "ghcver", "ghc844").
+varvalue("Project #1", "ghcver", "ghc865").
+varvalue("Project #1", "ghcver", "ghc881").
+varvalue("Project #1", "c_compiler", "gnucc").
+varvalue("Project #1", "c_compiler", "clang").
 '''.split('\n')))
 
 # Note: the above does not contain branch("R2", "bugfix9").  This is

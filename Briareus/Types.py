@@ -22,7 +22,7 @@ class BranchReq(object):
 
 @attr.s(frozen=True)
 class MainBranch(object):
-    projectname = attr.ib() # string
+    reponame = attr.ib() # string
     branchname  = attr.ib() # string
 
 def pr_type(typespec, *args):
@@ -56,7 +56,7 @@ class BldRepoRev(object):
 
 @attr.s(frozen=True)
 class BldVariable(object):
-    projrepo = attr.ib()
+    project = attr.ib()
     varname = attr.ib()
     varvalue = attr.ib()
 

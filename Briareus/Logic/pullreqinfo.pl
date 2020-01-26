@@ -92,14 +92,13 @@ pr_config(pr_type(pr_grouped, BranchName), PRCfg) :-
 % ----------------------------------------------------------------------
 % Misc support
 
-branch_for_prtype(ProjRepo, pr_type(pr_solo, Repo, _), Branch) :-
-    repo_in_project(ProjRepo, Repo)
+branch_for_prtype(PName, pr_type(pr_solo, Repo, _), Branch) :-
+    repo_in_project(PName, Repo)
     , is_main_branch(Repo, Branch)
 .
-branch_for_prtype(ProjRepo, pr_type(pr_repogroup, _, RepoList), Branch) :-
-    maplist(repo_in_project(ProjRepo), RepoList)
+branch_for_prtype(PName, pr_type(pr_repogroup, _, RepoList), Branch) :-
+    maplist(repo_in_project(PName), RepoList)
     , nth0(0, RepoList, R0)
     , is_main_branch(R0, Branch)
 .
-branch_for_prtype(_ProjRepo, pr_type(pr_grouped, Branch), Branch).
-
+branch_for_prtype(_PName, pr_type(pr_grouped, Branch), Branch).

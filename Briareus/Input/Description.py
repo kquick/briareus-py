@@ -9,6 +9,7 @@ class InputDesc(object):
     VAR = attr.ib(factory=list)   # VariableDesc variables list
     RX  = attr.ib(factory=list)   # RepoLoc repo location translations
     REP = attr.ib(factory=dict)   # dictionary of reporting items (currently "logic")
+    PNAME = attr.ib(factory=str)  # string "Project Name" (if blank, use project repo name)
 
 @attr.s(frozen=True)
 class RepoLoc(object):

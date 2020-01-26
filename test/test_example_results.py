@@ -84,23 +84,23 @@ build_results = [
 ]
 
 prior = [
-    StatusReport(status='initial_success', project='R1',
+    StatusReport(status='initial_success', project='Project #1',
                  strategy="submodules", branchtype="regular", branch="master",
                  buildname='master.submodules-gnucc-ghc844',
-                 bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
-                          BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
+                 bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
+                          BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
                  ]),
-    StatusReport(status=2, project='R1',
+    StatusReport(status=2, project='Project #1',
                  strategy="HEADs", branchtype="regular", branch="master",
                  buildname='master.HEADs-gnucc-ghc865',
-                 bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc865'),
-                          BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
+                 bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc865'),
+                          BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
                  ]),
-    StatusReport(status='succeeded', project='R1',
+    StatusReport(status='succeeded', project='Project #1',
                  strategy="HEADs", branchtype="regular", branch="master",
                  buildname='master.HEADs-gnucc-ghc844',
-                 bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
-                          BldVariable(projrepo='R1', varname='c_compiler', varvalue='gnucc'),
+                 bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
+                          BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
                  ]),
 ]
 
@@ -119,17 +119,17 @@ def test_example_report_summary(example_hydra_results):
         print(each)
     print('')
     print(len(reps))
-    assert ProjectSummary(project_name='R1',
+    assert ProjectSummary(project_name='Project #1',
                           bldcfg_count=60, subrepo_count=4, pullreq_count=6) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for a single entry
-    assert StatusReport(status=2, project='R1',
+    assert StatusReport(status=2, project='Project #1',
                         strategy="HEADs", branchtype="pullreq", branch="blah",
                         buildname='PR-blah.HEADs-clang-ghc844',
-                        bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue='ghc844'),
-                                 BldVariable(projrepo='R1', varname='c_compiler', varvalue='clang'),
+                        bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
+                                 BldVariable(project='Project #1', varname='c_compiler', varvalue='clang'),
                         ]) in reps
 
 CS = [ 'clang', 'gnucc' ]
@@ -155,13 +155,13 @@ def test_example_report_statusMany(example_hydra_results):
                                 else 2
                                 if C == 'clang'
                                 else 'initial_success'),
-                        project='R1',
+                        project='Project #1',
                         strategy=S,
                         branchtype="pullreq" if B.startswith('PR') else "regular",
                         branch=B.split('-')[-1] if B.startswith('PR') else B,
                         buildname='-'.join(['.'.join([B,S]),C,G]),
-                        bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
-                                 BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
+                        bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
+                                 BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
                         ])
                     assert r in reps
 
@@ -179,13 +179,13 @@ def test_example_report_status2(example_hydra_results):
                 status=(2
                         if C == 'clang'
                         else 'initial_success'),
-                project='R1',
+                project='Project #1',
                 strategy=S,
                 branchtype="pullreq" if B.startswith('PR') else "regular",
                 branch=B.split('-')[-1] if B.startswith('PR') else B,
                 buildname='-'.join(['.'.join([B,S]),C,G]),
-                bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
-                         BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
+                bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
+                         BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
                 ])
             assert r in reps
 
@@ -200,19 +200,19 @@ def test_example_report_status3(example_hydra_results):
                 status=(2
                         if C == 'clang'
                         else 'initial_success'),
-                project='R1',
+                project='Project #1',
                 strategy=S,
                 branchtype="pullreq" if B.startswith('PR') else "regular",
                 branch=B.split('-')[-1] if B.startswith('PR') else B,
                 buildname='-'.join(['.'.join([B,S]),C,G]),
-                bldvars=[BldVariable(projrepo='R1', varname='ghcver', varvalue=G),
-                         BldVariable(projrepo='R1', varname='c_compiler', varvalue=C),
+                bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
+                         BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
                 ])
             assert r in reps
 
 def test_example_report_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    assert VarFailure('R1', 'c_compiler', 'clang') in reps
+    assert VarFailure('Project #1', 'c_compiler', 'clang') in reps
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -243,8 +243,8 @@ def test_example_report_varfail_do_email(example_hydra_results):
                                         'fred@nocompany.com',
                                         'john@_company.com',
                                         'sam@not_a_company.com']),
-                     notification=Notify(what='variable_failing', item='R1',
-                                         params=BldVariable(projrepo='R1',
+                     notification=Notify(what='variable_failing', item='Project #1',
+                                         params=BldVariable(project='Project #1',
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=[]) in reps
@@ -257,8 +257,8 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
         build_results=build_results,
         prior=prior + [
             SendEmail(recipients=['fred@nocompany.com'],
-                      notification=Notify(what='variable_failing', item='R1',
-                                          params=BldVariable(projrepo='R1',
+                      notification=Notify(what='variable_failing', item='Project #1',
+                                          params=BldVariable(project='Project #1',
                                                              varname='c_compiler',
                                                              varvalue='clang')),
                       sent_to=['fred@nocompany.com'])
@@ -275,14 +275,14 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
                          'john@_company.com',
                          'sam@not_a_company.com'])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='R1',
-                                         params=BldVariable(projrepo='R1',
+                     notification=Notify(what='variable_failing', item='Project #1',
+                                         params=BldVariable(project='Project #1',
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=[]) not in reps
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='R1',
-                                         params=BldVariable(projrepo='R1',
+                     notification=Notify(what='variable_failing', item='Project #1',
+                                         params=BldVariable(project='Project #1',
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=['fred@nocompany.com']) in reps

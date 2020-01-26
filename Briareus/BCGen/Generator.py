@@ -25,7 +25,8 @@ class Generator(object):
            return with the information "up-to" a specific point; this
            is primarily used for diagnostics and testing.
         """
-        facts = get_input_facts(input_descr.RL,
+        facts = get_input_facts(input_descr.PNAME,
+                                input_descr.RL,
                                 input_descr.BL,
                                 input_descr.VAR,
                                 repo_info)

@@ -174,22 +174,22 @@ prior = [
     StatusReport(status='initial_success', project='Repo1',
                  strategy='standard', branchtype="pullreq", branch="foo",
                  buildname='PR-foo.standard-ghc881',
-                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                 bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                  ]),
     StatusReport(status='initial_success', project='Repo1',
                  strategy='standard', branchtype="pullreq", branch="foo",
                  buildname='PR-foo.standard-ghc865',
-                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                 bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                  ]),
     StatusReport(status='failed', project='Repo1',
                  strategy='standard', branchtype="pullreq", branch="master",
                  buildname='PR1-master.standard-ghc865',
-                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                 bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                  ]),
     StatusReport(status='succeeded', project='Repo1',
                  strategy='standard', branchtype="regular", branch="master",
                  buildname='master.standard-ghc881',
-                 bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                 bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                  ]),
 ]
 
@@ -216,7 +216,7 @@ def test_example_facts(generated_facts):
 
 
 expected_facts = sorted(filter(None, '''
-:- discontiguous project/1.
+:- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
 :- discontiguous main_branch/2.
@@ -226,7 +226,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/3.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
-project("Repo1").
+project("Repo1", "Repo1").
 default_main_branch("master").
 repo("Repo1", "Repo1").
 repo("Repo1", "Repo2").
@@ -772,7 +772,7 @@ def test_example_report_summary(example_hydra_results):
 #     assert StatusReport(status='failed', project='Repo1',
 #                         strategy='standard', branchtype="pullreq", branch="develop",
 #                         buildname='PR-develop.standard-ghc865',
-#                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+#                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
 #                         ]) in reps
 
 def test_example_report_status2(example_hydra_results):
@@ -780,7 +780,7 @@ def test_example_report_status2(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="develop",
                         buildname='PR-develop.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status3(example_hydra_results):
@@ -788,7 +788,7 @@ def test_example_report_status3(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="foo",
                         buildname='PR-foo.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status4(example_hydra_results):
@@ -796,7 +796,7 @@ def test_example_report_status4(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="master",
                         buildname='PR1-master.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status4_2(example_hydra_results):
@@ -804,7 +804,7 @@ def test_example_report_status4_2(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="master",
                         buildname='PR2-master.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status5(example_hydra_results):
@@ -812,7 +812,7 @@ def test_example_report_status5(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="regular", branch="develop",
                         buildname='develop.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status6(example_hydra_results):
@@ -820,7 +820,7 @@ def test_example_report_status6(example_hydra_results):
     assert StatusReport(status=1, project='Repo1',
                         strategy='standard', branchtype="regular", branch="master",
                         buildname='master.standard-ghc881',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc881')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
 def test_example_report_status7(example_hydra_results):
@@ -828,7 +828,7 @@ def test_example_report_status7(example_hydra_results):
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="master",
                         buildname='PR9-master.standard-ghc865',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
 def test_example_report_status8(example_hydra_results):
@@ -836,7 +836,7 @@ def test_example_report_status8(example_hydra_results):
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='standard', branchtype="regular", branch="master",
                         buildname='master.standard-ghc865',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
 def test_example_report_status9(example_hydra_results):
@@ -844,7 +844,7 @@ def test_example_report_status9(example_hydra_results):
     assert StatusReport(status='succeeded', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="foo",
                         buildname='PR-foo.standard-ghc865',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
 # def test_example_report_status10(example_hydra_results):
@@ -853,7 +853,7 @@ def test_example_report_status9(example_hydra_results):
 #     assert StatusReport(status='succeeded', project='Repo1',
 #                         strategy='standard', branchtype="regular", branch="develop",
 #                         buildname='develop.standard-ghc865',
-#                         bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+#                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
 #                         ]) in reps
 
 def test_example_report_status11(example_hydra_results):
@@ -864,7 +864,7 @@ def test_example_report_status11(example_hydra_results):
     assert StatusReport(status='initial_success', project='Repo1',
                         strategy='standard', branchtype="pullreq", branch="dog",
                         buildname='PR-dog.standard-ghc865',
-                        bldvars=[BldVariable(projrepo='Repo1', varname='ghcver', varvalue='ghc865')
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                         ]) in reps
 
 
