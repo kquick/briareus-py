@@ -203,7 +203,53 @@ class GatherRepoInfo(ActorTypeDispatcher):
         # latter supercedes the former, and the latter is already
         # handled by the pullreqs retrievals, so just check for
         # branches.
+
         for p in msg.pullreqs:
+
+            # First, determine the source repo URL for the pullreq.
+            # Sometimes this is known, but sometimes the reference
+            # must be translated (e.g. GitLab sometimes just provides
+            # 'source_project_id').
+            if p.pullreq_srcurl == "SameProject":
+                # This is likely a GitLab repo, where the merge
+                # request has a source_project_id instead of a
+                # source_project_url, and the source_project_id is the
+                # same as the target_project_id, (it's just a branch
+                # in the original repo).  The GitLabInfo information
+                # collection didn't have the URL, so it couldn't
+                # generate an actual URL.
+                p.pullreq_srcurl = [ r.repo_url
+                                     for r in self.RL if r.repo_name == msg.reponame ][0]  # must match
+            elif isinstance(p.pullreq_srcurl, tuple) and \
+                 p.pullreq_srcurl[0] == 'DifferentProject':
+                # This is likely a GitLab repo, where the merge
+                # request has a source_project_id instead of a
+                # source_rpoject_url and the source_project_id is
+                # different than the target_project_id.  The
+                # GitLabInfo information collection didn't have the
+                # URL, so it couldn't generate an actual URL.
+                src_reponame = p.pullreq_srcurl[1]
+                p.pullreq_srcurl = ([ r.repo_url
+                                      for r in self.RL if r.repo_name == src_reponame ]
+                                    + [None])[0]
+            elif p.pullreq_srcurl is None:
+                # Debug vvv Hypothesis: this occurs during the small
+                # window where the pull request was identified and
+                # then it is merged and then additional data is
+                # attempted to be collected for it.
+                #
+                # Alternative (verified): gitlab is kinda broken
+                # because a private fork of a private repo doesn't
+                # inherit the permissions from the original repo and
+                # therefore is not visible to users that can access
+                # the original repo.  This manifests in 404 when
+                # attempting to follow the link to the merge source,
+                # and from the API perspective it causes the
+                # pullreq_srcurl to be None.  Since not much
+                # information can be gathered about these PR's they
+                # are ignored.
+                logging.critical('ERR: srcurl is None for pullreq %s in msg %s', p, msg)
+                # Debug ^^^
 
             # If this is a new pull request branch, and that branch
             # has not already been probed for the target repo, check
@@ -231,7 +277,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # pullreq_ref (the commit sha) if possible
                     # because Gitlab only supports file reading
                     # via ref, not via branchname.
-                    if p.pullreq_srcurl:
+                    if p.pullreq_srcurl and p.pullreq_srcurl != repo.repo_url:
                         # Source for pull request is in a different repo
                         self.get_git_info(
                             Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
@@ -248,23 +294,6 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                                          p.pullreq_ref or
                                                          p.pullreq_branch))
 
-        # Debug vvv
-        # Hypothesis: this occurs during the small window where the
-        # pull request was identified and then it is merged and then
-        # additional data is attempted to be collected for it.
-        #
-        # Alternative (verified): gitlab is kinda broken because a
-        # private fork of a private repo doesn't inherit the
-        # permissions from the original repo and therefore is not
-        # visible to users that can access the original repo.  This
-        # manifests in 404 when attempting to follow the link to the
-        # merge source, and from the API perspective it causes the
-        # pullreq_srcurl to be None.  Since not much information can
-        # be gathered about these PR's they are ignored.
-        for p in msg.pullreqs:
-            if p.pullreq_srcurl is None:
-                logging.critical('ERR: srcurl is None for pullreq %s in msg %s', p, msg)
-        # Debug ^^^
         self.pullreqs.update(set([
             PRInfo(pr_target_repo=msg.reponame,
                    pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,

@@ -348,7 +348,10 @@ class GitLabInfo(RemoteGit__Info):
         # forge, it's in this repo as a local branch.  The proper URL
         # is not known here, only the forge API url, so defer the
         # actual URL to the caller who does have that information.
-        return None
+        if mergereq.get('source_project_id', "no_spid") == mergereq.get('target_project_id', "no_tpid"):
+            return "SameProject"
+        rsp = self.api_req(mergereq.get('source_project_id', "no_spid"))
+        return ("DifferentProject", rsp.name)
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/merge_requests')
