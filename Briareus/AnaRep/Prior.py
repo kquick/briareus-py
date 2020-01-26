@@ -39,7 +39,7 @@ def get_prior_report(report_fname, with_lock=True):
     else:
         repf = open(report_fname, 'x')
     if with_lock:
-        for trynum in range(0, 180 if with_lock is True else with_lock):
+        for trynum in range(180 if with_lock is True else with_lock, 0, -1):
             try:
                 fcntl.flock(repf.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
@@ -47,6 +47,7 @@ def get_prior_report(report_fname, with_lock=True):
                 if e.errno != errno.EAGAIN:
                     raise
                 else:
+                    print('...waiting for lock on',report_fname,',',trynum,file=sys.stderr)
                     time.sleep(1)
     return repf, read_report_from(repf)
 
