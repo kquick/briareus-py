@@ -358,7 +358,11 @@ class GitLabInfo(RemoteGit__Info):
         # Gather {"upvotes": 0, "downvotes": 0, "approvals_before_merge": 0} for analysis phase
         # Use {"work_in_progress": true} to ignore the PR
         # Use {"merge_status": "can_be_merged"} for analysis phase?
-        preqs = [ PullReqInfo(str(pr["id"]),   # for user reference
+
+        # n.b. GitLab pullreqs have an id and and iid.  The iid is the
+        # one that is presented to the user on the Web page.
+
+        preqs = [ PullReqInfo(str(pr["iid"]),   # for user reference
                               pr["title"],    # for user reference
                               self._src_repo_url(pr),  # source repo URL
                               pr["source_branch"],          # source repo branch
