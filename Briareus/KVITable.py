@@ -180,7 +180,7 @@ class KVITable(object):
             key = kseq[0]
             rem_keys = kseq[1:]
             ret = []
-            for each in self._kv[key]:
+            for each in sorted(self._kv[key]):
                 if each in tablecells:  # skip rows with no entries
                     ret.extend([ [each] + l for l in self._get_rows(rem_keys, tablecells[each]) ])
             return ret
@@ -324,7 +324,7 @@ class KVITable__Render_ASCII(KVITable__Render_):
             key = kseq[0]
             if len(kseq) == 1:
                 # Reached a leaf
-                titles = self._table._kv[key]
+                titles = sorted(self._table._kv[key])
                 fmt = FmtLine(lambda: [ max(len(self._valstr(val)),
                                             max([0] + self.cellwidths(self._entrystr, **{key: val})))
                                         for val in titles ])
@@ -332,7 +332,7 @@ class KVITable__Render_ASCII(KVITable__Render_):
             else:
                 subhdrs = self._hdrvalstep(kseq[1:])
                 subhdrs_width = lambda: sum([subfmt.width() for subfmt,_,_ in subhdrs])
-                vals = self._table._kv[key]
+                vals = sorted(self._table._kv[key])
                 numvals = len(vals)
                 return [
                     (FmtLine(lambda: [ max(len(self._valstr(val)), subhdrs_width()) for val in vals]),
@@ -358,7 +358,7 @@ class KVITable__Render_ASCII(KVITable__Render_):
                 return [(False, self._ascii_multival_rows(kseq, tablecells, path))]
             rem_keys = kseq[1:]
             ret = []
-            for each in self._table._kv[key]:
+            for each in sorted(self._table._kv[key]):
                 if each not in tablecells and self._hide_blank_rows:
                     continue
                 eachval = tablecells.get(each, dict())
@@ -383,7 +383,7 @@ class KVITable__Render_ASCII(KVITable__Render_):
         return [self._entrystr(pathstart + path,entry)
                 for path,entry in self._table._get_entries_matching(
                         {},
-                        ([], { k:self._table._kv[k] for k in kseq }),
+                        ([], { k:sorted(self._table._kv[k]) for k in kseq }),
                         tablecells,
                         include_blanks=True,
                 )]
@@ -505,12 +505,12 @@ class KVITable__Render_HTML(KVITable__Render_):
             key = kseq[0]
             if len(kseq) == 1:
                 # Reached a leaf
-                titles = self._table._kv[key]
+                titles = sorted(self._table._kv[key])
                 fmt = FmtLine_HTML(len(titles))
                 return [ (fmt, [ self._valstr(t) for t in titles], key) ], len(titles)
             else:
                 subhdrs, _ = self._hdrvalstep(kseq[1:])
-                vals = self._table._kv[key]
+                vals = sorted(self._table._kv[key])
                 numvals = len(vals)
                 val_colspan = len(subhdrs[-1][0])
                 upd_subhdrs = [ (fmt.repeat(numvals), titles * numvals, trailer)
@@ -538,7 +538,7 @@ class KVITable__Render_HTML(KVITable__Render_):
                 return [(False, self._html_multival_rows(kseq, tablecells, path))]
             rem_keys = kseq[1:]
             ret = []
-            for each in self._table._kv[key]:
+            for each in sorted(self._table._kv[key]):
                 if each not in tablecells and self._hide_blank_rows:
                     continue
                 eachval = tablecells.get(each, dict())
