@@ -72,6 +72,22 @@ report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Var
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid),
     N > 0.
 
+report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))) :-
+    % configs for which there is no bldres yet (e.g. the .jobsets
+    % hasn't run) There is no Bldname assigned, but Briareus can
+    % synthesize one from the bldcfg.
+    project(PName, _)
+    , strategy(Strategy, PName, Branch)
+    , branch_type(BranchType, Branch, _)
+    , build_config2(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))
+    , findall(BName,
+              (bldres(PName, BranchType, Branch, Strategy, BldVars, BName, _, _, _, _, _)
+               , listcmp(BldVars, Vars))
+              , BNames)
+    , length(BNames, 0)
+    .
+
+
 % This preserves the previous status for a pending build
 report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
     project(PName, _)

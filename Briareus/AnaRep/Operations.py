@@ -178,6 +178,7 @@ def prior_fact(prior):
              'SendEmail': prior_fact_SendEmail, # ignored as a prior
              'PostChatMessage': prior_ignored,
              'PendingStatus' : prior_ignored,
+             'NewPending' : prior_ignored,
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):

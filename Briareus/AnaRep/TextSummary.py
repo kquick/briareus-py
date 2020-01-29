@@ -2,7 +2,8 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, Notify)
+from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify)
+from Briareus.BuildSys import buildcfg_name
 
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
@@ -56,10 +57,13 @@ def tbl_branch(r):
     # in which case the assumption is that the portion of the
     # buildname up to the first period is the desired Branch
     # table entry.  KWQ KWQ: needs a better approach!
-    buildname_fp = r.buildname.split(r.branch)[0]
-    return (r.buildname.split('.')[0]
-            if buildname_fp == r.buildname
-            else buildname_fp + r.branch)
+    return tbl_branch_(r.buildname, r.branch)
+
+def tbl_branch_(buildname, branch):
+    buildname_fp = buildname.split(branch)[0]
+    return (buildname.split('.')[0]
+            if buildname_fp == buildname
+            else buildname_fp + branch)
 
 
 def text_summary(repdata):
@@ -140,6 +144,26 @@ def text_summary(repdata):
                                          *vars,
                                          Branch=tbl_branch(sr),
                                          Strategy=sr.strategy)
+
+        elif isinstance(sr, NewPending):
+            summary.add(_inc, Element='Builds')
+            projtable.add(_inc, Project=sr.bldcfg.projectname, Status="TOTAL")
+            projtable.add(_inc, Project=sr.bldcfg.projectname, Status="pending")
+            vars = tuple([ (v.varname, v.varvalue) for v in sr.bldcfg.bldvars ])
+            buildname = buildcfg_name(sr.bldcfg)
+            tbl_brname = tbl_branch_(buildname, sr.bldcfg.branchname)
+
+            fulltable.add(PendingBld,
+                          *vars,
+                          Project=sr.bldcfg.projectname,
+                          Branch=tbl_brname,
+                          Strategy=sr.bldcfg.strategy)
+            detailtables[sr.bldcfg.projectname].add(
+                PendingBld,
+                *vars,
+                Branch=tbl_brname,
+                Strategy=sr.bldcfg.strategy)
+
 
         elif isinstance(sr, StatusReport):
             summary.add(_inc, Element='Builds')

@@ -2,7 +2,9 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, Notify)
+from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify)
+from Briareus.BuildSys import buildcfg_name
+from Briareus.AnaRep.TextSummary import tbl_branch, tbl_branch_
 
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
@@ -81,22 +83,6 @@ def tcell_entshow(base_builder_url):
         return str(ent)
     return _t_es
 
-def tbl_branch(r):
-    # Don't necessarily want to just use the branch name
-    # because it might be the main branch with multiple PR's
-    # on that branch.  At this point, use the regularity of
-    # the buildname to know that the start of the buildname,
-    # up to a match with the branch name is the unique
-    # identifier for this branch + PR.  However, the branch
-    # name might have been adjusted to be a valid task name,
-    # in which case the assumption is that the portion of the
-    # buildname up to the first period is the desired Branch
-    # table entry.  KWQ KWQ: needs a better approach!
-    buildname_fp = r.buildname.split(r.branch)[0]
-    return (r.buildname.split('.')[0]
-            if buildname_fp == r.buildname
-            else buildname_fp + r.branch)
-
 def html_summary(repdata, base_builder_url=None):
     section_hdrfun = lambda msg: '<br/><hline class="section_line"/><br/><h2>' + msg + '</h2><br/>'
     subsection_hdrfun = lambda msg: '<br/><h3>' + msg + '</h3>'
@@ -170,6 +156,26 @@ def html_summary(repdata, base_builder_url=None):
                                          *vars,
                                          Branch=tbl_branch(sr),
                                          Strategy=sr.strategy)
+
+        elif isinstance(sr, NewPending):
+            summary.add(_inc, Element='Builds')
+            projectname = sr.bldcfg.projectname
+            buildname = buildcfg_name(sr.bldcfg)
+            tbl_brname = tbl_branch_(buildname, sr.bldcfg.branchname)
+            projtable.add(_inc, Project=projectname, Status="TOTAL")
+            projtable.add(_inc, Project=projectname, Status="pending")
+            vars = tuple([ (v.varname, v.varvalue) for v in sr.bldcfg.bldvars ])
+
+            fulltable.add(TCell_PendingBld(projectname, buildname),
+                          *vars,
+                          Project=projectname,
+                          Branch=tbl_brname,
+                          Strategy=sr.bldcfg.strategy)
+            detailtables[sr.bldcfg.projectname].add(
+                TCell_PendingBld(projectname, buildname),
+                *vars,
+                Branch=tbl_brname,
+                Strategy=sr.bldcfg.strategy)
 
         elif isinstance(sr, StatusReport):
             summary.add(_inc, Element='Builds')

@@ -112,6 +112,10 @@ class PendingStatus(object):
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
 
 @attr.s(frozen=True)
+class NewPending(object):
+    bldcfg = attr.ib()  # BldConfig
+
+@attr.s(frozen=True)
 class VarFailure(BldVariable): pass
 
 @attr.s(frozen=True)
@@ -202,6 +206,7 @@ logic_result_expr = {
 
     "status_report": StatusReport,
     "pending_status": PendingStatus,
+    "new_pending": NewPending,
     "succeeded": "succeeded",
     "failed": "failed",
     "fixed": "fixed",
