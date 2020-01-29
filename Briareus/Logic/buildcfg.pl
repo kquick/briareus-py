@@ -164,7 +164,7 @@ rem_build_branch(_BldBranch, Repo, Branch) :-
 repo_useable(ProjRepo, _Proj_PR_ID, _ProjBranch, Repo) :-
     project(PName, ProjRepo)
     , repo(PName, Repo)   % user specified, so always visible
-    % , !
+    , !
 .
 repo_useable(ProjRepo, Proj_PR_ID, ProjBranch, Repo) :-
     subrepo(ProjRepo, Repo)
