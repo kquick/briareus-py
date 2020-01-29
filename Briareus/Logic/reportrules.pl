@@ -100,9 +100,6 @@ report(var_failure(PName, N, V)) :-
     length(Res, 0),
     \+ report(complete_failure(PName)).
 
-report(config_error(PName, Cfg)) :-
-    project(PName, _),
-    bldres(PName, _BranchType, _Branch, _Strategy, _Vars, Cfg, _, _, _, _, configError).
 
 %% ------------------------------------------------------------
 %% PR assessments

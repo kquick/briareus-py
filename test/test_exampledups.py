@@ -868,6 +868,18 @@ def test_example_report_status11(example_hydra_results):
                         ]) in reps
 
 
+def test_example_report_status12(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    for each in reps:
+        print(each)
+        print('')
+    assert StatusReport(status='bad_config', project='Repo1',
+                        strategy='standard', branchtype="pullreq", branch="develop",
+                        buildname='PR-develop.standard-ghc865',
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
+                        ]) in reps
+
+
 def test_example_report_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert VarFailure('Repo1', 'ghcver', 'ghc881') in reps
@@ -882,7 +894,7 @@ def test_example_report_length(example_hydra_results):
     num_actions = num_varfailure
     num_do = num_varfailure
     expected = ((len(top_level) * len(GS)) +
-                len(['ProjectSummary', 'ConfigError'])
+                len(['ProjectSummary', ])
                 - 1 # PR[2]-develop.standard-ghc865 has ntotal and others as zero
                 + num_varfailure + prfailing + prsuccess # - nrscheduled
                 + num_analysis + num_actions + num_do

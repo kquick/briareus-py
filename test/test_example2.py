@@ -384,6 +384,14 @@ def test_example_report_status12(example_hydra_results):
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ]) in reps
 
+def test_example_report_status13(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    assert StatusReport(status='bad_config', project='Repo1',
+                        strategy='submodules', branchtype="regular", branch="develop",
+                        buildname='develop.submodules-ghc844',
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
+                        ]) in reps
+
 def test_example_report_ghc881_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     assert VarFailure('Repo1', 'ghcver', 'ghc881') in reps
@@ -396,7 +404,7 @@ def test_example_report_length(example_hydra_results):
     num_actions = num_varfailure
     num_do = num_varfailure
     expected = ((len(top_level) * len(GS)) +
-                len(['ProjectSummary', 'ConfigError'])
+                len(['ProjectSummary', ])
                 # - nrscheduled
                 + num_varfailure
                 + num_analysis + num_actions + num_do
