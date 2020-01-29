@@ -110,7 +110,9 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     verbosely(params, 'Generated Analysis/Report: %d items in %s' %
               (len(report[1]), str(te - t0)))
 
-    assert report[0] == 'report'
+    if report[0] != 'report':
+        return None
+
     return report[1]
 
 
@@ -251,11 +253,14 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
 
     # Generator cycle done, now do any reporting
 
-    if params.up_to and not params.up_to.enough('report'):
+    if params.up_to and not params.up_to.enough('build_results'):
         return
 
     report = run_hh_report(params, gen_result, prior_report,
                            reporting_logic_defs=reporting_logic_defs)
+
+    if params.up_to and not params.up_to.enough('actions'):
+        return
 
     report = perform_hh_actions(report)
 
@@ -306,7 +311,8 @@ class UpTo(object):
 
     # In order:
     valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
-                    "build_results", "built_facts", "raw_built_analysis", "report" ]
+                    "build_results", "built_facts", "raw_built_analysis",
+                    "actions", "report" ]
 
     @staticmethod
     def valid():

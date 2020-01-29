@@ -120,7 +120,7 @@ class AnaRep(object):
             print_each('BUILT FACTS', facts)
             print(raw)
         if self._up_to == 'built_facts':
-            return (up_to, facts)
+            return (self._up_to, facts)
 
         r = run_logic_analysis('built_analysis', facts,
                                raw_logic=raw,
