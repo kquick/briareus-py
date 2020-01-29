@@ -4,7 +4,7 @@
 build_config2(bldcfg(PName, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-
     project(PName, _)
     , pr_config(Cfg, CFG)
-    , branch_for_prtype(PName, Cfg, Branch)
+    , branch_for_prtype(Cfg, Branch)
     , finish_config(PName, CFG, Branch, Strategy, BLDS, VARS)
     .
 
