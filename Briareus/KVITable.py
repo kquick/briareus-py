@@ -563,7 +563,7 @@ class KVITable__Render_HTML(KVITable__Render_):
         return [self._entrystr(pathstart + path,entry)
                 for path,entry in self._table._get_entries_matching(
                         {},
-                        ([], { k:self._table._kv[k] for k in kseq }),
+                        ([], { k:sorted(self._table._kv[k]) for k in kseq }),
                         tablecells,
                         include_blanks=True,
                 )]
