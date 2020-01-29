@@ -194,7 +194,7 @@ def text_summary(repdata):
                                             row_group=['system', 'Branch'],
                                             entrystr=entshow_fun,
                      )
-                     for p in projects]),
+                     for p in sorted(projects)]),
         section_hdrfun('KEY ::'),
         keytable.render(as_format='ascii'),
         ])

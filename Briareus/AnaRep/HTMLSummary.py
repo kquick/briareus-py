@@ -213,5 +213,5 @@ def html_summary(repdata, base_builder_url=None):
                                             row_group=['system', 'Branch'],
                                             entrystr=entshow_fun,
                      )
-                     for p in projects])
+                     for p in sorted(projects)])
         ])
