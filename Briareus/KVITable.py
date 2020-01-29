@@ -303,7 +303,8 @@ class KVITable__Render_ASCII(KVITable__Render_):
                 return self._hdrvalstep(kseq)
             # still a row-oriented key+val configuration
             keyw = lambda: max(len(self._valstr(key)),
-                               max(map(len, [self._valstr(v) for v in self._table._kv[key]])))
+                               max([0] +
+                                   list(map(len, [self._valstr(v) for v in self._table._kv[key]]))))
             nexthdrs = self._hdrstep(kseq[1:])
             return [
                 (fmt.add_col_left(keyw),
@@ -314,7 +315,8 @@ class KVITable__Render_ASCII(KVITable__Render_):
             ]
         # colstack_at wasn't recognized, so devolve to a non-colstack table
         valwidth = lambda: [ max(len(self._valstr(self._table._valuecol_name)),
-                                 max([len(self._entrystr(zip(self._table._kv.keys(), row[:-1]),
+                                 max([0] +
+                                     [len(self._entrystr(zip(self._table._kv.keys(), row[:-1]),
                                                          row[-1]))
                                       for row in self._table.get_rows()])) ]  # KWQ
         return [ (FmtLine(valwidth), [self._valstr(self._table._valuecol_name)], '') ]

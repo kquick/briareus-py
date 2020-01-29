@@ -19,6 +19,33 @@ def test_empty_kvitable_add():
     hello = kvit.get(('foo', 'bar'), moo="cow")
     assert hello == "hi"
 
+def test_empty_kvitable_render_text():
+    kvit = KVITable()
+    show = kvit.render(as_format='ascii')
+    assert '\n'.join([
+        '| Value |',
+        '+-------+',
+        '|       |',
+    ]) == show
+
+def test_empty_kvitable_render_html():
+    kvit = KVITable()
+    show = kvit.render(as_format='html')
+    assert 'Value' in show
+
+def test_empty_kvitable_with_labels_render_text():
+    kvit = KVITable({'foo':[], 'dog':[]})
+    show = kvit.render(as_format='ascii')
+    assert '\n'.join([
+        '| foo | dog | Value |',
+        '+-----+-----+-------+',
+    ]) == show
+
+def test_empty_kvitable_with_labels_render_html():
+    kvit = KVITable({'foo':[], 'dog':[]})
+    show = kvit.render(as_format='html')
+    assert 'Value' in show
+
 def test_empty_frozen_kvitable_add_refused():
     kvit = KVITable(kv_frozen=True)
     with pytest.raises(IndexError) as idxerr:
