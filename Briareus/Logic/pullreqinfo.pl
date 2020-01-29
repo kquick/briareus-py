@@ -68,25 +68,32 @@ pr_type(pr_grouped, BranchName) :-
 %     prcfg(Repo, PRNum, Branch)
 %     branchcfg(Repo, BranchName)
 % items.
-pr_config(pr_type(pr_solo, Repo, PRNum), PRCfg) :-
-    pr_type(pr_solo, Repo, PRNum),
-    pullreq(Repo, PRNum, Branch),
-    PRCfg = [ prcfg(Repo, PRNum, Branch) ].
+pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
+    pr_type(pr_solo, Repo, PRNum)
+    , pullreq(Repo, PRNum, Branch)
+    , repo_in_project(ProjName, Repo)
+    , PRCfg = [ prcfg(Repo, PRNum, Branch) ]
+.
 
-pr_config(pr_type(pr_repogroup, PRNum, RepoList), PRCfg) :-
+pr_config(pr_type(pr_repogroup, PRNum, RepoList), ProjName, PRCfg) :-
     pr_type(pr_repogroup, PRNum, RepoList),
     % the Branch should be the same main_branch for all prcfgs since
     % they refer to the same actual repo
-    setof(R, Repo^(is_main_branch(Repo, Branch),
-                   pullreq(Repo, PRNum, Branch),
-                   R = prcfg(Repo, PRNum, Branch)),
-          PRCfg).
+    setof(R, Repo^(is_main_branch(Repo, Branch)
+                   , pullreq(Repo, PRNum, Branch)
+                   , repo_in_project(ProjName, Repo)
+                   , R = prcfg(Repo, PRNum, Branch))
+          , PRCfg).
 
-pr_config(pr_type(pr_grouped, BranchName), PRCfg) :-
+pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
     pr_type(pr_grouped, BranchName),
-    setof(R, Repo^I^( (pullreq(Repo, I, BranchName), R = prcfg(Repo, I, BranchName))
-                    ; (branch(Repo, BranchName),
-                       \+pullreq(Repo, I, BranchName), R = branchcfg(Repo, BranchName))),
+    setof(R, Repo^I^( (pullreq(Repo, I, BranchName)
+                       , repo_in_project(ProjName, Repo)
+                       , R = prcfg(Repo, I, BranchName))
+                    ; (branch(Repo, BranchName)
+                       , repo_in_project(ProjName, Repo)
+                       , \+pullreq(Repo, I, BranchName)
+                       , R = branchcfg(Repo, BranchName))),
           PRCfg).
 
 % ----------------------------------------------------------------------

@@ -3,7 +3,9 @@
 
 build_config2(bldcfg(PName, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-
     project(PName, _)
-    , pr_config(Cfg, CFG)
+    , pr_config(Cfg, PName, CFG)
+    , length(CFG, CFGLen)
+    , CFGLen > 0  % eliminate PR's that don't affect this project
     , branch_for_prtype(Cfg, Branch)
     , finish_config(PName, CFG, Branch, Strategy, BLDS, VARS)
     .
