@@ -15,6 +15,9 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
 
     declare_facts = [
 
+        # ----------------------------------------------------------------------
+        # Facts used for build configuration generation
+
         # Identifies a repository (by name, not URL, so
         # forks are all assumed to be identical
         # repositories.)

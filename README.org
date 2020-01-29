@@ -83,7 +83,7 @@ Briareus will generate several build configurations based on the
 information in the input file and the results of querying the VCS
 forges (e.g. Github or Gitlab) for the repositories specified.  The
 actual build configurations may be updated over time (and are
-controlled by logic rules in the ~reporules.pl~ Prolog file), but at
+controlled by logic rules in the ~buildcfg.pl~ Prolog file), but at
 this time, consist of the following:
 
  * A build of every branch requested in the input configuration file.

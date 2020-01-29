@@ -1,4 +1,4 @@
-%% This is a logic layer that uses the VCS facts, the reporules, the
+%% This is a logic layer that uses the VCS facts, the buildcfg rules, the
 %% build results, and the reportrules to perform a higher-level
 %% analysis of the status.
 
