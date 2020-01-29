@@ -18,6 +18,7 @@ build_results = [
       "nrfailed": 2 if '-clang-' in n else 0,
       "nrscheduled": 0,
       "haserrormsg": False,
+      "fetcherrormsg": '',
     }
     for n in [
             "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111
