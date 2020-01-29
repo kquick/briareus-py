@@ -17,7 +17,6 @@ good_status(fixed).
 bad_status(failed).
 bad_status(N) :- integer(N).
 bad_status(badconfig).
-bad_status(pending).  % as in not good_status
 
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
