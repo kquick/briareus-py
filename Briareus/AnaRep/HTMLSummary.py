@@ -21,6 +21,14 @@ class TCell_Bld(object):
                       'cell': str(self),
                     })
         return str(self)
+    def __call__(self, orig):
+        # Callable for combining with previous entry at this location in the table
+        if orig is None:
+            return self
+        if isinstance(orig, TCell_PendingBld):
+            orig.set_prev(self)
+            return orig
+        return None
 
 
 class TCell_GoodBld(TCell_Bld):
@@ -38,14 +46,12 @@ class TCell_FailBld(TCell_Bld):
         self._failcnt = int(failcnt)
     def __call__(self, orig):
         # Callable for combining with previous entry at this location in the table
-        if orig is None:
-            return self
+        r = super(TCell_FailBld, self).__call__(orig)
+        if r is not None:
+            return r
         if isinstance(orig, TCell_FailBld):
             self._failcnt += orig.cnt()
             return self
-        if isinstance(orig, TCell_PendingBld):
-            orig.set_prev(self)
-            return orig
         if not isinstance(orig, TCell_FailBld):
             raise ValueError('Combine TCell_FailBld with old %s: unsupported' %
                              str(type(orig)))
