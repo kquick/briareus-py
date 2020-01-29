@@ -1,6 +1,6 @@
 # Support for various backend builders
 
-from Briareus.Types import PR_Solo
+from Briareus.Types import PR_Solo, PR_Repogroup
 
 def fix_branchname(branchname):
     """Git (and other VCS tools) allows all sorts of characters in a
@@ -37,7 +37,7 @@ def fix_branchname(branchname):
     return branchname.replace('/', '__')
 
 
-def buildcfg_name(bldcfg, input_desc, repo_info):
+def buildcfg_name(bldcfg):
     if bldcfg.bldvars:
         vnames = sorted([ v.varname for v in bldcfg.bldvars ])
         vdict = dict( [(v.varname, v.varvalue) for v in bldcfg.bldvars] )
@@ -122,16 +122,7 @@ def buildcfg_name(bldcfg, input_desc, repo_info):
         for BRR in bldcfg.blds:
             if BRR.pullreq_id == "project_primary":
                 continue
-            if BRR.repover in [ r.main_branch
-                                for r in input_desc.RL
-                                if BRR.reponame == r.repo_name ] or \
-               isinstance(bldcfg.description, PR_Solo) or \
-               len([ True
-                        for PR in repo_info['pullreqs']
-                        if PR.pr_target_repo == BRR.reponame and
-                        PR.pr_branch == BRR.repover ]) > 1:
-                enumerate_prnums = True
-                break
+            enumerate_prnums |= isinstance(bldcfg.description, (PR_Solo, PR_Repogroup))
 
         if enumerate_prnums:
             prnums = sorted(list(set([ "PR" + brr.pullreq_id

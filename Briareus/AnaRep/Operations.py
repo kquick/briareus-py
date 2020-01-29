@@ -137,9 +137,7 @@ class AnaRep(object):
 
 
     def get_build_results(self, result_set):
-        return [ BuildResult(build, result_set.builder.get_build_result(build,
-                                                                        result_set.inp_desc,
-                                                                        result_set.repo_info))
+        return [ BuildResult(build, result_set.builder.get_build_result(build))
                  for build in result_set.build_cfgs.cfg_build_configs ]
 
 def mk_prior_facts(prior_report):

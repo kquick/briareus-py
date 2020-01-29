@@ -27,6 +27,5 @@ class BCGen(object):
         if self._up_to and not self._up_to.enough("builder_configs"):
             return cfgs
         cfg_spec = self._bldsys.output_build_configurations(input_desc, cfgs,
-                                                            repo_info=repo_info,
                                                             bldcfg_fname=bldcfg_fname)
         return cfg_spec, cfgs

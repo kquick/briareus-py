@@ -110,7 +110,7 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
         # buildcfg_name, which is revealed by this print loop.
         builder = BldSys.HydraBuilder(None)
         for each in build_cfgs.cfg_build_configs:
-            print(buildcfg_name(each, inp_desc, repo_info))
+            print(buildcfg_name(each))
         builder._build_results = build_results
         report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)],
                                   prior,
