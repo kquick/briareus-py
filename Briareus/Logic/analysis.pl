@@ -38,7 +38,7 @@ cons(H, T, [H|T]).
 
 action(notify(completely_broken, Project, NBldCfgs)) :-
     report(complete_failure(Project)),
-    findall(C, bldres(Project, _BType, _Br, _Strat, _Vars, C, _Ttl, _Pass, _Fail, _Pend, _Conf), Cfgs),
+    findall(C, bldres(Project, _BType, _Br, _Strat, _Vars, C, _Ttl, _Pass, _Fail, _Pend, _Conf, _), Cfgs),
     length(Cfgs, NBldCfgs),
     NBldCfgs > 0.
 

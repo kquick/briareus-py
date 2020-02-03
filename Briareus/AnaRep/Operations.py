@@ -97,6 +97,8 @@ class AnaRep(object):
             DeclareFact('action_type/4'),
             DeclareFact('project_owner/2'),
 
+            DeclareFact('bldres/11'),
+            Fact('bldres(Prj,BrTy,Br,Stgy,Vars,Bldname,Ttl,Good,Bad,Pend,CfgSts,"old") :- bldres(Prj,BrTy,Br,Stgy,Vars,Bldname,Ttl,Good,Bad,Pend,CfgSts)'),
         ]
 
         input_facts = functools.reduce(
@@ -137,6 +139,9 @@ class AnaRep(object):
 
 
     def get_build_results(self, result_set):
+        # Returns BuildSys-obtained BuildResult associated with
+        # BuildCfg for each BuildCfg; BuildSys results not associated
+        # with a BuildCfg are ignored.
         return [ BuildResult(build, result_set.builder.get_build_result(build))
                  for build in result_set.build_cfgs.cfg_build_configs ]
 
@@ -149,7 +154,7 @@ def mk_prior_facts(prior_report):
 
 def mk_built_facts(build_results):
     return set(
-        [ DeclareFact('bldres/11'),
+        [ DeclareFact('bldres/12'),
           DeclareFact('report/1'),
           DeclareFact('status_report/7'),
           DeclareFact('succeeded/0'),
@@ -256,11 +261,13 @@ def built_fact(result):
          ', {r.results.nrfailed}'
          ', {r.results.nrscheduled}'
          ', {configStatus}'
+         ', {bldDescription}'
          ')'
         ).format(r=result,
                  vars='[ ' + ', '.join(vars) + ' ]',
                  strategy=result.bldconfig.strategy.lower(),
                  configStatus=('configError'
-                               if result.results.cfgerror else 'configValid')
+                               if result.results.cfgerror else 'configValid'),
+                 bldDescription=result.bldconfig.description.as_fact(),
         )
     )

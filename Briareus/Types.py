@@ -20,10 +20,17 @@ class BranchReq(object):
     projectname = attr.ib() # string
     branchname  = attr.ib() # string
 
+    def as_fact(self):
+        return 'branchreq("' + self.projectname + '", "' + self.branchname + '")'
+
+
 @attr.s(frozen=True)
 class MainBranch(object):
     reponame = attr.ib() # string
     branchname  = attr.ib() # string
+
+    def as_fact(self):
+        return 'main_branch("' + self.reponame + '", "' + self.branchname + '")'
 
 def pr_type(typespec, *args):
     return eval(typespec)(*args)
@@ -33,14 +40,23 @@ class PR_Solo(object):
     reponame   = attr.ib() # string
     pullreq_id = attr.ib() # string, never project_primary
 
+    def as_fact(self):
+        return 'pr_type(pr_solo, "' + self.reponame + '", "' + self.pullreq_id + '")'
+
 @attr.s(frozen=True)
 class PR_Repogroup(object):
     pullreq_id = attr.ib() # string, never project_primary
     reponames  = attr.ib() # [string]
 
+    def as_fact(self):
+        return 'pr_type(pr_repogroup, "' + self.pullreq_id + '", ' + str(self.reponames) + ')'
+
 @attr.s(frozen=True)
 class PR_Grouped(object):
     branchname = attr.ib() # string
+
+    def as_fact(self):
+        return 'pr_type(pr_grouped, "' + self.branchname + '")'
 
 @attr.s(frozen=True)
 class BldRepoRev(object):
