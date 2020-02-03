@@ -61,9 +61,13 @@ def tbl_branch(r):
 
 def tbl_branch_(buildname, branch):
     buildname_fp = buildname.split(branch)[0]
-    return (buildname.split('.')[0]
-            if buildname_fp == buildname
-            else buildname_fp + branch)
+    r =  (buildname.split('.')[0]
+          if buildname_fp == buildname
+          else buildname_fp + branch)
+    # Note: want branches to come before PR's, but 'P' comes before
+    # most branch lowercase names, so add a space before non-PRs to
+    # move them to first in sorting.
+    return r if r.startswith('PR') else ' ' + r
 
 
 def text_summary(repdata):
