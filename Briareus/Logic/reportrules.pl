@@ -27,23 +27,39 @@ bad_status(badconfig).
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
 
+% Normally the BldDesc can be compared directly, but as a special
+% case, a configuration identified as PR_Solo for one project could
+% also be involved in another project where that PR affects multiple
+% repos and therefore be a PR_Repogrouped, so allow those two to
+% equate to each other.  This function compares the BldDescs and
+% returns the pre-eminent BldDesc to use.
+cmpBldDesc(D1, D1, D1).
+cmpBldDesc(pr_type(pr_solo,R,I),
+           pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
+    member(R, RL).
+cmpBldDesc(pr_type(pr_repogroup,I,RL),
+           pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
+    member(R, RL).
+
 
 report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
-    prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
+    prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     good_status(Status),
+    cmpBldDesc(BldDesc1, BldDesc2, BldDesc),
     listcmp(Vars, PriorVars).
 
 report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
-    prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
+    prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     bad_status(PrevSts),
+    cmpBldDesc(BldDesc1, BldDesc2, BldDesc),
     listcmp(Vars, PriorVars).
 
 report(status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
@@ -51,7 +67,8 @@ report(status_report(initial_success, project(PName), Strategy, BranchType, Bran
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
-    findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
+    findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
+                cmpBldDesc(BldDesc, BldDesc2, _),
                 listcmp(Vars, PriorVars)), PS),
     length(PS, 0).
 
@@ -79,17 +96,19 @@ report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Var
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
     N > 0.
 
-report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))) :-
+
+report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))) :-
     % configs for which there is no bldres yet (e.g. the .jobsets
     % hasn't run) There is no Bldname assigned, but Briareus can
     % synthesize one from the bldcfg.
     project(PName, _)
     , strategy(Strategy, PName, Branch)
     , branch_type(BranchType, Branch, _)
-    , build_config2(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))
+    , build_config2(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))
     , findall(BName,
-              (bldres(PName, BranchType, Branch, Strategy, BldVars, BName, _, _, _, _, _, Cfg)
-               , listcmp(BldVars, Vars))
+              (bldres(PName, BranchType, Branch, Strategy, Vars2, BName, _, _, _, _, _, BldDesc2)
+               , cmpBldDesc(BldDesc, BldDesc2, _)
+               , listcmp(Vars1, Vars2))
               , BNames)
     , length(BNames, 0)
     .
@@ -100,9 +119,10 @@ report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname,
     project(PName, _)
     , strategy(Strategy, PName, Branch)
     , branch_type(BranchType, Branch, _)
-    , bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc)
+    , bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
     , N > 0
-    , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc)
+    , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2)
+    , cmpBldDesc(BldDesc1, BldDesc2, BldDesc)
     , listcmp(Vars, PriorVars)
     .
 
