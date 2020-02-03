@@ -21,6 +21,8 @@ def _add_if_int(v):
 
 class PendingBld(object):
     def __init__(self, failcnt):
+        if isinstance(failcnt, PendingBld):
+            raise NotImplementedError('Add PendingBld to PendingBld is not supported.')
         self._failcnt = failcnt
         self._prevsts = None
     def cnt(self, numfails):
