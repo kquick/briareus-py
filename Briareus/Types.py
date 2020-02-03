@@ -49,7 +49,8 @@ class PR_Repogroup(object):
     reponames  = attr.ib() # [string]
 
     def as_fact(self):
-        return 'pr_type(pr_repogroup, "' + self.pullreq_id + '", ' + str(self.reponames) + ')'
+        return ('pr_type(pr_repogroup, "' + self.pullreq_id + '", ['
+                + ', '.join(['"%s"'%n for n in self.reponames]) + '])')
 
 @attr.s(frozen=True)
 class PR_Grouped(object):
