@@ -102,7 +102,7 @@ def test_non_frozen_kvitable_add_deep_key():
         [ 'bar', 'pie', '?', 'hi' ],
         [ 'baz', 'beam', 'woof', 'yo'],
     ] == rows
-    show = kvit.render()
+    show = kvit.render(sort_vals=True)
     assert '\n'.join([
         '|  foo | moon |     dog |       says |',
         '+------+------+---------+------------+',
@@ -243,7 +243,7 @@ def test_medium_kvitable_get_no_path(medium_kvitable):
     ] == r
 
 def test_medium_kvitable_render_skip_blank_rows(medium_kvitable):
-    show = medium_kvitable.render()
+    show = medium_kvitable.render(sort_vals=True)
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -261,8 +261,29 @@ def test_medium_kvitable_render_skip_blank_rows(medium_kvitable):
         '|     gcc8 |   yes |            3 |  True |',
         ]) == show
 
+def test_medium_kvitable_render_skip_blank_rows_unsorted(medium_kvitable):
+    show = medium_kvitable.render()
+    assert '\n'.join([
+        '| compiler | debug | optimization | Value |',
+        '+----------+-------+--------------+-------+',
+        '|     gcc7 |   yes |            0 |  good |',
+        '|     gcc7 |   yes |            3 |  ugly |',
+        '|     gcc7 |    no |            0 |   bad |',
+        '|     gcc7 |    no |            1 |  good |',
+        '|     gcc8 |   yes |            0 |  good |',
+        '|     gcc8 |   yes |            1 |   bad |',
+        '|     gcc8 |   yes |            3 |  True |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang7 |   yes |            3 |  good |',
+        '|   clang7 |    no |            0 |  good |',
+        '|   clang7 |    no |            1 |  good |',
+        '|   clang7 |    no |            3 |  good |',
+        ]) == show
+
 def test_medium_kvitable_render_skip_blank_rows_no_rep(medium_kvitable):
-    show = medium_kvitable.render(row_repeat=False)
+    show = medium_kvitable.render(row_repeat=False,
+                                  sort_vals=True,
+    )
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -281,7 +302,9 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep(medium_kvitable):
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_no_rep_group_unknown(medium_kvitable):
-    show = medium_kvitable.render(row_repeat=False, row_group=['unknown'])
+    show = medium_kvitable.render(row_repeat=False,
+                                  sort_vals=True,
+                                  row_group=['unknown'])
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -300,7 +323,9 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_unknown(medium_kvit
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_no_rep_group_first(medium_kvitable):
-    show = medium_kvitable.render(row_repeat=False, row_group=['compiler'])
+    show = medium_kvitable.render(row_repeat=False,
+                                  sort_vals=True,
+                                  row_group=['compiler'])
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -323,7 +348,9 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_first(medium_kvitab
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_group_first_second_unknown(medium_kvitable):
-    show = medium_kvitable.render(row_group=['unknown', 'compiler', 'unk', 'debug', 'huh'])
+    show = medium_kvitable.render(row_group=['unknown', 'compiler', 'unk', 'debug', 'huh'],
+                                  sort_vals=True,
+    )
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -348,7 +375,7 @@ def test_medium_kvitable_render_skip_blank_rows_group_first_second_unknown(mediu
         ]) == show
 
 def test_medium_kvitable_render_show_blank_rows(medium_kvitable):
-    show = medium_kvitable.render(hide_blank_rows=False)
+    show = medium_kvitable.render(hide_blank_rows=False, sort_vals=True)
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -379,7 +406,7 @@ def test_medium_kvitable_render_show_blank_rows(medium_kvitable):
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_unknown(medium_kvitable):
-    show = medium_kvitable.render(colstack_at='unknown')
+    show = medium_kvitable.render(colstack_at='unknown', sort_vals=True)
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
@@ -398,7 +425,7 @@ def test_medium_kvitable_render_skip_blank_rows_stack_unknown(medium_kvitable):
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
-    show = medium_kvitable.render(colstack_at='optimization')
+    show = medium_kvitable.render(colstack_at='optimization', sort_vals=True)
     assert '\n'.join([
         '| compiler | debug |    0 |    1 |    3 | <- optimization',
         '+----------+-------+------+------+------+',
@@ -413,6 +440,7 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
 def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
     show = medium_kvitable.render(colstack_at='optimization',
                                   row_repeat=False,
+                                  sort_vals=True,
                                   row_group=['compiler'],
     )
     assert '\n'.join([
@@ -433,6 +461,7 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
 def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj(medium_kvitable):
     show = medium_kvitable.render(colstack_at='optimization',
                                   row_repeat=False,
+                                  sort_vals=True,
                                   row_group=['compiler'],
                                   valstr=lambda v: '[' + (v if isinstance(v, str) else str(v)) + ']',
                                   entrystr=lambda p,e: '<' + (e if isinstance(e, str) else str(e)) + '>',
@@ -455,6 +484,7 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj(medium_
 def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj_show_path(medium_kvitable):
     show = medium_kvitable.render(colstack_at='optimization',
                                   row_repeat=False,
+                                  sort_vals=True,
                                   row_group=['compiler'],
                                   valstr=lambda v: '[' + (v if isinstance(v, str) else str(v)) + ']',
                                   entrystr=lambda p,e: str(p) + '<' + (e if isinstance(e, str) else str(e)) + '>',
@@ -476,7 +506,7 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj_show_pa
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_two(medium_kvitable):
-    show = medium_kvitable.render(colstack_at='debug')
+    show = medium_kvitable.render(colstack_at='debug', sort_vals=True)
     assert '\n'.join([
         '| compiler | _______ no _______ | ______ yes _______ | <- debug',
         '|          |    0 |    1 |    3 |    0 |    1 |    3 | <- optimization',
@@ -596,7 +626,9 @@ def test_zoo_default_factory(zoo_table):
     assert 0 == zoo_table.get( ('Location', 'LA'), Name='Lion', Diet='Carnivore', Category='Animal', Biome='Polar', Subtype='')
 
 def test_zoo_flat_render(zoo_table):
-    show = zoo_table.render(row_repeat=False, row_group=['Location', 'Biome', 'Category'])
+    show = zoo_table.render(row_repeat=False,
+                            sort_vals=True,
+                            row_group=['Location', 'Biome', 'Category'])
     assert '\n'.join([
         '|  Location |    Biome | Category |      Diet |    Name |     Subtype | Count |',
         '+-----------+----------+----------+-----------+---------+-------------+-------+',
@@ -638,7 +670,10 @@ def test_zoo_no_subtype_colstack_render(zoo_table):
     for row in zoo_table.get_rows():
         del row[subtype_idx]
         zt2.add(lambda v: v + row[-1], *tuple(zip(kv, row[:-1])))
-    show = zt2.render(row_repeat=False, row_group=['Location', 'Biome', 'Category'], colstack_at='Name')
+    show = zt2.render(row_repeat=False,
+                      sort_vals=True,
+                      row_group=['Location', 'Biome', 'Category'],
+                      colstack_at='Name')
     assert '\n'.join([
         '|  Location |    Biome | Category |      Diet | Bear | Giraffe | Hippo | Lion | Penguin | Rhino | <- Name',
         '+-----------+----------+----------+-----------+------+---------+-------+------+---------+-------+',
@@ -694,7 +729,9 @@ def build_kvitable():
     return kvit
 
 def test_no_seplines_on_multirow_non_grouped(build_kvitable):
-    show = build_kvitable.render(row_repeat=False, row_group=['Branch'], colstack_at='ghcver')
+    show = build_kvitable.render(row_repeat=False,
+                                 sort_vals=True,
+                                 row_group=['Branch'], colstack_at='ghcver')
     assert '\n'.join([
         '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
         '+---------------+------------+------------+--------+--------+--------+',
@@ -712,8 +749,31 @@ def test_no_seplines_on_multirow_non_grouped(build_kvitable):
         # Note ^^^^ no seplines under system because it wasn't included in the row_group
     ]) == show
 
+def test_no_seplines_on_multirow_non_grouped_unsorted(build_kvitable):
+    show = build_kvitable.render(row_repeat=False, row_group=['Branch'],
+                                 sort_vals=False,
+                                 colstack_at='ghcver')
+    assert '\n'.join([
+        '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
+        '+---------------+------------+------------+--------+--------+--------+',
+        '|  x86_64-linux |     master | submodules | FAIL*1 | FAIL*1 |        |',
+        '|               |            |      HEADs | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|               |    develop | submodules |      + |        | FAIL*1 |',
+        '|               |            |      HEADs |      + |      + |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        '|               | PR-feature | submodules |      + |      + | FAIL*1 |',
+        '|               |            |      HEADs |        | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |      + |        |        |',
+        '|               +------------+------------+--------+--------+--------+',
+        # Note ^^^^ no seplines under system because it wasn't included in the row_group
+    ]) == show
+
 def test_no_seplines_on_repeated_non_grouped(build_kvitable):
-    show = build_kvitable.render(row_repeat=True, row_group=['Branch'], colstack_at='ghcver')
+    show = build_kvitable.render(row_repeat=True,
+                                 sort_vals=True,
+                                 row_group=['Branch'], colstack_at='ghcver')
     assert '\n'.join([
         '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
         '+---------------+------------+------------+--------+--------+--------+',
