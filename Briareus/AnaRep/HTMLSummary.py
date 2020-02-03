@@ -205,15 +205,17 @@ def html_summary(repdata, base_builder_url=None):
                                          Strategy=sr.strategy)
 
     return '\n\n'.join([
-        summary.render(as_format='html'),
+        summary.render(as_format='html', sort_vals=True),
         section_hdrfun('Per-project Build Status Summary ::'),
         projtable.render(row_group=['Project'],
                          row_repeat=False,
+                         sort_vals=False,
                          as_format='html',
                          colstack_at='Status'),
         section_hdrfun('Combined Details ::'),
         fulltable.render(row_group=['system', 'Branch', 'Strategy'],
                          row_repeat=False,
+                         sort_vals=True,
                          entrystr=entshow_fun,
                          as_format='html',
                          colstack_at=(list(fulltable.keyvals().keys()) + [None])[4],),
@@ -221,6 +223,7 @@ def html_summary(repdata, base_builder_url=None):
         '\n\n'.join([subsection_hdrfun('Project %s:\n' % p) +
                      detailtables[p].render(row_repeat=False,
                                             as_format='html',
+                                            sort_vals=True,
                                             colstack_at=(list(detailtables[p].keyvals().keys()) + [None])[3],
                                             row_group=['system', 'Branch'],
                                             entrystr=entshow_fun,

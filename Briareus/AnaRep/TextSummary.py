@@ -201,22 +201,25 @@ def text_summary(repdata):
     keytable.add("Pending, previously 'n' components failed", Symbol='(-n)?')
 
     return '\n\n'.join([
-        summary.render(as_format='ascii',
+        summary.render(as_format='ascii', sort_vals=True,
         ),
         section_hdrfun('Per-project Build Status Summary ::'),
         projtable.render(row_group=['Project'],
                          row_repeat=False,
+                         sort_vals=False,
                          as_format='ascii',
                          colstack_at='Status'),
         section_hdrfun('Combined Details ::'),
         fulltable.render(row_group=['system', 'Branch', 'Strategy'],
                          row_repeat=False,
+                         sort_vals=True,
                          entrystr=entshow_fun,
                          as_format='ascii',
                          colstack_at=(list(fulltable.keyvals().keys()) + [None])[4],),
         section_hdrfun('Individual Project Summaries ::'),
         '\n\n'.join([subsection_hdrfun('Project %s:\n' % p) +
                      detailtables[p].render(row_repeat=False,
+                                            sort_vals=True,
                                             as_format='ascii',
                                             colstack_at=(list(detailtables[p].keyvals().keys()) + [None])[3],
                                             row_group=['system', 'Branch'],
