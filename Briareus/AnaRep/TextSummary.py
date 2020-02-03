@@ -183,13 +183,15 @@ def text_summary(repdata):
                                    # 'pending': '?',
                                    'bad_config': '-CFG',
             }.get(sr.status, sr.status))
-            fulltable.add(bldres, *tuple([ (v.varname, v.varvalue) for v in sr.bldvars ]),
+            vars = tuple([ (v.varname, v.varvalue) for v in sr.bldvars ])
+
+            fulltable.add(bldres, *vars,
                           Project=sr.project,
                           Branch=tbl_branch(sr),
                           Strategy=sr.strategy)
 
             detailtables[sr.project].add(bldres,
-                                         *tuple([ (v.varname, v.varvalue) for v in sr.bldvars ]),
+                                         *vars,
                                          Branch=tbl_branch(sr),
                                          Strategy=sr.strategy)
 
