@@ -27,55 +27,56 @@ bad_status(badconfig).
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
 
-report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+
+report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, _),
-    prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
+    prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
     good_status(Status),
     listcmp(Vars, PriorVars).
 
-report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, _),
-    prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
+    prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
     bad_status(PrevSts),
     listcmp(Vars, PriorVars).
 
-report(status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, _),
-    findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
+    findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc),
                 listcmp(Vars, PriorVars)), PS),
     length(PS, 0).
 
-report(status_report(N, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(status_report(N, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, N, 0, configValid, _),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, N, 0, configValid, BldDesc),
     N > 0.
 
-report(status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, _, configError, _).
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, _, configError, BldDesc).
 
 % Note, pending_status is different than status_report because
 % status_report wants to track transitions (fixed v.s. initial vis
 % still good) and with only one layer of history, introducing a
 % status_report(pending, ...) would obscure the previous results.
-report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _),
     strategy(Strategy, PName, Branch),
     branch_type(BranchType, Branch, _),
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, _),
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
     N > 0.
 
 report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))) :-
@@ -87,7 +88,7 @@ report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))
     , branch_type(BranchType, Branch, _)
     , build_config2(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))
     , findall(BName,
-              (bldres(PName, BranchType, Branch, Strategy, BldVars, BName, _, _, _, _, _, _)
+              (bldres(PName, BranchType, Branch, Strategy, BldVars, BName, _, _, _, _, _, Cfg)
                , listcmp(BldVars, Vars))
               , BNames)
     , length(BNames, 0)
@@ -95,26 +96,26 @@ report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, Cfg, Blds, Vars))
 
 
 % This preserves the previous status for a pending build
-report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars)) :-
+report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     project(PName, _)
     , strategy(Strategy, PName, Branch)
     , branch_type(BranchType, Branch, _)
-    , bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, _)
+    , bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc)
     , N > 0
-    , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars)
+    , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc)
     , listcmp(Vars, PriorVars)
     .
 
 report(complete_failure(PName)) :-
     project(PName, _),
-    findall(X, (report(status_report(S,project(PName),_,_,_,X,_)),
+    findall(X, (report(status_report(S,project(PName),_,_,_,X,_,_)),
                 good_status(S)),
             Res),
     length(Res, 0).
 
 report(var_failure(PName, N, V)) :-
     varvalue(PName, N, V),
-    findall(X, (report(status_report(S,project(PName),_,_,_,X,Vars)),
+    findall(X, (report(status_report(S,project(PName),_,_,_,X,Vars,_)),
                 good_status(S),
                 member(varvalue(PName, N, V), Vars)),
             Res),

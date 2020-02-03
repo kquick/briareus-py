@@ -127,17 +127,23 @@ prior = [
                  strategy='submodules', branchtype="regular", branch="master",
                  buildname='master.submodules-ghc844',
                  bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-                 ]),
+                 ],
+                 blddesc=BranchReq('Repo1', 'master'),
+    ),
     StatusReport(status=1, project='Repo1',
                  strategy='HEADs', branchtype="regular", branch="master",
                  buildname='master.HEADs-ghc865',
                  bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
-                 ]),
+                 ],
+                 blddesc=BranchReq('Repo1', 'master'),
+    ),
     StatusReport(status='succeeded', project='Repo1',
                  strategy='HEADs', branchtype="regular", branch="master",
                  buildname='master.HEADs-ghc881',
                  bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
-                 ]),
+                 ],
+                 blddesc=BranchReq('Repo1', 'master'),
+    ),
 ]
 
 analysis_time_budget = timedelta(seconds=1, milliseconds=500)  # avg 1.02s
@@ -289,7 +295,9 @@ def test_example_report_status1(example_hydra_results):
                         strategy='HEADs', branchtype="regular", branch="develop",
                         buildname='develop.HEADs-ghc844',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'develop'),
+    ) in reps
 
 # def test_example_report_status2(example_hydra_results):
 #     bldcfgs, reps = example_hydra_results
@@ -298,7 +306,9 @@ def test_example_report_status1(example_hydra_results):
 #                         strategy='HEADs', branchtype="regular", branch="develop",
 #                         buildname='develop.HEADs-ghc865',
 #                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
-#                         ]) in reps
+#                         ],
+#                         blddesc=BranchReq('Repo1', 'develop'),
+#    ) in reps
 
 def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -306,7 +316,9 @@ def test_example_report_status3(example_hydra_results):
                         strategy='HEADs', branchtype="regular", branch="develop",
                         buildname='develop.HEADs-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'develop'),
+    ) in reps
 
 # def test_example_report_status4(example_hydra_results):
 #     bldcfgs, reps = example_hydra_results
@@ -315,7 +327,9 @@ def test_example_report_status3(example_hydra_results):
 #                         strategy='submodules', branchtype="regular", branch="master",
 #                         buildname='develop.submodules-ghc844',
 #                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-#                         ]) in reps
+#                         ],
+#                         blddesc=BranchReq('Repo1', 'master'),
+#    ) in reps
 
 def test_example_report_status5(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -323,7 +337,9 @@ def test_example_report_status5(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc865',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
-                        ]) in reps
+                        ],
+                 blddesc=BranchReq('Repo1', 'develop'),
+    ) in reps
 
 def test_example_report_status6(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -331,7 +347,9 @@ def test_example_report_status6(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
-                        ]) in reps
+                        ],
+                 blddesc=BranchReq('Repo1', 'develop'),
+    ) in reps
 
 def test_example_report_status7(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -339,7 +357,9 @@ def test_example_report_status7(example_hydra_results):
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc844',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-                        ]) in reps
+                        ],
+                 blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status8(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -348,7 +368,9 @@ def test_example_report_status8(example_hydra_results):
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc865',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status9(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -357,7 +379,9 @@ def test_example_report_status9(example_hydra_results):
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status10(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -366,7 +390,9 @@ def test_example_report_status10(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc844',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status11(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -374,7 +400,9 @@ def test_example_report_status11(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc865',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status12(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -382,7 +410,9 @@ def test_example_report_status12(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'master'),
+    ) in reps
 
 def test_example_report_status13(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -390,7 +420,9 @@ def test_example_report_status13(example_hydra_results):
                         strategy='submodules', branchtype="regular", branch="develop",
                         buildname='develop.submodules-ghc844',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc844')
-                        ]) in reps
+                        ],
+                        blddesc=BranchReq('Repo1', 'develop'),
+    ) in reps
 
 def test_example_report_ghc881_varfailure(example_hydra_results):
     bldcfgs, reps = example_hydra_results

@@ -58,7 +58,7 @@ action(notify(main_submodules_broken, Project, Configs)) :-
     is_project_repo(Project),
     \+ report(complete_failure(Project)),
     is_main_branch(Project, MainBr),
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars)),
+    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars, _BldDesc)),
                 bad_status(Status),
                 findall((N,V), (member(varvalue(Project, N, V), Vars),
                                 report(var_failure(Project, N, V))), XS),
@@ -72,11 +72,11 @@ action(notify(main_submodules_good, Project, CS)) :-
     \+ report(complete_failure(Project)),
     is_main_branch(Project, MainBr),
     % Has at least one submodules build
-    findall(X, report(status_report(Status, project(Project), submodules, regular, MainBr, X, _XVars)),
+    findall(X, report(status_report(Status, project(Project), submodules, regular, MainBr, X, _XVars, _BldDesc)),
             XS),
     length(XS, XSN), XSN > 0,
     % No submodules builds are failing
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, _Vars)),
+    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, _Vars, _BldDesc2)),
                 bad_status(Status)),
             CS),
     length(CS, 0).
@@ -88,11 +88,11 @@ action(notify(main_good, Project, CS)) :-
     % No submodules builds
     \+ has_gitmodules(Project, MainBr),
     % At least one standard build succeeding
-    report(status_report(Status, project(Project), standard, regular, MainBr, _Cfg, _BVars)),
+    report(status_report(Status, project(Project), standard, regular, MainBr, _Cfg, _BVars, BldDesc)),
     good_status(Status),
     !,
     % No failing standard builds
-    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars, BldDesc)),
                 bad_status(Status)),
             CS),
     length(CS, 0).
@@ -102,7 +102,7 @@ action(notify(main_broken, Project, CS)) :-
     \+ report(complete_failure(Project)),
     is_main_branch(Project, MainBr),
     \+ has_gitmodules(Project, MainBr),
-    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars)),
+    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars, _BldDesc)),
                 bad_status(Status)),
             CS),
     length(CS, CSN), CSN > 0.

@@ -1,5 +1,6 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, StatusReport, VarFailure,
+                            PR_Grouped, BranchReq, MainBranch,
                             Notify,
                             SendEmail)
 from git_example1 import GitExample1
@@ -90,19 +91,25 @@ prior = [
                  buildname='master.submodules-gnucc-ghc844',
                  bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
                           BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
-                 ]),
+                 ],
+                 blddesc=BranchReq('Project #1', 'master'),
+    ),
     StatusReport(status=2, project='Project #1',
                  strategy="HEADs", branchtype="regular", branch="master",
                  buildname='master.HEADs-gnucc-ghc865',
                  bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc865'),
                           BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
-                 ]),
+                 ],
+                 blddesc=BranchReq('Project #1', 'master'),
+    ),
     StatusReport(status='succeeded', project='Project #1',
                  strategy="HEADs", branchtype="regular", branch="master",
                  buildname='master.HEADs-gnucc-ghc844',
                  bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
                           BldVariable(project='Project #1', varname='c_compiler', varvalue='gnucc'),
-                 ]),
+                 ],
+                 blddesc=BranchReq('Project #1', 'master'),
+    ),
 ]
 
 analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s
@@ -131,7 +138,9 @@ def test_example_report_status1(example_hydra_results):
                         buildname='PR-blah.HEADs-clang-ghc844',
                         bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue='ghc844'),
                                  BldVariable(project='Project #1', varname='c_compiler', varvalue='clang'),
-                        ]) in reps
+                        ],
+                        blddesc=PR_Grouped('blah'),
+    ) in reps
 
 CS = [ 'clang', 'gnucc' ]
 GS = [ 'ghc844', 'ghc865', 'ghc881' ]
@@ -163,14 +172,14 @@ def test_example_report_statusMany(example_hydra_results):
                         buildname='-'.join(['.'.join([B,S]),C,G]),
                         bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
                                  BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
-                        ])
+                        ],
+                        blddesc=(PR_Grouped(B[3:]) if B.startswith('PR-') else
+                                 BranchReq('Project #1', B)),
+                    )
                     assert r in reps
 
 def test_example_report_status2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    for each in reps:
-        print('')
-        print(each)
     # Check for all entries that should be present
     for C in CS:
         for G in GS:
@@ -187,7 +196,11 @@ def test_example_report_status2(example_hydra_results):
                 buildname='-'.join(['.'.join([B,S]),C,G]),
                 bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
                          BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
-                ])
+                ],
+                blddesc=PR_Grouped(B[3:]) if B.startswith('PR-') else (
+                    MainBranch('R1', B) if B == 'master' else
+                    BranchReq('Project #1', B)),
+            )
             assert r in reps
 
 def test_example_report_status3(example_hydra_results):
@@ -208,7 +221,11 @@ def test_example_report_status3(example_hydra_results):
                 buildname='-'.join(['.'.join([B,S]),C,G]),
                 bldvars=[BldVariable(project='Project #1', varname='ghcver', varvalue=G),
                          BldVariable(project='Project #1', varname='c_compiler', varvalue=C),
-                ])
+                ],
+                blddesc=PR_Grouped(B[3:]) if B.startswith('PR-') else (
+                    MainBranch('R1', B) if B == 'master' else
+                    BranchReq('Project #1', B)),
+            )
             assert r in reps
 
 def test_example_report_varfailure(example_hydra_results):

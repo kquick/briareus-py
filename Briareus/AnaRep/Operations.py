@@ -147,7 +147,7 @@ class AnaRep(object):
 
 def mk_prior_facts(prior_report):
     return set(
-        [ DeclareFact('prior_status/7'),
+        [ DeclareFact('prior_status/8'),
           DeclareFact('prior_summary/4'),
         ] +
         list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
@@ -205,8 +205,14 @@ def prior_fact_StatusReport(prior):
          ', "{p.branch}"'
          ', "{p.buildname}"'
          ', {vars}'
+         ', {blddesc}'
          ')'
-         ).format(p=prior, strategy=prior.strategy.lower(), vars='[ ' + ', '.join(vars) + ' ]'))
+         ).format(p=prior,
+                  strategy=prior.strategy.lower(),
+                  blddesc=(prior.blddesc.as_fact()
+                           if hasattr(prior.blddesc, 'as_fact')
+                           else prior.blddesc),
+                  vars='[ ' + ', '.join(vars) + ' ]'))
 
 def prior_fact_VarFailure(prior):
     return None

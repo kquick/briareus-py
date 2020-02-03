@@ -117,6 +117,7 @@ class StatusReport(object):
     branch    = attr.ib()  # string: branch name
     buildname = attr.ib()  # string name of build on builder
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
+    blddesc   = attr.ib(default="unk")  # same as BldConfig.description above
 
 @attr.s(frozen=True)
 class PendingStatus(object):
@@ -130,6 +131,7 @@ class PendingStatus(object):
     branch    = attr.ib()  # string: branch name
     buildname = attr.ib()  # string name of build on builder
     bldvars   = attr.ib(converter=sorted)  # list of BldVariable
+    blddesc   = attr.ib(default="unk")  # same as BldConfig.description above
 
 @attr.s(frozen=True)
 class NewPending(object):
