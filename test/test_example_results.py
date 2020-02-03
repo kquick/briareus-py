@@ -235,9 +235,9 @@ def test_example_report_varfailure(example_hydra_results):
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Verify that there are no unexpected additional entries
-    nrscheduled = 0
-    prfailing = 4
-    prsuccess = 0
+    nrmergeablepr = 6  # KWQ
+    prfailing = 2
+    prsuccess = 2
     additional_bldcfgs = 1 # status2 + status3
     num_varfailure = 1
     num_analysis = num_varfailure
@@ -245,7 +245,7 @@ def test_example_report_length(example_hydra_results):
     num_do = num_varfailure  # SendEmail(fred@nocompany.com, variable_failing, ...)
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
-                + num_varfailure + prfailing + prsuccess - nrscheduled
+                + num_varfailure + prfailing + prsuccess + nrmergeablepr
                 + num_analysis + num_actions + num_do)
     assert expected == len(reps)
 

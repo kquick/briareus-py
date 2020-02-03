@@ -164,7 +164,7 @@ build_results = [
             { "name" : "PR-dog.standard-ghc881",
               "nrtotal" : 4,
               "nrsucceeded": 3,
-              "nrfailed": 0,
+              "nrfailed": 1,
               "nrscheduled": 0,
               "haserrormsg": False,
             },
@@ -886,6 +886,17 @@ def test_example_report_status11(example_hydra_results):
                         ],
                         blddesc=PR_Grouped('dog')) in reps
 
+def test_example_report_status10(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    for each in reps:
+        print(each)
+        print('')
+    assert StatusReport(status=1, project='Repo1',
+                        strategy='standard', branchtype="pullreq", branch="dog",
+                        buildname='PR-dog.standard-ghc881',
+                        bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
+                        ],
+                        blddesc=PR_Grouped('dog')) in reps
 
 def test_example_report_status12(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -906,6 +917,7 @@ def test_example_report_varfailure(example_hydra_results):
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
+    nrmergeablepr = 6  # KWQ
     nrscheduled = 1
     prfailing = 7
     prsuccess = 1
@@ -917,7 +929,7 @@ def test_example_report_length(example_hydra_results):
                 len(['ProjectSummary', ])
                 - 1 # PR[2]-develop.standard-ghc865 has ntotal and others as zero
                 + num_varfailure + prfailing + prsuccess # - nrscheduled
-                + num_analysis + num_actions + num_do
+                + num_analysis + num_actions + num_do + nrmergeablepr
                 + 4
     )
     for each in reps:
