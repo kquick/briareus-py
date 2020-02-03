@@ -113,26 +113,11 @@ def buildcfg_name(bldcfg):
         #    is assumed to be an exception case, so there is currently
         #    no protection against this; handling this would require a
         #    persistent registry of PRs.
-        #
 
-        # repo_info['pullreqs'] is list of PRInfo (Briareus.VCS.InternalMessages)
-        # bldcfg.blds is list of BldRepoRev (Briareus.Types)
+        # The bldcfg.description for strategy=pullreq is the pr_type.
+        prinfo = "PR" + getattr(bldcfg.description, 'pullreq_id', '')
 
-        enumerate_prnums = False
-        for BRR in bldcfg.blds:
-            if BRR.pullreq_id == "project_primary":
-                continue
-            enumerate_prnums |= isinstance(bldcfg.description, (PR_Solo, PR_Repogroup))
-
-        if enumerate_prnums:
-            prnums = sorted(list(set([ "PR" + brr.pullreq_id
-                                       for brr in bldcfg.blds
-                                       if brr.pullreq_id != "project_primary"
-            ])))
-        else:
-            prnums = ["PR"]
-
-        return '-'.join(prnums +
+        return '-'.join([prinfo] +
                         ['.'.join([fix_branchname(bldcfg.branchname),
                                    bldcfg.strategy])] +
                         varparts)
