@@ -66,7 +66,7 @@ def test_example_internal_count(generated_bldconfigs):
     print('### bldcfgs:')
     for each in generated_bldconfigs.cfg_build_configs:
         print(each.projectname, each.branchtype, each.branchname, each.strategy)
-    assert len(GS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
+    assert len(GS) * len(top_level) == len(generated_bldconfigs.cfg_build_configs)
 
 def test_example_internal_no_blah_regular_submods(generated_bldconfigs):
     for each in generated_bldconfigs.cfg_build_configs:

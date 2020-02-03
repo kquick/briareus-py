@@ -126,17 +126,17 @@ def test_example_bldcfg_count(generated_inp_config_bldconfigs):
     #     print('')
     ex_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                    if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'R1' ])][0]
-    assert len(ex_GS) * len(ex_CS) * len(ex_top_level) == len(set(ex_results.build_cfgs.cfg_build_configs))
+    assert len(ex_GS) * len(ex_CS) * len(ex_top_level) == len(ex_results.build_cfgs.cfg_build_configs)
 
 def test_example3_bldcfg_count(generated_inp_config_bldconfigs):
     ex3_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                     if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'R10' ])][0]
-    assert len(ex3_GS) * len(ex3_top_level) == len(set(ex3_results.build_cfgs.cfg_build_configs))
+    assert len(ex3_GS) * len(ex3_top_level) == len(ex3_results.build_cfgs.cfg_build_configs)
 
 def test_exampledups_bldcfg_count(generated_inp_config_bldconfigs):
     dup_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                     if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'Repo1' ])][0]
-    assert len(dups_GS) * len(dups_top_level) == len(set(dup_results.build_cfgs.cfg_build_configs))
+    assert len(dups_GS) * len(dups_top_level) == len(dup_results.build_cfgs.cfg_build_configs)
 
 # ----------------------------------------------------------------------
 # AnaRep tests

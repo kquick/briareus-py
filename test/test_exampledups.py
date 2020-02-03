@@ -254,7 +254,7 @@ varvalue("Repo1", "ghcver", "ghc881").
 
 
 def test_example_internal_count(generated_bldconfigs):
-    assert len(GS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
+    assert len(GS) * len(top_level) == len(generated_bldconfigs.cfg_build_configs)
 
 
 def test_example_internal_regular_master_standard(generated_bldconfigs):

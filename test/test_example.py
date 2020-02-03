@@ -54,7 +54,7 @@ top_level = [
 ]
 
 def test_example_internal_count(generated_bldconfigs):
-    assert len(GS) * len(CS) * len(top_level) == len(set(generated_bldconfigs.cfg_build_configs))
+    assert len(GS) * len(CS) * len(top_level) == len(generated_bldconfigs.cfg_build_configs)
 
 def test_example_internal_blah_pullreq_submods(generated_bldconfigs):
     # Note that R1 has a pullreq for the blah branch, and this pullreq

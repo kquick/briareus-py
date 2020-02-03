@@ -5,6 +5,9 @@
 
 import attr
 
+def sorted_nub_list(l):
+    return sorted(list(set(l)))
+
 @attr.s(frozen=True)
 class BldConfig(object):
     projectname = attr.ib()
@@ -12,8 +15,8 @@ class BldConfig(object):
     branchname = attr.ib()
     strategy   = attr.ib()  # default="standard"
     description= attr.ib()  # PR_Solo, PR_Repogroup, PR_Grouped, BranchReq, MainBranch (or string placeholder)
-    blds       = attr.ib(factory=frozenset, converter=frozenset)  # list of BldRepoRev
-    bldvars    = attr.ib(factory=frozenset, converter=frozenset)  # list of BldVariable
+    blds       = attr.ib(factory=list, converter=sorted_nub_list)  # list of BldRepoRev
+    bldvars    = attr.ib(factory=list, converter=sorted_nub_list)
 
 @attr.s(frozen=True)
 class BranchReq(object):
@@ -188,9 +191,9 @@ class Notify(object):
 
 @attr.s(frozen=True)
 class SendEmail(object):
-    recipients = attr.ib(converter=lambda l: sorted(list(set(l)))) # list of email addresses
+    recipients = attr.ib(converter=sorted_nub_list) # list of email addresses
     notification = attr.ib() # Notify object
-    sent_to = attr.ib(converter=lambda l: sorted(list(set(l)))) # list of addresses message has been sent to already
+    sent_to = attr.ib(converter=sorted_nub_list) # list of addresses message has been sent to already
 
 @attr.s(frozen=True)
 class PostChatMessage(object):
