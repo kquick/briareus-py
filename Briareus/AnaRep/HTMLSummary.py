@@ -96,7 +96,9 @@ def html_summary(repdata, base_builder_url=None):
                          if isinstance(sr, StatusReport) and sr.branchtype=='pullreq'])), Element='Pull Requests')
 
     projtable = KVITable({
-        'Project': [],
+        'Project': sorted(list(set([ sr.project
+                                     for sr in repdata
+                                     if isinstance(sr, StatusReport) ]))),
         'Status': [ 'TOTAL', 'ok', 'FAIL', 'pending' ],
     },
                          valuecol_name='Number',

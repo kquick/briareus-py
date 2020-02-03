@@ -90,7 +90,9 @@ def text_summary(repdata):
                 Element='Pull Requests')
 
     projtable = KVITable({
-        'Project': [],
+        'Project': sorted(list(set([ sr.project
+                                     for sr in repdata
+                                     if isinstance(sr, StatusReport) ]))),
         'Status': [ 'TOTAL', 'ok', 'FAIL', 'pending' ],
     },
                          valuecol_name='Number',
