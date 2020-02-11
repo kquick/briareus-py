@@ -1,7 +1,7 @@
 import Briareus.BCGen.Operations as BCGen
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, CompletelyFailing,
-                            StatusReport, VarFailure,
+                            VarFailure,
                             Notify,
                             SendEmail)
 import Briareus.Input.Operations as BInput
