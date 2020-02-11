@@ -215,12 +215,7 @@ report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Va
     , strategy(Strategy, PName, Branch)
     , branch_type(BranchType, Branch, _)
     , build_config2(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))
-    , findall(BName,
-              (bldres(PName, BranchType, Branch, Strategy, Vars2, BName, _, _, _, _, _, BldDesc2)
-               , cmpBldDesc(BldDesc, BldDesc2, _)
-               , listcmp(Vars1, Vars2))
-              , BNames)
-    , length(BNames, 0)
+    , no_bldres(PName, BranchType, Branch, Strategy, BldDesc, Vars1)
     .
 
 
