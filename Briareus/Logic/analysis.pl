@@ -113,19 +113,19 @@ action(notify(main_broken, Project, CS)) :-
             CS),
     length(CS, CSN), CSN > 0.
 
-action(notify(pr_status_pending, Project, prdata(PRType, PRCfg))) :-
+action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
     report(pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))
     , length(Pends, NPend)
     , (NPend > 0 ; NumToStart > 0)
 .
 
-action(notify(pr_status_good, Project, prdata(PRType, PRCfg))) :-
+action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
     report(pr_status(PRType, _Branch, Project, PRCfg, Goods, [], [], 0))
     , length(Goods, NGood)
     , NGood > 0
 .
 
-action(notify(pr_status_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
+action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
     report(pr_status(PRType, _Branch, Project, PRCfg, Goods, Fails, [], 0))
     , length(Fails, NFail)
     , NFail > 0
