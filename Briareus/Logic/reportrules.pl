@@ -14,7 +14,21 @@
 %%                 | PR_Repogroup(PRNum, RepoList)
 %%                 | PR_Grouped(Branch)
 %%
-%% The rules here form the first layer of results: reporting based on build configurations and results
+%% The rules here form the first layer of results: reporting based on
+%% build configurations and results.  Some additional notes:
+%%
+%%  * Any configuration errors are treated differently that build
+%%    failures.  A configuration error represents an issue with the
+%%    build configuration and is corrected by the team managing the
+%%    build configuration, which may be different than the team
+%%    managing the code itself.
+%%
+%%  * There may be build configurations that have not yet been
+%%    processed by the builder, so the collection of results from the
+%%    builder did not obtain bldres reports for those.  The
+%%    missing_bldres rule will synthesize a "pending" bldres for
+%%    these, although neither the job count nor the BldName is yet
+%%    known.
 
 good_status(succeeded).
 good_status(initial_success).
@@ -27,19 +41,70 @@ bad_status(badconfig).
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
 
-% Normally the BldDesc can be compared directly, but as a special
-% case, a configuration identified as PR_Solo for one project could
-% also be involved in another project where that PR affects multiple
-% repos and therefore be a PR_Repogrouped, so allow those two to
-% equate to each other.  This function compares the BldDescs and
-% returns the pre-eminent BldDesc to use.
-cmpBldDesc(D1, D1, D1).
-cmpBldDesc(pr_type(pr_solo,R,I),
-           pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
+%% no_good_status returns true if the project has no
+%% validly-configured builds that are finished with a good status
+%% result.
+no_good_status(PName) :-
+    bldres(PName, _, _, _, _, _, N, N, 0, 0, configValid, _), !, fail.
+no_good_status(_PName).
+
+%% no_pending_status returns true if the project has no pending
+%% validly-configured builds.
+no_pending_status(PName) :-
+    bldres(PName, _, _, _, _, _, _, _, _, N, configValid, _)
+    , N > 0
+    , !, fail
+.
+no_pending_status(PName) :-
+    missing_bldres(bldres(PName, _, _, _, _, _, _, _, _, _, configValid, _)), !, fail.
+no_pending_status(_PName).
+
+%% no_badconfig returns true if there are no configuration errors for
+%% the project.
+no_badconfig(PName) :-
+    bldres(PName, _, _, _, _, _, _, _, _, _, configError, _), !, fail.
+no_badconfig(_PName).
+
+%% missing_bldres will synthesize a "pending" bldres for any bldcfg
+%% that does not have a builder-reported bldres (the assumption is
+%% that the builder hasn't seen the job yet).
+missing_bldres(bldres(PName, BrType, Branch, Strategy, Vars, BldName, 1, 0, 0, 1, configValid, BldDesc)) :-
+    build_config2(bldcfg(PName, BrType, Branch, Strategy, BldDesc, _Blds, Vars))
+    , no_bldres(PName, BrType, Branch, Strategy, BldDesc, Vars)
+    , BldName = "TBD"
+.
+
+%% no_bldres is a red-cut cut-fail check for a missing bldres given
+%% bldcfg parameters it should match.  This is used by missing_bldres
+%% (which is probably the better rule to use).
+no_bldres(PName, BrType, Branch, Strategy, BldDesc, Vars) :-
+    bldres(PName, BrType, Branch, Strategy, Vars2, _, _, _, _, _, _, BldDesc2)
+    , cmpBldDesc(BldDesc, BldDesc2, _)
+    , listcmp(Vars, Vars2)
+    , !
+    , fail
+.
+no_bldres(_, _, _, _, _, _).
+
+
+% Normally the PRType or corresponding BldDesc can be compared
+% directly, but as a special case, a configuration identified as
+% PR_Solo for one project could also be involved in another project
+% where that PR affects multiple repos and therefore be a
+% PR_Repogrouped, so allow those two to equate to each other.  This
+% function compares the BldDescs and returns the pre-eminent BldDesc
+% to use.
+cmpBldDesc(D1, D1, D1) :- ! .  % red cut to avoid duplicates on below
+cmpBldDesc(D1, D2, D3) :- cmpPrType(D1, D2, D3).
+
+cmpPrType(PT1, PT1, PT1).
+cmpPrType(pr_type(pr_solo,R,I),
+          pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
     member(R, RL).
-cmpBldDesc(pr_type(pr_repogroup,I,RL),
-           pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
+cmpPrType(pr_type(pr_repogroup,I,RL),
+          pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
     member(R, RL).
+
 
 
 report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
@@ -127,11 +192,11 @@ report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname,
     .
 
 report(complete_failure(PName)) :-
-    project(PName, _),
-    findall(X, (report(status_report(S,project(PName),_,_,_,X,_,_)),
-                good_status(S)),
-            Res),
-    length(Res, 0).
+    project(PName, _)
+    , no_good_status(PName)
+    , no_pending_status(PName)
+    , no_badconfig(PName)
+.
 
 report(var_failure(PName, N, V)) :-
     varvalue(PName, N, V),

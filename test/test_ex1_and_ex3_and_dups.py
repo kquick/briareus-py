@@ -145,11 +145,9 @@ def test_exampledups_bldcfg_count(generated_inp_config_bldconfigs):
 
 @pytest.fixture(scope="module")
 def example_empty_report(testing_dir, generated_inp_config_bldconfigs):
-    params = hh.Params(verbose=True, up_to=None,
-                       report_file=testing_dir.join("ex1_ex3_dups.hhr"))
     for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = []
-    return hh.run_hh_report(params, generated_inp_config_bldconfigs, [])
+    return generate_report(testing_dir, generated_inp_config_bldconfigs, [])
 
 
 def test_example_empty_report_summary(example_empty_report):
@@ -165,6 +163,37 @@ def test_example_empty_report_summary(example_empty_report):
 def test_example_empty_report_complete_failures(example_empty_report):
     reps = example_empty_report
 
+    assert CompletelyFailing(project='Project #1') not in reps
+    assert CompletelyFailing(project='R10') not in reps
+    assert CompletelyFailing(project='Repo1') not in reps
+
+
+# ----------------------------------------
+
+def make_fail(bldres):
+    new_bldres = dict(bldres.items())
+    new_bldres['nrfailed'] += 1
+    new_bldres['nrscheduled'] = 0
+    if new_bldres['nrsucceeded']:
+        new_bldres['nrsucceeded'] -= 1
+    new_bldres['nrtotal'] = (new_bldres['nrfailed'] +
+                             new_bldres['nrsucceeded'] +
+                             new_bldres['nrscheduled'])
+    new_bldres['haserrormsg'] = False
+    return new_bldres
+
+@pytest.fixture(scope="module")
+def all_failed_report(testing_dir, generated_inp_config_bldconfigs):
+    for each in generated_inp_config_bldconfigs.result_sets:
+        each.builder._build_results = {
+            "R1": [make_fail(r) for r in texres.build_results],
+            "R10": [make_fail(r) for r in tex3.build_results],
+            "Repo1": [make_fail(r) for r in tdups.build_results],
+        }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
+    return generate_report(testing_dir, generated_inp_config_bldconfigs, [])
+
+def test_example_fail_report_complete_failures(all_failed_report):
+    reps = all_failed_report
     assert CompletelyFailing(project='Project #1') in reps
     assert CompletelyFailing(project='R10') in reps
     assert CompletelyFailing(project='Repo1') in reps
