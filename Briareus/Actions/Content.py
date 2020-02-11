@@ -20,11 +20,15 @@ class FileContent(object):
         tagline_fname = os.path.join(fromdir, '{' + action_type + '}' + ntype + '.tag')
 
         if not os.path.exists(content_fname):
+            orig_content_fname = content_fname
             content_fname = os.path.join(fromdir, ntype + '.txt')
         if os.path.exists(content_fname):
             content = open(content_fname, 'r').read().format(n=notification)
         else:
-            content = str(notification)
+            print('No Content file',content_fname,'or',orig_content_fname,
+                  'so no action taken',
+                  file=sys.stderr)
+            return None, None
 
         if not os.path.exists(tagline_fname):
             tagline_fname = os.path.join(fromdir, ntype + '.tag')

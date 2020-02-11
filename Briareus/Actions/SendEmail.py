@@ -26,7 +26,11 @@ def do_send_email_action(email_action, full_report, inpcfg):
     send_to = set(rec) - set(done)
     if send_to:
         subj, body = gen_content('email', email_action.notification)
-        sent_to = send_email(send_to, subj, body)
+        if body:
+            sent_to = send_email(send_to, subj, body)
+        else:
+            # Output is suppressed, so indicate all targets have been satisfied
+            sent_to = send_to
         email_action = SendEmail(recipients=email_action.recipients,
                                  notification=email_action.notification,
                                  sent_to = list(set(email_action.sent_to).union(sent_to)))
