@@ -93,8 +93,8 @@ class AnaRep(object):
             DeclareFact('email_domain_blacklist/1'),
             DeclareFact('email_user_blacklist/1'),
 
-            DeclareFact('action_type/3'),
-            DeclareFact('action_type/4'),
+            DeclareFact('enable/3'),
+            DeclareFact('enable/4'),
             DeclareFact('project_owner/2'),
 
             DeclareFact('bldres/11'),

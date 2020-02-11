@@ -41,8 +41,8 @@ project_owner("Repo1", "george@_company.com").
 
 project_owner("Repo3", "john@not_a_company.com").
 
-action_type(email, "fred@nocompany.com", "Repo1").
-action_type(email, "anne@nocompany.com", "Repo1", main_submodules_broken).
+enable(email, "fred@nocompany.com", "Repo1").
+enable(email, "anne@nocompany.com", "Repo1", main_submodules_broken).
       """
   }
 }

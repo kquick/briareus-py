@@ -118,6 +118,12 @@ email_address_useable(Addr) :-
     \+ email_user_blacklist(Addr)
 .
 
+
+% determines who may be sent email for various conditions.  These
+% predicates are based on things which are set in the inputcfg
+% (e.g. project_owner(Project, Email) and enable(...) facts).
+action_type(DoWhat, Target, Project)        :- enable(DoWhat, Target, Project).
+action_type(DoWhat, Target, Project, Issue) :- enable(DoWhat, Target, Project, Issue).
 action_type(email, Email, Project, main_broken) :- project_owner(Project, Email).
 action_type(email, Email, Project, completely_broken) :- project_owner(Project, Email).
 action_type(email, Email, Project, main_submodules_broken) :- project_owner(Project, Email).
