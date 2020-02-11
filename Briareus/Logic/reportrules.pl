@@ -264,12 +264,7 @@ report(pr_status(PRType, Branch, Project, PRCfg, GoodBlds, BadBlds, PendingBlds,
               , PendingBlds)
     , findall(BldDesc
               , (build_config2(bldcfg(Project, pullreq, Branch, Strategy, BldDesc, _, Vars1))
-                 , findall(N2
-                           , (bldres(Project, pullreq, Branch, Strategy, Vars2, N2, _, _, _, _, _, BldDesc2)
-                              , cmpBldDesc(BldDesc, BldDesc2, _)
-                              , listcmp(Vars1, Vars2)),
-                           N2s)
-                 , length(N2s, 0)
+                , no_bldres(Project, pullreq, Branch, Strategy, BldDesc, Vars1)
               )
               , BDS)
     , length(BDS, NumNotStarted)
