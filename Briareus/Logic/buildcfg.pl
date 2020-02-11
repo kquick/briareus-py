@@ -21,7 +21,7 @@ build_config2(bldcfg(PName, regular, Branch, Strategy, branchreq(PName, Branch),
     , is_branch_reachable(ProjRepo, Strategy, Branch)
     .
 
-build_config2(bldcfg(PName, regular, Branch, Strategy, is_main_branch(ProjRepo, Branch), BLDS, VARS)) :-
+build_config2(bldcfg(PName, regular, Branch, Strategy, main_branch(ProjRepo, Branch), BLDS, VARS)) :-
     project(PName, ProjRepo)
     , is_main_branch(ProjRepo, Branch)
     , \+ branchreq(PName, Branch)

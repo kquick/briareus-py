@@ -217,7 +217,7 @@ logic_result_expr = {
     "project_primary": "project_primary",
     "bldcfg": lambda *args: BldConfig(*args),
     "branchreq": BranchReq,
-    "is_main_branch": MainBranch,
+    "main_branch": MainBranch,
     "pr_type": pr_type,
     "pr_solo": "PR_Solo",
     "pr_repogroup": "PR_Repogroup",
