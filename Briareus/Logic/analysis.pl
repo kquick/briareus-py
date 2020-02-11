@@ -30,6 +30,59 @@ cons(H, T, [H|T]).
 % identity(V,V).
 
 %% ----------------------------------------------------------------------
+%% Various helpers, frequently a cut-fail pattern.
+
+no_pending_branch(PName, Branch) :-
+    bldres(PName, regular, Branch, _, _, _, _, _, _, N, configValid, _)
+    , N > 0
+    , !
+    , fail
+.
+no_pending_branch(PName, Branch) :-
+    missing_bldres(bldres(PName, regular, Branch, _, _, _, _, _, _, _, configValid, _))
+    , !
+    , fail
+.
+no_pending_branch(_PName, _Branch).
+
+no_failing_branch(PName, Branch) :-
+    bldres(PName, regular, Branch, _, _, _, _, N, _, _, configValid, _)
+    , N > 0
+    , !
+    , fail
+.
+no_failing_branch(_PName, _Branch).
+
+no_branch_badconfig(PName, Branch) :-
+    bldres(PName, regular, Branch, _, _, _, _, _, _, _, configError, _)
+    , !
+    , fail
+.
+no_branch_badconfig(_PName, _Branch).
+
+not_a_var_failure(Project, Vars) :-
+    member(varvalue(Project, N, V), Vars)
+    , report(var_failure(Project, N, V))
+    , !
+    , fail
+.
+not_a_var_failure(_P, _V).
+
+no_failing_non_varfailure_branch(PName, Branch) :-
+    bldres(PName, regular, Branch, _, Vars, _, _, _, N, _, configValid, _)
+    , N > 0
+    , not_a_var_failure(PName, Vars)
+    , !
+    , fail
+.
+no_failing_non_varfailure_branch(_PName, _Branch).
+
+at_least_one_success(PName, Branch) :-
+    bldres(PName, regular, Branch, _, _, _, N, N, 0, 0, configValid, _)
+    , !
+.
+
+%% ----------------------------------------------------------------------
 %% Notifications
 %%
 %% The most common Action is a notify(What, Subject, Parameters) which
@@ -58,61 +111,59 @@ action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) 
 action(notify(main_submodules_broken, Project, Configs)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
+    , useable_submodules(R, MainBr)
     , \+ report(complete_failure(Project))
+    , no_pending_branch(Project, MainBr)
+    , no_branch_badconfig(Project, MainBr)
     , findall(C
-              , (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars, _BldDesc))
-                 , bad_status(Status)
-                 , findall((N,V)
-                           , (member(varvalue(Project, N, V), Vars)
-                              , report(var_failure(Project, N, V))
-                           )
-                           , XS)
-                 , length(XS, 0)
+              , (bldres(Project, regular, MainBr, submodules, Vars, C, _, _, N, _, configValid, _)
+                , N > 0
+                 , not_a_var_failure(Project, Vars)
               )
               , CS)
     , length(CS, N), N > 0
     , sort(CS, Configs)
 .
 
-action(notify(main_submodules_good, Project, CS)) :-
-    is_project_repo(Project),
-    \+ report(complete_failure(Project)),
-    is_main_branch(Project, MainBr),
-    % Has at least one submodules build
-    findall(X, report(status_report(Status, project(Project), submodules, regular, MainBr, X, _XVars, _BldDesc)),
-            XS),
-    length(XS, XSN), XSN > 0,
-    % No submodules builds are failing
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, _Vars, _BldDesc2)),
-                bad_status(Status)),
-            CS),
-    length(CS, 0).
+action(notify(main_submodules_good, Project, MainBr)) :-
+    project(Project, R)
+    , is_main_branch(R, MainBr)
+    , useable_submodules(R, MainBr)
+    , \+ report(complete_failure(Project))
+    , no_pending_branch(Project, MainBr)
+    , no_failing_non_varfailure_branch(Project, MainBr)
+    , no_branch_badconfig(Project, MainBr)
+    , at_least_one_success(Project, MainBr)
+.
 
-action(notify(main_good, Project, CS)) :-
-    is_project_repo(Project),
-    \+ report(complete_failure(Project)),
-    is_main_branch(Project, MainBr),
-    % No submodules builds
-    \+ has_gitmodules(Project, MainBr),
-    % At least one standard build succeeding
-    report(status_report(Status, project(Project), standard, regular, MainBr, _Cfg, _BVars, BldDesc)),
-    good_status(Status),
-    !,
-    % No failing standard builds
-    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars, BldDesc)),
-                bad_status(Status)),
-            CS),
-    length(CS, 0).
+action(notify(main_good, Project, MainBr)) :-
+    project(Project, R)
+    , is_main_branch(R, MainBr)
+    , \+ report(complete_failure(Project))
+    % No submodules builds; if there were, this would be a main_submodules_good
+    , \+ has_gitmodules(R, MainBr)
+    , no_pending_branch(Project, MainBr)
+    , no_failing_non_varfailure_branch(Project, MainBr)
+    , no_branch_badconfig(Project, MainBr)
+    , at_least_one_success(Project, MainBr)
+.
 
 action(notify(main_broken, Project, CS)) :-
-    is_project_repo(Project),
-    \+ report(complete_failure(Project)),
-    is_main_branch(Project, MainBr),
-    \+ has_gitmodules(Project, MainBr),
-    findall(C, (report(status_report(Status, project(Project), standard, regular, MainBr, C, _Vars, _BldDesc)),
-                bad_status(Status)),
-            CS),
-    length(CS, CSN), CSN > 0.
+    project(Project, R)
+    , is_main_branch(R, MainBr)
+    , \+ report(complete_failure(Project))
+    , \+ has_gitmodules(R, MainBr)
+    , no_pending_branch(Project, MainBr)
+    , no_branch_badconfig(Project, MainBr)
+    , findall(C
+              , (bldres(Project, _, _, standard, Vars, C, _, _, N, _, configValid, _)
+                 , N > 0
+                 , not_a_var_failure(Project, Vars)
+              )
+              , CS)
+    , length(CS, CSN)
+    , CSN > 0
+.
 
 action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
     report(pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))

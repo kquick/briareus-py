@@ -917,11 +917,12 @@ def test_example_report_varfailure(example_hydra_results):
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
+    prfails  = 6
     prstatus = 6 # develop, dog, foo, 1, 2, 9
     num_varfailure = 1
-    num_notify = num_varfailure + 1
+    num_notify = num_varfailure + prfails + 1 # main good
     num_actions = num_notify
-    expected = ((len(top_level) * len(GS)) +
+    expected = ((len(top_level) * len(GS)) +   # 8 * 2
                 len(['ProjectSummary', ])
                 + prstatus
                 + (num_varfailure * 2)  # VarFailure + SepHandledVar

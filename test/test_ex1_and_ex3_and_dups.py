@@ -257,7 +257,8 @@ def test_example_report_do_list(example_report):
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', subject='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1',
+                                         params='master'),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs):
@@ -311,7 +312,8 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=["george@nocompany.com", "sally@not_a_company.com"]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', subject='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1',
+                                         params='master'),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
@@ -378,7 +380,8 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', subject='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1',
+                                         params='master'),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfigs):
@@ -437,10 +440,17 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=["fred@nocompany.com"]) in rep
     assert SendEmail(recipients=["fred@nocompany.com"],
-                     notification=Notify(what='main_good', subject='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1',
+                                         params='master'),
                      sent_to=["fred@nocompany.com"]) in rep
-    send_email.assert_has_calls([call(set(recipients), ANY, ANY),
-                                 call(set(["fred@nocompany.com"]), ANY, ANY),
-                                 call(set(["fred@nocompany.com"]), ANY, ANY),
-    ])
-    assert send_email.call_count == 3
+    assert SendEmail(recipients=filter(lambda r: 'betty' not in r, recipients),
+                     notification=Notify(what='main_submodules_good', subject='Project #1',
+                                         params='master'),
+                     sent_to=filter(lambda r: 'betty' not in r, recipients)) in rep
+    send_email.assert_has_calls([call(recipients, ANY, ANY),
+                                 call(list(filter(lambda r: 'betty' not in r, recipients)), ANY, ANY),
+                                 call(["fred@nocompany.com"], ANY, ANY),
+                                 call(["fred@nocompany.com"], ANY, ANY),
+    ],
+                                any_order=True)
+    assert send_email.call_count == 4

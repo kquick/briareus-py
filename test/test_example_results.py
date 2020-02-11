@@ -238,7 +238,7 @@ def test_example_report_length(example_hydra_results):
     additional_bldcfgs = 1 # status2 + status3
     num_varfailure = 1
     pr_status = 2
-    num_notify = num_varfailure + pr_status
+    num_notify = num_varfailure + (pr_status * 2)  # 2 = projstatus and fullstatus
     num_actions = num_varfailure + pr_status
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])

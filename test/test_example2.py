@@ -432,9 +432,9 @@ def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     num_varfailure = 1
     pr_status = 0
-    num_notify = num_varfailure + pr_status
+    num_notify = num_varfailure + pr_status + 1 # main_submodules_good
     num_actions = 0  # no enables
-    expected = ((len(top_level) * len(GS)) +
+    expected = ((len(top_level) * len(GS)) +   # 4 * 3
                 len(['ProjectSummary', ])
                 + (num_varfailure * 2)  # VarFailure + SepHandledVar
                 + pr_status
