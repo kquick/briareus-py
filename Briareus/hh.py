@@ -116,8 +116,9 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     return report[1]
 
 
-def perform_hh_actions(inp_report):
-    return [ Actions.do_action(each) for each in inp_report ]
+def perform_hh_actions(inpcfg, inp_report):
+    return [ Actions.do_action(each, inp_report, inpcfg)
+             for each in inp_report ]
 
 # ----------------------------------------------------------------------
 

@@ -19,7 +19,7 @@ import sys
 from Briareus.Actions.Content import gen_content
 from Briareus.Types import SendEmail
 
-def do_send_email_action(email_action):
+def do_send_email_action(email_action, full_report, inpcfg):
     "Sends email, where email_action is Briareus.Types.SendEmail"
     rec = email_action.recipients
     done = email_action.sent_to

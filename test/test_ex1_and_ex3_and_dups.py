@@ -367,12 +367,12 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                      sent_to=[]) in reps
 
 @patch('Briareus.Actions.SendEmail.send_email')
-def test_example_report_take_actions(send_email, example_report):
+def test_example_report_take_actions(send_email, inp_configs, example_report):
     "Check email actions with no whitelisting or blacklisting."
 
     send_email.side_effect = lambda r, s, m: r
 
-    rep = hh.perform_hh_actions(example_report)
+    rep = hh.perform_hh_actions(inp_configs, example_report)
 
     for each in rep:
         if isinstance(each, SendEmail):
