@@ -213,6 +213,7 @@ def test_example_report_do_list(example_report):
     reps = example_report
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
+                         'betty@nocompany.com',
                          'john@_company.com',
                          'sam@not_a_company.com',
     ])
@@ -265,6 +266,7 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
 
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
+                         'betty@nocompany.com',
                          'john@_company.com',
     ])
     assert SendEmail(recipients=recipients,
@@ -327,6 +329,7 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
             print(each)
 
     recipients = sorted(['eddy@nocompany.com',
+                         'betty@nocompany.com',
                          'fred@nocompany.com',
                          'john@_company.com',
     ])
@@ -359,6 +362,7 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                            )
 
     recipients = sorted(['eddy@nocompany.com',
+                         'betty@nocompany.com',
                          'sam@not_a_company.com',
     ])
     assert SendEmail(recipients=recipients,
@@ -382,6 +386,7 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
                          'john@_company.com',
+                         'betty@nocompany.com',
                          'sam@not_a_company.com',
     ])
     assert SendEmail(recipients=recipients,

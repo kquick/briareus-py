@@ -259,6 +259,7 @@ def test_example_report_varfail_do_email(example_hydra_results):
     print(len(reps))
     assert SendEmail(recipients=sorted(['eddy@nocompany.com',
                                         'fred@nocompany.com',
+                                        'betty@nocompany.com',
                                         'john@_company.com',
                                         'sam@not_a_company.com']),
                      notification=Notify(what='variable_failing', item='Project #1',
@@ -291,7 +292,8 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
                          'john@_company.com',
-                         'sam@not_a_company.com'])
+                         'sam@not_a_company.com',
+                         'betty@nocompany.com'])
     assert SendEmail(recipients=recipients,
                      notification=Notify(what='variable_failing', item='Project #1',
                                          params=BldVariable(project='Project #1',

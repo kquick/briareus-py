@@ -22,11 +22,12 @@ project_owner("Project #1", "george@_company.com").
 
 project_owner("R3", "john@not_a_company.com").
 
-action_type(email, "fred@nocompany.com", "Project #1").
-action_type(email, "eddy@nocompany.com", "Project #1").
-action_type(email, "sam@not_a_company.com", "Project #1").
-action_type(email, "john@_company.com", "Project #1").
-action_type(email, "anne@nocompany.com", "Project #1", master_submodules_broken).
+enable(email, "fred@nocompany.com", "Project #1").
+enable(email, "eddy@nocompany.com", "Project #1").
+enable(email, "sam@not_a_company.com", "Project #1").
+enable(email, "john@_company.com", "Project #1").
+enable(email, "anne@nocompany.com", "Project #1", master_submodules_broken).
+enable(email, "betty@nocompany.com", "Project #1", variable_failing).
       """
   }
 }

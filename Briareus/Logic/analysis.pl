@@ -145,7 +145,8 @@ do_notnew([]).
 do(email(Users, notify(What, P, CS), Notified)) :-
     Notification = notify(What, P, CS),
     action(Notification),
-    setof(User, ((action_type(email, User, P) ; action_type(email, User, What, P)),
+    setof(User, ((action_type(email, User, P)
+                 ; action_type(email, User, P, What)),
                  email_address_useable(User)
                  ), Users),
     do_new(email, Notification, Notified).

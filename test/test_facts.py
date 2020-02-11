@@ -42,6 +42,7 @@ enable(email, "eddy@nocompany.com", "Project #1").
 enable(email, "sam@not_a_company.com", "Project #1").
 enable(email, "john@_company.com", "Project #1").
 enable(email, "anne@nocompany.com", "Project #1", master_submodules_broken).
+enable(email, "betty@nocompany.com", "Project #1", variable_failing).
       """
     }
     )
