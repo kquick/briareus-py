@@ -40,10 +40,11 @@ cons(H, T, [H|T]).
 
 
 action(notify(completely_broken, Project, NBldCfgs)) :-
-    report(complete_failure(Project)),
-    findall(C, bldres(Project, _BType, _Br, _Strat, _Vars, C, _Ttl, _Pass, _Fail, _Pend, _Conf, _), Cfgs),
-    length(Cfgs, NBldCfgs),
-    NBldCfgs > 0.
+    report(complete_failure(Project))
+    , findall(C, bldres(Project, _, _, _, _, C, _, _, _, _, _, _), Cfgs)
+    , length(Cfgs, NBldCfgs)
+    , NBldCfgs > 0
+.
 
 action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) :-
     project(Project, _)
