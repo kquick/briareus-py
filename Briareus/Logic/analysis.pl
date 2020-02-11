@@ -55,17 +55,23 @@ action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) 
 %% failing.
 
 action(notify(main_submodules_broken, Project, Configs)) :-
-    is_project_repo(Project),
-    \+ report(complete_failure(Project)),
-    is_main_branch(Project, MainBr),
-    findall(C, (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars, _BldDesc)),
-                bad_status(Status),
-                findall((N,V), (member(varvalue(Project, N, V), Vars),
-                                report(var_failure(Project, N, V))), XS),
-                length(XS, 0)),
-            CS),
-    length(CS, N), N > 0,
-    sort(CS, Configs).
+    project(Project, R)
+    , is_main_branch(R, MainBr)
+    , \+ report(complete_failure(Project))
+    , findall(C
+              , (report(status_report(Status, project(Project), submodules, regular, MainBr, C, Vars, _BldDesc))
+                 , bad_status(Status)
+                 , findall((N,V)
+                           , (member(varvalue(Project, N, V), Vars)
+                              , report(var_failure(Project, N, V))
+                           )
+                           , XS)
+                 , length(XS, 0)
+              )
+              , CS)
+    , length(CS, N), N > 0
+    , sort(CS, Configs)
+.
 
 action(notify(main_submodules_good, Project, CS)) :-
     is_project_repo(Project),
