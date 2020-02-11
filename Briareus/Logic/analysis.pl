@@ -205,9 +205,13 @@ action_to(DoWhat, Target, Notification) :- enable(DoWhat, Target, Notification).
 % is defined in the Reporting logic of the input configuration.
 action_to(email, UserEmail, notify(main_broken, Project, _)) :-
     project_owner(Project, UserEmail).
+action_to(email, UserEmail, notify(main_good, Project, _)) :-
+    project_owner(Project, UserEmail).
 action_to(email, UserEmail, notify(completely_broken, Project, _)) :-
     project_owner(Project, UserEmail).
 action_to(email, UserEmail, notify(main_submodules_broken, Project, _)) :-
+    project_owner(Project, UserEmail).
+action_to(email, UserEmail, notify(main_submodules_good, Project, _)) :-
     project_owner(Project, UserEmail).
 
 % do_new inherits Previous from any prior specification of this type.
