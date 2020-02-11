@@ -1,1 +1,1 @@
-hh:[{n.item}] Main build FAILING!
+hh:[{n.subject}] Main build FAILING!

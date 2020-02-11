@@ -1,1 +1,1 @@
-hh:[{n.item}] Main submodules build success!
+hh:[{n.subject}] Main submodules build success!

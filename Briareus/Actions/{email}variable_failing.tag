@@ -1,1 +1,1 @@
-hh:[{n.item}] build FAILURE for "{n.params.varvalue}"
+hh:[{n.subject}] build FAILURE for "{n.params.varvalue}"

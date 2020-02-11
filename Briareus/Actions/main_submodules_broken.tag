@@ -1,1 +1,1 @@
-hh:[{n.item}] Main submodules build FAILING!
+hh:[{n.subject}] Main submodules build FAILING!

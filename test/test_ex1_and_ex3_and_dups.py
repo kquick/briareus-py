@@ -218,15 +218,17 @@ def test_example_report_do_list(example_report):
                          'sam@not_a_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='variable_failing', item='Repo1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Repo1',
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs):
@@ -241,14 +243,14 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                            tdups.prior + texres.prior + [
                                SendEmail(recipients=['fred@nocompany.com'],
                                          notification=Notify(what='variable_failing',
-                                                             item='Repo1',
+                                                             subject='Repo1',
                                                              params=BldVariable(project='Repo1',
                                                                                 varname='ghcver',
                                                                                 varvalue='ghc881')),
                                          sent_to=["george@nocompany.com", "sally@not_a_company.com"]),
                                SendEmail(recipients=['shorty@nocompany.com'],
                                          notification=Notify(what='completely_broken',
-                                                             item='BadRepo',
+                                                             subject='BadRepo',
                                                              params=9),
                                          sent_to=[]),
                            ],
@@ -270,15 +272,17 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                          'john@_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='variable_failing', item='Repo1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Repo1',
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=["george@nocompany.com", "sally@not_a_company.com"]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
@@ -304,7 +308,8 @@ def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
     recipients = sorted(['john@_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=[]) in reps
 
@@ -334,15 +339,17 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
                          'john@_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='variable_failing', item='Repo1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Repo1',
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=[]) in reps
     assert SendEmail(recipients=['fred@nocompany.com'],
-                     notification=Notify(what='main_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1', params=[]),
                      sent_to=[]) in reps
 
 def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfigs):
@@ -366,7 +373,8 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                          'sam@not_a_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=[]) in reps
 
@@ -390,15 +398,17 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
                          'sam@not_a_company.com',
     ])
     assert SendEmail(recipients=recipients,
-                     notification=Notify(what='variable_failing', item='Project #1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Project #1',
                                          params=BldVariable(project='Project #1', varname='c_compiler', varvalue='clang')),
                      sent_to=recipients) in rep
     assert SendEmail(recipients=["fred@nocompany.com"],
-                     notification=Notify(what='variable_failing', item='Repo1',
+                     notification=Notify(what='variable_failing',
+                                         subject='Repo1',
                                          params=BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')),
                      sent_to=["fred@nocompany.com"]) in rep
     assert SendEmail(recipients=["fred@nocompany.com"],
-                     notification=Notify(what='main_good', item='Repo1', params=[]),
+                     notification=Notify(what='main_good', subject='Repo1', params=[]),
                      sent_to=["fred@nocompany.com"]) in rep
     send_email.assert_has_calls([call(set(recipients), ANY, ANY),
                                  call(set(["fred@nocompany.com"]), ANY, ANY),

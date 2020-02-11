@@ -1,4 +1,4 @@
-The main branch build of {n.item} is broken!!
+The main branch build of {n.subject} is broken!!
 
 This is the expected main build used for development and downstream
 consumption.  This is a high-priority issue, please address this ASAP!

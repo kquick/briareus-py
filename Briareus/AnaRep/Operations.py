@@ -241,7 +241,7 @@ def prior_fact_SendEmail(prior):
     return Fact(('email('
                  '[ {send_to} ]'
                  ', notify({prior.notification.what}'
-                 '  , "{prior.notification.item}"'
+                 '  , "{prior.notification.subject}"'
                  '  , ' + params_logic() +
                  ')'
                  ', [ {sent_to} ]'

@@ -1,1 +1,1 @@
-hh:[{n.item}] Main build success!
+hh:[{n.subject}] Main build success!

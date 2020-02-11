@@ -1,3 +1,3 @@
-FAILURE for all {n.item} builds for the "{n.params.varname}" variable value: {n.params.varvalue}
+FAILURE for all {n.subject} builds for the "{n.params.varname}" variable value: {n.params.varvalue}
 
 Builds using this variable will not be considered in other build reports.

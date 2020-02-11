@@ -30,7 +30,13 @@ cons(H, T, [H|T]).
 % identity(V,V).
 
 %% ----------------------------------------------------------------------
-%% Actions
+%% Notifications
+%%
+%% The most common Action is a notify(What, Subject, Parameters) which
+%% identifies What the notification is about, the Subject of the
+%% notification (a Project, a Branch, a Pull Request, etc.), and the
+%% Parameters which provide the details about that notification.
+%% What the Parameters are is determined by the What + Subject.
 
 
 action(notify(completely_broken, Project, NBldCfgs)) :-

@@ -223,8 +223,8 @@ class SepHandledVar(object):
 @attr.s(frozen=True)
 class Notify(object):
     what = attr.ib() # string: type of notification
-    item = attr.ib() # string: notification item (branch, project, etc.)
-    params = attr.ib() # list of parameters associated with item
+    subject = attr.ib() # string: project
+    params = attr.ib() # parameters associated with item; specific to 'what'
 
 
 @attr.s(frozen=True)
