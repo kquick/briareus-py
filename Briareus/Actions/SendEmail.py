@@ -23,7 +23,7 @@ def do_send_email_action(email_action, full_report, inpcfg):
     "Sends email, where email_action is Briareus.Types.SendEmail"
     rec = email_action.recipients
     done = email_action.sent_to
-    send_to = set(rec) - set(done)
+    send_to = sorted(list(set(rec) - set(done)))
     if send_to:
         subj, body = gen_content('email', email_action.notification)
         if body:
