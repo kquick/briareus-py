@@ -232,7 +232,10 @@ def prior_fact_SendEmail(prior):
         'main_submodules_good': asStrList,
         'main_broken': asStrList,
         'main_good': asStrList,
-    }.get(prior.notification.what, lambda: str(prior.notification.params))
+    }.get(prior.notification.what,
+          lambda: (prior.notification.params.as_fact()
+                   if hasattr(prior.notification.params, "as_fact")
+                   else str(prior.notification.params)))
     return Fact(('email('
                  '[ {send_to} ]'
                  ', notify({prior.notification.what}'
