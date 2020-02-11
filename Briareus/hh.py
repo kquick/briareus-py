@@ -256,16 +256,18 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
     if params.up_to and not params.up_to.enough('build_results'):
         return
 
-    report = run_hh_report(params, gen_result, prior_report,
-                           reporting_logic_defs=reporting_logic_defs)
+    if reportf or (params.up_to and params.up_to.enough('actions')):
 
-    if params.up_to and not params.up_to.enough('actions'):
-        return
+        report = run_hh_report(params, gen_result, prior_report,
+                               reporting_logic_defs=reporting_logic_defs)
 
-    report = perform_hh_actions(report)
+        if params.up_to and not params.up_to.enough('actions'):
+            return
 
-    if reportf and (not params.up_to or params.up_to.enough('report')):
-        write_report_output(reportf, report)
+        report = perform_hh_actions(inpcfg, report)
+
+        if reportf and (not params.up_to or params.up_to.enough('report')):
+            write_report_output(reportf, report)
 
 
 def atomic_write_to(outfname, gen_output):
