@@ -41,6 +41,8 @@ bad_status(badconfig).
 listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
 listcmp([], _).
 
+%% ----------------------------------------------------------------------
+
 %% no_good_status returns true if the project has no
 %% validly-configured builds that are finished with a good status
 %% result.
@@ -64,6 +66,49 @@ no_pending_status(_PName).
 no_badconfig(PName) :-
     bldres(PName, _, _, _, _, _, _, _, _, _, configError, _), !, fail.
 no_badconfig(_PName).
+
+%% ----------------------------------------------------------------------
+
+%% no_good_varvalue_status returns true if the project has no
+%% validly-configured builds using the specified variable value that
+%% are finished with a good status result.
+no_good_varvalue_status(PName, VarName, VarValue) :-
+    bldres(PName, _, _, _, Vars, _, N, N, 0, 0, configValid, _)
+    , member(varvalue(PName, VarName, VarValue), Vars)
+    , !
+    , fail
+.
+no_good_varvalue_status(_PName, _VarName, _VarValue).
+
+
+%% no_pending_status returns true if the project has no pending
+%% validly-configured builds.
+no_pending_varvalue_status(PName, VarName, VarValue) :-
+    bldres(PName, _, _, _, Vars, _, _, _, _, N, configValid, _)
+    , N > 0
+    , member(varvalue(PName, VarName, VarValue), Vars)
+    , !
+    , fail
+.
+no_pending_varvalue_status(PName, VarName, VarValue) :-
+    missing_bldres(bldres(PName, _, _, _, Vars, _, _, _, _, _, configValid, _))
+    , member(varvalue(PName, VarName, VarValue), Vars)
+    , !
+    , fail
+.
+no_pending_varvalue_status(_PName, _VarName, _VarValue).
+
+%% no_badconfig returns true if there are no configuration errors for
+%% the project.
+no_varvalue_badconfig(PName, VarName, VarValue) :-
+    bldres(PName, _, _, _, Vars, _, _, _, _, _, configError, _)
+    , member(varvalue(PName, VarName, VarValue), Vars)
+    , !
+    , fail
+.
+no_varvalue_badconfig(_PName, _VarName, _VarValue).
+
+%% ----------------------------------------------------------------------
 
 %% missing_bldres will synthesize a "pending" bldres for any bldcfg
 %% that does not have a builder-reported bldres (the assumption is
@@ -199,13 +244,13 @@ report(complete_failure(PName)) :-
 .
 
 report(var_failure(PName, N, V)) :-
-    varvalue(PName, N, V),
-    findall(X, (report(status_report(S,project(PName),_,_,_,X,Vars,_)),
-                good_status(S),
-                member(varvalue(PName, N, V), Vars)),
-            Res),
-    length(Res, 0),
-    \+ report(complete_failure(PName)).
+    project(PName, _)
+    , varvalue(PName, N, V)
+    , no_good_varvalue_status(PName, N, V)
+    , \+ report(complete_failure(PName))
+    , no_pending_varvalue_status(PName, N, V)
+    , no_varvalue_badconfig(PName, N, V)
+.
 
 
 %% ------------------------------------------------------------
