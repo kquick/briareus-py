@@ -494,32 +494,25 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
         assert each in actual
         assert expected[each] == actual[each]
 
-hydra_results = [
-    { "name": n,
+build_results = [
+    { "name": n % v,
       "nrtotal" : 123,
-      "nrsucceeded": 0 if '-ghc822-' in n else 123,
-      "nrfailed": 123 if '-ghc822-' in n else 0,
+      "nrsucceeded": 0 if 'ghc822' == v else 123,
+      "nrfailed": 123 if 'ghc822' == v else 0,
       "nrscheduled": 0,
       "haserrormsg": False,
     }
     for n in [
-            "master.HEADs-ghc822",
-            "master.HEADs-ghc844",
-            "master.submodules-ghc822",
-            "master.submodules-ghc844",
-            "feat1.HEADs-ghc822",
-            "feat1.HEADs-ghc844",
-            "dev.HEADs-ghc822",
-            "dev.HEADs-ghc844",
-            "PR8192-bugfix9.HEADs-ghc822",
-            "PR8192-bugfix9.HEADs-ghc844",
-            "PR8192-bugfix9.submodules-ghc822",
-            "PR8192-bugfix9.submodules-ghc844",
-            "PR11-blah.HEADs-ghc822",
-            "PR11-blah.HEADs-ghc844",
-            "PR11-blah.submodules-ghc822",
-            "PR11-blah.submodules-ghc844",
+            "master.HEADs-%s",
+            "master.submodules-%s",
+            "feat1.HEADs-%s",
+            "dev.HEADs-%s",
+            "PR-bugfix9.HEADs-%s",
+            "PR-bugfix9.submodules-%s",
+            "PR-blah.HEADs-%s",
+            "PR-blah.submodules-%s",
     ]
+    for v in [ "ghc822", "ghc844" ]
 ]
 
 prior = [
