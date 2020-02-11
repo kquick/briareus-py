@@ -257,7 +257,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
     if params.up_to and not params.up_to.enough('build_results'):
         return
 
-    if reportf or (params.up_to and params.up_to.enough('actions')):
+    if reportf or (params.up_to and params.up_to.enough('built_facts')):
 
         report = run_hh_report(params, gen_result, prior_report,
                                reporting_logic_defs=reporting_logic_defs)
