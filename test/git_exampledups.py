@@ -15,33 +15,75 @@ class GitExample(ActorTypeDispatcher):
                 # This PR uses "master", which is the same thing
                 # as the main branch.  This should co-exist with the
                 # master build.
-                PullReqInfo("1", 'pr#mastermask', 'remote_Repo1', 'master', 'r1_master_maskref'),
+                PullReqInfo("1",
+                            pullreq_title='pr#mastermask',
+                            pullreq_srcurl='remote_Repo1',
+                            pullreq_branch='master',
+                            pullreq_ref='r1_master_maskref',
+                            pullreq_user='jdoe',
+                            pullreq_email='jdoe@nocompany.com'),
                 # This PR should be built with the corresponding dog PR in Repo3
-                PullReqInfo("Req8", 'pr8 is great', 'Repo1_Remote8', 'dog', 'r1_r8_f32'),
+                PullReqInfo("Req8",
+                            pullreq_title='pr8 is great',
+                            pullreq_srcurl='Repo1_Remote8',
+                            pullreq_branch='dog',
+                            pullreq_ref='r1_r8_f32',
+                            pullreq_user='r.user',
+                            pullreq_email=''),
                 # This PR *also* uses "master".  It should be built
                 # distinctly from PR1, co-exist with the "master"
                 # build, and not involv PR9 from R3.  The PR number
                 # also matches a PR in Repo3, but this also should not
                 # cause confusion.
-                PullReqInfo("2", 'pr numero dos', 'remote_Repo1_pr2', 'master', 'r1_master_p2^head'),
+                PullReqInfo("2",
+                            pullreq_title='pr numero dos',
+                            pullreq_srcurl='remote_Repo1_pr2',
+                            pullreq_branch='master',
+                            pullreq_ref='r1_master_p2^head',
+                            pullreq_user='jdoe',
+                            pullreq_email='jdoe@nocompany.com'),
             ],
             'Repo3': [
                 # This PR is for develop, but it should co-exist with
                 # the develop branch in R3; R1 and R2 develop should
                 # be built against the R3 develop branch and this PR.
-                PullReqInfo("2", 'pr#develop', 'remote_Repo3', 'develop', 'r3_develop_pr2'),
+                PullReqInfo("2",
+                            pullreq_title='pr#develop',
+                            pullreq_srcurl='remote_Repo3',
+                            pullreq_branch='develop',
+                            pullreq_ref='r3_develop_pr2',
+                            pullreq_user='frank',
+                            pullreq_email='frank@stein.co'),
                 # This PR has a corresponding branch in R2 it should
                 # be built against.  Note also that it duplicates the
                 # ID from the Repo1 PR; verify that these don't get
                 # confused/combined.
-                PullReqInfo("1", 'pr#foo', 'remote_Repo3_2', 'foo', 'r3_foo_pr3'),
+                PullReqInfo("1",
+                            pullreq_title='pr#foo',
+                            pullreq_srcurl='remote_Repo3_2',
+                            pullreq_branch='foo',
+                            pullreq_ref='r3_foo_pr3',
+                            pullreq_user='earl',
+                            pullreq_email='earl@king.wild'),
                 # This PR is on master in the source repo, but because
                 # master is the default branch, it should *not* be
                 # built with other PR's on similar branches (notably
                 # Repo1, PR1).
-                PullReqInfo("9", 'pr#master3', 'remote_repo3_other', 'master', 'r3_master_2'),
+                PullReqInfo("9",
+                            pullreq_title='pr#master3',
+                            pullreq_srcurl='remote_repo3_other',
+                            pullreq_branch='master',
+                            pullreq_ref='r3_master_2',
+                            pullreq_user='frank',
+                            pullreq_email='frank@stein.co'),
                 # This PR should be built with the corresponding dog PR in Repo1
-                PullReqInfo("101", 'start changes', 'Repo3_r3', 'dog', 'r3_r3^7'),
+                PullReqInfo("101",
+                            pullreq_title='start changes',
+                            pullreq_srcurl='Repo3_r3',
+                            pullreq_branch='dog',
+                            pullreq_ref='r3_r3^7',
+                            pullreq_user='fido',
+                            pullreq_email='fido@woof.grr'),
             ],
         }.get(msg.reponame, [])
         ### EXAMPLE-^^^

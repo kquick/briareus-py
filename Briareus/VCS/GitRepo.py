@@ -185,11 +185,16 @@ class RemoteGit__Info(object):
         "Drops any additional path elements beyond the first two: owner and repo"
         parsed = urlparse(url)
         return urlunparse(
-            parse._replace(path = '/'.join(parse.path.split('/')[:3]) ))
+            parsed._replace(path = '/'.join(parsed.path.split('/')[:3]) ))
 
     def api_req(self, reqtype, notFoundOK=False, raw=False):
         self._get_count += 1
-        req_url = self._url + reqtype
+        if reqtype.startswith('//'):
+            # Drop the owner/repo at the tail of the url
+            parsed = urlparse(self._url)
+            req_url = urlunparse(parsed._replace(path='/'.join(parsed.path.split('/')[:-2] + [reqtype])))
+        else:
+            req_url = self._url + reqtype
         return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
 
     def _get_cached_links_pageable_url(self, req_url, notFoundOK, raw):
@@ -366,13 +371,21 @@ class GitLabInfo(RemoteGit__Info):
         # one that is presented to the user on the Web page.
 
         preqs = [ PullReqInfo(str(pr["iid"]),   # for user reference
-                              pr["title"],    # for user reference
-                              self._src_repo_url(pr),  # source repo URL
-                              pr["source_branch"],          # source repo branch
-                              pr["sha"],
-                              None)
+                              pullreq_title=pr["title"],    # for user reference
+                              pullreq_srcurl=self._src_repo_url(pr),  # source repo URL
+                              pullreq_branch=pr["source_branch"],          # source repo branch
+                              pullreq_ref=pr["sha"],
+                              pullreq_user=pr['author']['username'],
+                              pullreq_email=self.get_user_email(pr['author']['id']),
+                              pullreq_mergeref=None)
                   for pr in rsp if pr["state"] == "opened" and not pr["merged_at"] ]
         return PullReqsData(reponame, preqs)
+
+    def get_user_email(self, userid):
+        userinfo = self.api_req('//users/' + str(userid), notFoundOK=True)
+        if userinfo == self.NotFound:
+            return ''
+        return userinfo['public_email']
 
     def get_branches(self):
         return self.api_req('/repository/branches')
@@ -433,13 +446,21 @@ class GitHubInfo(RemoteGit__Info):
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(str(pr["number"]),   # for user reference
-                              pr["title"],    # for user reference
-                              pr["head"]["repo"]["html_url"],  # source repo URL
-                              pr["head"]["ref"],          # source repo branch
-                              pr["head"]["sha"],         # for github, can also use branch ^
-                              pr["merge_commit_sha"])
+                              pullreq_title=pr["title"],    # for user reference
+                              pullreq_srcurl=pr["head"]["repo"]["html_url"],  # source repo URL
+                              pullreq_branch=pr["head"]["ref"],          # source repo branch
+                              pullreq_ref=pr["head"]["sha"],         # for github, can also use branch ^
+                              pullreq_user=pr["user"]["login"],
+                              pullreq_email=self.get_user_email(pr["user"]["login"]),
+                              pullreq_mergeref=pr["merge_commit_sha"])
                   for pr in rsp if pr["state"] == "open" and not pr["merged_at"] ]
         return PullReqsData(reponame, preqs)
+
+    def get_user_email(self, username):
+        userinfo = self.api_req('//user/' + username, notFoundOK=True)
+        if userinfo == self.NotFound:
+            return ''
+        return userinfo['email'] or ''
 
     def get_branches(self):
         return self.api_req('/branches')

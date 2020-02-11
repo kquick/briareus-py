@@ -28,9 +28,23 @@ class GitTestSingle(ActorTypeDispatcher):
         self.send(sender, RepoDeclared(msg.reponame))
 
     def receiveMsg_GetPullReqs(self, msg, sender):
-        self.send(sender, PullReqsData(msg.reponame,
-                                       [PullReqInfo(134, 'Hoppy toads', 'toad_repo_url', 'toad', 'toad_mergeref'),
-                                        PullReqInfo(91, 'Croaking frogs', 'frog_repo_url', 'frog', 'frog_mergeref')]))
+        self.send(sender,
+                  PullReqsData(msg.reponame,
+                               [PullReqInfo(134,
+                                            pullreq_title='Hoppy toads',
+                                            pullreq_srcurl='toad_repo_url',
+                                            pullreq_branch='toad',
+                                            pullreq_ref='toad_mergeref',
+                                            pullreq_user='hoppy',
+                                            pullreq_email=''),
+                                PullReqInfo(91,
+                                            pullreq_title='Croaking frogs',
+                                            pullreq_srcurl='frog_repo_url',
+                                            pullreq_branch='frog',
+                                            pullreq_ref='frog_mergeref',
+                                            pullreq_user='frog',
+                                            pullreq_email='frog@lilypond.pad'),
+                               ]))
 
     def receiveMsg_HasBranch(self, msg, sender):
         branch = msg.branch_name
@@ -59,7 +73,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/3.
+:- discontiguous pullreq/5.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("TheRepo", "TheRepo").
@@ -69,8 +83,8 @@ branchreq("TheRepo", "feat1").
 branchreq("TheRepo", "dev").
 branch("TheRepo", "master").
 branch("TheRepo", "feat1").
-pullreq("TheRepo", "134", "toad").
-pullreq("TheRepo", "91", "frog").
+pullreq("TheRepo", "134", "toad", "hoppy", "").
+pullreq("TheRepo", "91", "frog", "frog", "frog@lilypond.pad").
 '''.split('\n')))
 
 

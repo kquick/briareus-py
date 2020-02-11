@@ -54,12 +54,13 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         DeclareFact('subrepo/2'),
 
         # Identifies a pull request that was found by probing the VCS.
-        # The format is: pullreq(Repo, PR_Ident, PR_Branch).  The
-        # PR_Branch may be used to correlate against branches in other
-        # repositories (whether or not they have an active pullreq for
-        # that branch).  The PR_Ident serves only to identify this PR
-        # (relative to the Repo) and is otherwise "free-form".
-        DeclareFact('pullreq/3'),
+        # The format is: pullreq(Repo, PR_Ident, PR_Branch, PR_User,
+        # PR_Email).  The PR_Branch may be used to correlate against
+        # branches in other repositories (whether or not they have an
+        # active pullreq for that branch).  The PR_Ident serves only
+        # to identify this PR (relative to the Repo) and is otherwise
+        # "free-form".
+        DeclareFact('pullreq/5'),
 
         # Specifies the existence of a branch in a repository by
         # probing the VCS.  The format is: branch(Repo, BranchName).
@@ -109,9 +110,10 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     # the actual definition is not imported here because Python is
     # duck-typed.
     pullreqs = repo_info['pullreqs']
-    pullreq_facts = [ Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s")' %
-                           p.__dict__)
-                      for p in pullreqs ]
+    pullreq_facts = [
+        Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%(pr_user)s", "%(pr_email)s")' %
+             p.__dict__)
+        for p in pullreqs ]
 
     # n.b. See note in InternalOps: a pullreq for a repo
     # "overrides" a similarly-named branch for that repo, so in

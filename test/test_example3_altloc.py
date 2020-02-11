@@ -36,9 +36,13 @@ input_spec = '''
 gitactor = GitExample1
 gitactor_updates = [
     ( ("pullreq", "R10",
-       PullReqInfo("321", 'test R10 PR',
-                   'https://r10_xlated_url/pullpath/part',
-                   'devtest', 'r10_devtest_ref')),
+       PullReqInfo("321",
+                   pullreq_title='test R10 PR',
+                   pullreq_srcurl='https://r10_xlated_url/pullpath/part',
+                   pullreq_branch='devtest',
+                   pullreq_ref='r10_devtest_ref',
+                   pullreq_user='miles',
+                   pullreq_email='miles@to.go')),
       "ok: added pullreq for R10" ),
 ]
 

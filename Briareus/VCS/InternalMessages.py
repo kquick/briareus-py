@@ -113,6 +113,8 @@ class PullReqInfo(object):
     pullreq_srcurl = attr.ib()
     pullreq_branch = attr.ib()
     pullreq_ref    = attr.ib()
+    pullreq_user   = attr.ib() # string name of user on forge
+    pullreq_email  = attr.ib() # string user email (may be blank if not public)
     pullreq_mergeref = attr.ib(default=None) # if available
 
 @attr.s
@@ -158,6 +160,8 @@ class PRInfo(object):
     pr_branch      = attr.ib()
     pr_ident       = attr.ib()  # unique identifier string, required
     pr_title       = attr.ib()  # user-assistance, optional
+    pr_user        = attr.ib()  # name of user creating pull request
+    pr_email       = attr.ib()  # email of user (if known, else blank)
 
 
 @attr.s(frozen=True)

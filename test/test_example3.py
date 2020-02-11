@@ -24,7 +24,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/3.
+:- discontiguous pullreq/5.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("R10", "R10").
@@ -37,8 +37,8 @@ branch("R3", "master").
 branch("R3", "blah").
 branch("R4", "master").
 branch("R4", "feat1").
-pullreq("R3", "11", "blah").
-pullreq("R4", "8192", "bugfix9").
+pullreq("R3", "11", "blah", "nick", "nick@bad.seeds").
+pullreq("R4", "8192", "bugfix9", "ozzie", "ozzie@crazy.train").
 branchreq("R10", "master").
 branchreq("R10", "dev").
 branchreq("R10", "feat1").

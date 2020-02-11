@@ -39,21 +39,21 @@
 %         If any PR's exist on that repo on the main branch, they are
 %         pr_solo.
 pr_type(pr_solo, Repo, PRNum) :-
-    pullreq(Repo, PRNum, Branch),
+    pullreq(Repo, PRNum, Branch, _, _),
     is_main_branch(Repo, Branch),
-    findall(R, (pullreq(R, PRNum, Branch), is_main_branch(R, Branch)), RS),
+    findall(R, (pullreq(R, PRNum, Branch, _U, _E), is_main_branch(R, Branch)), RS),
     length(RS, RLen),
     RLen < 2.
 
 pr_type(pr_repogroup, PRNum, RepoList) :-
-    setof(R, (pullreq(R, PRNum, Branch), is_main_branch(R, Branch)), RepoList),
+    setof(R, (pullreq(R, PRNum, Branch, _, _), is_main_branch(R, Branch)), RepoList),
     length(RepoList, RLen),
     RLen > 1.
 
 pr_type(pr_grouped, BranchName) :-
-    setof(B, R^I^pullreq(R, I, B), BS),
+    setof(B, R^I^U^E^pullreq(R, I, B, U, E), BS),
     member(BranchName, BS),
-    findall((R,I), (pullreq(R,I,BranchName), \+ is_main_branch(R,BranchName)), PRList),
+    findall((R,I), (pullreq(R,I,BranchName,_Uu,_Ee), \+ is_main_branch(R,BranchName)), PRList),
     length(PRList, NumPRs),
     NumPRs > 0.
 
@@ -68,7 +68,7 @@ pr_type(pr_grouped, BranchName) :-
 % items.
 pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
     pr_type(pr_solo, Repo, PRNum)
-    , pullreq(Repo, PRNum, Branch)
+    , pullreq(Repo, PRNum, Branch, _, _)
     , repo_in_project(ProjName, Repo)
     , PRCfg = [ prcfg(Repo, PRNum, Branch) ]
 .
@@ -77,21 +77,21 @@ pr_config(pr_type(pr_repogroup, PRNum, RepoList), ProjName, PRCfg) :-
     pr_type(pr_repogroup, PRNum, RepoList),
     % the Branch should be the same main_branch for all prcfgs since
     % they refer to the same actual repo
-    setof(R, Repo^(is_main_branch(Repo, Branch)
-                   , pullreq(Repo, PRNum, Branch)
-                   , repo_in_project(ProjName, Repo)
-                   , R = prcfg(Repo, PRNum, Branch))
+    setof(R, Repo^U^E^(is_main_branch(Repo, Branch)
+                       , pullreq(Repo, PRNum, Branch, U, E)
+                       , repo_in_project(ProjName, Repo)
+                       , R = prcfg(Repo, PRNum, Branch))
           , PRCfg).
 
 pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
     pr_type(pr_grouped, BranchName),
-    setof(R, Repo^I^( (pullreq(Repo, I, BranchName)
-                       , repo_in_project(ProjName, Repo)
-                       , R = prcfg(Repo, I, BranchName))
-                    ; (branch(Repo, BranchName)
-                       , repo_in_project(ProjName, Repo)
-                       , \+pullreq(Repo, I, BranchName)
-                       , R = branchcfg(Repo, BranchName))),
+    setof(R, Repo^I^U^E^( (pullreq(Repo, I, BranchName, U, E)
+                           , repo_in_project(ProjName, Repo)
+                           , R = prcfg(Repo, I, BranchName))
+                        ; (branch(Repo, BranchName)
+                           , repo_in_project(ProjName, Repo)
+                           , \+pullreq(Repo, I, BranchName, _, _)
+                           , R = branchcfg(Repo, BranchName))),
           PRCfg).
 
 % ----------------------------------------------------------------------
