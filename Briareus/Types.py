@@ -158,12 +158,18 @@ class PRCfg(object):
     reponame = attr.ib() # string
     pr_id    = attr.ib() # string
     branch   = attr.ib() # string
+    user     = attr.ib() # string
+    email    = attr.ib() # string
 
     def as_fact(self):
         return ''.join(['prcfg(',
-                        fact_str(self.reponame), ',',
-                        fact_str(self.pr_id), ',',
-                        fact_str(self.branch),
+                        ','.join([
+                            fact_str(self.reponame),
+                            fact_str(self.pr_id),
+                            fact_str(self.branch),
+                            fact_str(self.user),
+                            fact_str(self.email),
+                            ]),
                         ')'])
 
 @attr.s(frozen=True)

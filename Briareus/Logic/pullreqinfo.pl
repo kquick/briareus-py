@@ -63,36 +63,40 @@ pr_type(pr_grouped, BranchName) :-
 % A pr_config describes a configuration for a pull request; this is a
 % subset of a build configuration that primarily describes the
 % PR-related information.  The PRCfg output is an array of
-%     prcfg(Repo, PRNum, Branch)
+%     prcfg(Repo, PRNum, Branch, User, Email)
 %     branchcfg(Repo, BranchName)
 % items.
 pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
     pr_type(pr_solo, Repo, PRNum)
-    , pullreq(Repo, PRNum, Branch, _, _)
+    , pullreq(Repo, PRNum, Branch, User, Email)
     , repo_in_project(ProjName, Repo)
-    , PRCfg = [ prcfg(Repo, PRNum, Branch) ]
+    , PRCfg = [ prcfg(Repo, PRNum, Branch, User, Email) ]
 .
 
 pr_config(pr_type(pr_repogroup, PRNum, RepoList), ProjName, PRCfg) :-
     pr_type(pr_repogroup, PRNum, RepoList),
     % the Branch should be the same main_branch for all prcfgs since
     % they refer to the same actual repo
-    setof(R, Repo^U^E^(is_main_branch(Repo, Branch)
-                       , pullreq(Repo, PRNum, Branch, U, E)
-                       , repo_in_project(ProjName, Repo)
-                       , R = prcfg(Repo, PRNum, Branch))
+    setof(R, Repo^(is_main_branch(Repo, Branch)
+                  , pullreq(Repo, PRNum, Branch, User, Email)
+                  , repo_in_project(ProjName, Repo)
+                  , R = prcfg(Repo, PRNum, Branch, User, Email))
           , PRCfg).
 
 pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
-    pr_type(pr_grouped, BranchName),
-    setof(R, Repo^I^U^E^( (pullreq(Repo, I, BranchName, U, E)
-                           , repo_in_project(ProjName, Repo)
-                           , R = prcfg(Repo, I, BranchName))
-                        ; (branch(Repo, BranchName)
-                           , repo_in_project(ProjName, Repo)
-                           , \+pullreq(Repo, I, BranchName, _, _)
-                           , R = branchcfg(Repo, BranchName))),
-          PRCfg).
+    pr_type(pr_grouped, BranchName)
+    , findall(R, (pullreq(Repo, I, BranchName, User, Email)
+                  , repo_in_project(ProjName, Repo)
+                  , R = prcfg(Repo, I, BranchName, User, Email))
+              , PRCfg_PR)
+    , findall(R, (branch(Repo, BranchName)
+                  , repo_in_project(ProjName, Repo)
+                  , \+pullreq(Repo, I, BranchName, _U, _E)
+                  , R = branchcfg(Repo, BranchName))
+              , PRCfg_BR)
+    , append(PRCfg_PR, PRCfg_BR, PRCfg_All)
+    , list_to_set(PRCfg_All, PRCfg)
+.
 
 % ----------------------------------------------------------------------
 % Misc support
