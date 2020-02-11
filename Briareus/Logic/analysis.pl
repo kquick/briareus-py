@@ -137,14 +137,20 @@ email_address_useable(Addr) :-
 .
 
 
-% determines who may be sent email for various conditions.  These
-% predicates are based on things which are set in the inputcfg
-% (e.g. project_owner(Project, Email) and enable(...) facts).
-action_type(DoWhat, Target, Project)        :- enable(DoWhat, Target, Project).
-action_type(DoWhat, Target, Project, Issue) :- enable(DoWhat, Target, Project, Issue).
-action_type(email, Email, Project, main_broken) :- project_owner(Project, Email).
-action_type(email, Email, Project, completely_broken) :- project_owner(Project, Email).
-action_type(email, Email, Project, main_submodules_broken) :- project_owner(Project, Email).
+% Determines when and for which Targets an action is enabled for,
+% based on the Do operation and the Notification.  These are mapped to
+% enable(DoWhat, Target, Notification) entries in the Reporting logic
+% of the input configuration.
+action_to(DoWhat, Target, Notification) :- enable(DoWhat, Target, Notification).
+
+% Some convenience action enablers.  The project_owner(Project, Email)
+% is defined in the Reporting logic of the input configuration.
+action_to(email, UserEmail, notify(main_broken, Project, _)) :-
+    project_owner(Project, UserEmail).
+action_to(email, UserEmail, notify(completely_broken, Project, _)) :-
+    project_owner(Project, UserEmail).
+action_to(email, UserEmail, notify(main_submodules_broken, Project, _)) :-
+    project_owner(Project, UserEmail).
 
 % do_new inherits Previous from any prior specification of this type.
 % Using this method, the Previous (updated by performing the
@@ -159,18 +165,19 @@ do_new(_, _, []).  % Initially, start with no deliveries
 :- discontiguous email/3.
 :- discontiguous chat/3.
 
-do(email(Users, notify(What, P, CS), Notified)) :-
-    Notification = notify(What, P, CS),
+do(email(Users, Notification, Notified)) :-
+    Notification = notify(_, _, _),
     action(Notification),
-    setof(User, ((action_type(email, User, P)
-                 ; action_type(email, User, P, What)),
-                 email_address_useable(User)
-                 ), Users),
+    setof(User
+          , ( action_to(email, User, Notification)
+              , email_address_useable(User)
+          )
+          , Users),
     do_new(email, Notification, Notified).
 
-do(chat(Channels, notify(What, Item, Args), Posted)) :-
-    action(notify(What, Item, Args)),
-    setof(Channel, action_type(chat, Channel, What, Item), Channels),
-    do_new(chat, notify(What, Item, Args), Posted).
-
-
+do(chat(Channels, notify(What, Subject, Args), Posted)) :-
+    Notification = notify(What, Subject, Args)
+    , action(Notification)
+    , setof(Channel, action_to(chat, Channel, Notification), Channels)
+    , do_new(chat, Notification, Posted)
+.

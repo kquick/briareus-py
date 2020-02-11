@@ -41,8 +41,8 @@ project_owner("Repo1", "george@_company.com").
 
 project_owner("Repo3", "john@not_a_company.com").
 
-enable(email, "fred@nocompany.com", "Repo1").
-enable(email, "anne@nocompany.com", "Repo1", main_submodules_broken).
+enable(email, "fred@nocompany.com", notify(_, "Repo1", _)).
+enable(email, "anne@nocompany.com", notify(main_submodules_broken, "Repo1", _)).
       """
   }
 }
