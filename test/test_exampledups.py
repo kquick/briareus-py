@@ -917,20 +917,15 @@ def test_example_report_varfailure(example_hydra_results):
 
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-    nrmergeablepr = 6  # KWQ
-    nrscheduled = 1
-    prfailing = 7
-    prsuccess = 1
+    prstatus = 6 # develop, dog, foo, 1, 2, 9
     num_varfailure = 1
-    num_analysis = num_varfailure
-    num_actions = num_varfailure
-    num_do = num_varfailure
+    num_notify = num_varfailure + 1
+    num_actions = num_notify
     expected = ((len(top_level) * len(GS)) +
                 len(['ProjectSummary', ])
-                - 1 # PR[2]-develop.standard-ghc865 has ntotal and others as zero
-                + num_varfailure + prfailing + prsuccess # - nrscheduled
-                + num_analysis + num_actions + num_do + nrmergeablepr
-                + 4
+                + prstatus
+                + (num_varfailure * 2)  # VarFailure + SepHandledVar
+                + num_notify + num_actions
     )
     for each in reps:
         print(each)

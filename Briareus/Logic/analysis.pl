@@ -4,9 +4,6 @@
 
 :- discontiguous analysis/1.
                  
-analysis(mergeable_pr(Branch, RIS)) :-
-    report(pr_success(Branch, RIS)).
-
 %% handle the build failures for this variable separately from other
 %% analyses if the variable has completely failed and there are other
 %% values for the variable that have not completely failed.
@@ -41,9 +38,6 @@ action(notify(completely_broken, Project, NBldCfgs)) :-
     findall(C, bldres(Project, _BType, _Br, _Strat, _Vars, C, _Ttl, _Pass, _Fail, _Pend, _Conf, _), Cfgs),
     length(Cfgs, NBldCfgs),
     NBldCfgs > 0.
-
-action(notify(merge_pr, Branch, RIS)) :-  % Project
-    report(mergeable_pr(Branch, RIS)).
 
 action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) :-
     project(Project, _)
@@ -106,6 +100,24 @@ action(notify(main_broken, Project, CS)) :-
                 bad_status(Status)),
             CS),
     length(CS, CSN), CSN > 0.
+
+action(notify(pr_status_pending, Project, prdata(PRType, PRCfg))) :-
+    report(pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))
+    , length(Pends, NPend)
+    , (NPend > 0 ; NumToStart > 0)
+.
+
+action(notify(pr_status_good, Project, prdata(PRType, PRCfg))) :-
+    report(pr_status(PRType, _Branch, Project, PRCfg, Goods, [], [], 0))
+    , length(Goods, NGood)
+    , NGood > 0
+.
+
+action(notify(pr_status_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
+    report(pr_status(PRType, _Branch, Project, PRCfg, Goods, Fails, [], 0))
+    , length(Fails, NFail)
+    , NFail > 0
+.
 
 %% ----------------------------------------------------------------------
 %% Action bindings

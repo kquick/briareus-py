@@ -235,26 +235,21 @@ def test_example_report_varfailure(example_hydra_results):
 def test_example_report_length(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Verify that there are no unexpected additional entries
-    nrmergeablepr = 6  # KWQ
-    prfailing = 2
-    prsuccess = 2
     additional_bldcfgs = 1 # status2 + status3
     num_varfailure = 1
-    num_analysis = num_varfailure
-    num_actions = num_varfailure  # Notify(what='variable_failing', ...)
-    num_do = num_varfailure  # SendEmail(fred@nocompany.com, variable_failing, ...)
+    pr_status = 2
+    num_notify = num_varfailure + pr_status
+    num_actions = num_varfailure + pr_status
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
-                + num_varfailure + prfailing + prsuccess + nrmergeablepr
-                + num_analysis + num_actions + num_do)
+                + (num_varfailure * 2)  # VarValue + SepHandledVar
+                + pr_status
+                + num_notify
+                + num_actions)
     assert expected == len(reps)
 
 def test_example_report_varfail_do_email(example_hydra_results):
     bldcfgs, reps = example_hydra_results
-
-    for each in reps:
-        print('')
-        print(each)
     print('')
     print(len(reps))
     assert SendEmail(recipients=sorted(['eddy@nocompany.com',

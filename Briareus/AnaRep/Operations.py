@@ -184,6 +184,7 @@ def prior_fact(prior):
              'PostChatMessage': prior_ignored,
              'PendingStatus' : prior_ignored,
              'NewPending' : prior_ignored,
+             'PR_Status' : prior_ignored,
     }[prior.__class__.__name__](prior)
 
 def prior_fact_ProjectSummary(prior):

@@ -141,22 +141,68 @@ class NewPending(object):
 class VarFailure(BldVariable): pass
 
 @attr.s(frozen=True)
-class PR_Success(object):
-    branch = attr.ib() # string: branch name
-    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
+class PR_Status(object):
+    prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
+    branch = attr.ib() # string
+    project = attr.ib() # string
+    prcfg = attr.ib() # list of PRCfg or BranchCfg
+    passing = attr.ib() # list of passing BldNames
+    failing = attr.ib() # list of failing BldNames
+    pending = attr.ib() # list of pending BldNames (i.e. in-progress)
+    unstarted = attr.ib() # number of builds not yet started
+
+fact_str = lambda s: '"' + s + '"'
 
 @attr.s(frozen=True)
-class PR_Failure(object):
-    branch = attr.ib() # string: branch name
-    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
+class PRCfg(object):
+    reponame = attr.ib() # string
+    pr_id    = attr.ib() # string
+    branch   = attr.ib() # string
+
+    def as_fact(self):
+        return ''.join(['prcfg(',
+                        fact_str(self.reponame), ',',
+                        fact_str(self.pr_id), ',',
+                        fact_str(self.branch),
+                        ')'])
 
 @attr.s(frozen=True)
-class PR_Failing(object):
-    project = attr.ib() # string name of project
-    branch = attr.ib() # string: branch name
-    strategy  = attr.ib()  # string: submodules, heads, standard
-    # bldvars   = attr.ib(converter=sorted)  # list of BldVariable
-    buildnames= attr.ib()  # list of string name of builds on builder
+class BranchCfg(object):
+    reponame = attr.ib() # string
+    branch   = attr.ib() # string
+
+    def as_fact(self):
+        return ''.join(['prcfg(',
+                        fact_str(self.reponame), ',',
+                        fact_str(self.branch),
+                        ')'])
+
+@attr.s(frozen=True)
+class PRData(object):
+    prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
+    prcfg = attr.ib() # list of PRCfg or BranchCfg
+
+    def as_fact(self):
+        return ''.join(['prdata(',
+                        self.prtype.as_fact(), ',',
+                        '[', ','.join([c.as_fact() for c in self.prcfg]), ']',
+                        ')'])
+
+
+@attr.s(frozen=True)
+class PRFailData(object):
+    prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
+    prcfg = attr.ib() # list of PRCfg or BranchCfg
+    goods = attr.ib() # list of BuildNames
+    fails = attr.ib() # list of BuildNames
+
+    def as_fact(self):
+        return ''.join(['prfaildata(',
+                        self.prtype.as_fact(), ',',
+                        '[', ','.join([c.as_fact() for c in self.prcfg]), '],',
+                        '[', ','.join([fact_str(bn) for bn in self.goods]), '],',
+                        '[', ','.join([fact_str(bn) for bn in self.fails]), ']',
+                        ')'])
 
 @attr.s(frozen=True)
 class ConfigError(object):
@@ -169,11 +215,6 @@ class CompletelyFailing(object):
 
 # ----------------------------------------------------------------------
 # Analysis
-
-@attr.s(frozen=True)
-class MergeablePR(object):
-    branch = attr.ib() # string: branch name
-    repo_and_pr_id = attr.ib() # array of tuples of repo_holding_pr and pr_id_in_that_repo
 
 @attr.s(frozen=True)
 class SepHandledVar(object):
@@ -237,13 +278,17 @@ logic_result_expr = {
     "bad_config": "bad_config",
     "pending": "pending",
     "var_failure": lambda *args: VarFailure(*args),
-    "pr_success": lambda *args: PR_Success(*args),
-    "pr_failure": lambda *args: PR_Failure(*args),
-    "pr_failing": lambda *args: PR_Failing(*args),  # KWQ: old
+    "pr_status": PR_Status,
+    "prcfg": PRCfg,
+    "branchcfg": BranchCfg,
+    "pr_status_pending": "pr_status_pending",
+    "pr_status_good": "pr_status_good",
+    "pr_status_fail": "pr_status_fail",
+    "prdata": PRData,
+    "prfaildata": PRFailData,
     "config_error": lambda *args: ConfigError(*args),
     "complete_failure": lambda *args: CompletelyFailing(*args),
 
-    "mergeable_pr": lambda *args: MergeablePR(*args),
     "var_handled_separately": lambda *args: SepHandledVar(*args),
 
     "notify": lambda *args: Notify(*args),

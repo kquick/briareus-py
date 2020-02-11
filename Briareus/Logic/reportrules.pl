@@ -146,25 +146,39 @@ report(var_failure(PName, N, V)) :-
 %% ------------------------------------------------------------
 %% PR assessments
 
-report(pr_success(Branch, RIS)) :-
-    pr_failures(Branch, RIS, Cfgs),
-    length(Cfgs, 0).
-
-report(pr_failure(Branch, RIS)) :-
-    pr_failures(Branch, RIS, Cfgs),
-    length(Cfgs, N), N > 0.
-
-report(pr_failing(PName, Branch, "strategy-TBD", Cfgs)) :-
-    project(PName, _),
-    branch_type(pullreq, Branch, _),
-    findall(X, (report(status_report(S,project(PName),_,pullreq,Branch,X,_)),
-                bad_status(S)),
-            Cfgs).
-
-pr_failures(Branch, RIS, Cfgs) :-
-    branch_type(pullreq, Branch, _),
-    findall(X, (project(PName, _),
-                report(status_report(S,project(PName),_,pullreq,Branch,X,_)),
-                bad_status(S)),
-            Cfgs),
-    findall((R,I), pullreq(R,I,Branch), RIS).
+report(pr_status(PRType, Branch, Project, PRCfg, GoodBlds, BadBlds, PendingBlds, NumNotStarted)) :-
+    % Return once for each PRType + ProjRepo, providing status of all Blds for that PRType + ProjRepo
+    pr_config(PRType, Project, PRCfg)
+    , branch_for_prtype(PRType, Branch)
+    , project(Project, _ProjRepo)
+    , findall(BldName
+              , (bldres(Project, pullreq, Branch, _, _, BldName, _, _, _, N, configValid, BldDesc)
+                 , cmpBldDesc(PRType, BldDesc, _)
+                 , N > 0
+              )
+              , PendingBlds)
+    , findall(BldDesc
+              , (build_config2(bldcfg(Project, pullreq, Branch, Strategy, BldDesc, _, Vars1))
+                 , findall(N2
+                           , (bldres(Project, pullreq, Branch, Strategy, Vars2, N2, _, _, _, _, _, BldDesc2)
+                              , cmpBldDesc(BldDesc, BldDesc2, _)
+                              , listcmp(Vars1, Vars2)),
+                           N2s)
+                 , length(N2s, 0)
+              )
+              , BDS)
+    , length(BDS, NumNotStarted)
+    , findall(BldName2
+              , ((bldres(Project, pullreq, Branch, _, _, BldName2, _, _, M, 0, configValid, BldDesc2)
+                  , cmpBldDesc(PRType, BldDesc2, _)
+                  , M > 0)
+                ; bldres(Project, pullreq, Branch, _, _, BldName2, _, _, _, _, configError, BldDesc3)
+                  , cmpBldDesc(PRType, BldDesc3, _)
+              )
+              , BadBlds)
+    , findall(BldName3
+              , (bldres(Project, pullreq, Branch, _, _, BldName3, Z, Z, 0, 0, configValid, BldDesc4)
+                 , cmpBldDesc(PRType, BldDesc4, _)
+                )
+              , GoodBlds)
+.
