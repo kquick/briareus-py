@@ -4,7 +4,7 @@ either as Github or Gitlab.
 There are various small differences between the API interactions of
 github and gitlab.
 
-Functionally, there is a big differences between a Github Pull Request
+Functionally, there are differences between a Github Pull Request
 and a Gitlab Merge Request.
 
  * For a Github Pull request, the PR is an element fetched from the
@@ -28,6 +28,9 @@ and a Gitlab Merge Request.
         "work_in_progress": false,
         ...
       }
+
+ * The Gitlab Merge Request may specify either a "source_project_id"
+   or a "source_url".
 
 '''
 

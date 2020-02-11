@@ -46,8 +46,6 @@ pr_type(pr_solo, Repo, PRNum) :-
     RLen < 2.
 
 pr_type(pr_repogroup, PRNum, RepoList) :-
-    % pullreq(_R, PRNum, Branch),
-    % is_main_branch(Repo, Branch),
     setof(R, (pullreq(R, PRNum, Branch), is_main_branch(R, Branch)), RepoList),
     length(RepoList, RLen),
     RLen > 1.

@@ -182,8 +182,6 @@ def html_summary(repdata, base_builder_url=None):
         elif isinstance(sr, StatusReport):
             summary.add(_inc, Element='Builds')
 
-            if sr.status == 'pending': continue  # old status, remove when no longer present
-
             projtable.add(_inc, Project=sr.project, Status=projtable_sts(sr.status))
             projtable.add(_inc, Project=sr.project, Status='TOTAL')
 

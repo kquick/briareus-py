@@ -145,6 +145,7 @@ class AnaRep(object):
         return [ BuildResult(build, result_set.builder.get_build_result(build))
                  for build in result_set.build_cfgs.cfg_build_configs ]
 
+
 def mk_prior_facts(prior_report):
     return set(
         [ DeclareFact('prior_status/8'),

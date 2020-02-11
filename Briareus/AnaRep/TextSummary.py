@@ -172,7 +172,6 @@ def text_summary(repdata):
                 Branch=tbl_brname,
                 Strategy=sr.bldcfg.strategy)
 
-
         elif isinstance(sr, StatusReport):
             summary.add(_inc, Element='Builds')
 
@@ -182,7 +181,6 @@ def text_summary(repdata):
             bldres = _add_if_int({ 'initial_success': '+',
                                    'succeeded': '+',
                                    'fixed': '+',
-                                   # 'pending': '?',
                                    'bad_config': '-CFG',
             }.get(sr.status, sr.status))
             vars = tuple([ (v.varname, v.varvalue) for v in sr.bldvars ])

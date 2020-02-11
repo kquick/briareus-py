@@ -205,11 +205,6 @@ class PRFailData(object):
                         ')'])
 
 @attr.s(frozen=True)
-class ConfigError(object):
-    project = attr.ib() # string name of project
-    buildname = attr.ib()  # string name of build on builder
-
-@attr.s(frozen=True)
 class CompletelyFailing(object):
     project = attr.ib() # string name of project
 
@@ -286,7 +281,6 @@ logic_result_expr = {
     "pr_status_fail": "pr_status_fail",
     "prdata": PRData,
     "prfaildata": PRFailData,
-    "config_error": lambda *args: ConfigError(*args),
     "complete_failure": lambda *args: CompletelyFailing(*args),
 
     "var_handled_separately": lambda *args: SepHandledVar(*args),

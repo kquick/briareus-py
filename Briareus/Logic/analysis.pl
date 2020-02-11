@@ -146,10 +146,9 @@ action_type(email, Email, Project, main_submodules_broken) :- project_owner(Proj
 % the notification processing does nothing.  When the Notification is
 % no longer generated, then the do is no longer expressed and both
 % previous and new versions are removed.
-do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.
-do_new(_, _, []).
+do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.  % acquire Previous
+do_new(_, _, []).  % Initially, start with no deliveries
 
-do_notnew([]).
 
 :- discontiguous email/3.
 :- discontiguous chat/3.
@@ -166,7 +165,6 @@ do(email(Users, notify(What, P, CS), Notified)) :-
 do(chat(Channels, notify(What, Item, Args), Posted)) :-
     action(notify(What, Item, Args)),
     setof(Channel, action_type(chat, Channel, What, Item), Channels),
-    %% do_notnew(Posted).
     do_new(chat, notify(What, Item, Args), Posted).
 
 
