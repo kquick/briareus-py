@@ -225,7 +225,8 @@ class KVITable(object):
                row_repeat=True,
                row_group=None,
                valstr=None,
-               entrystr=None):
+               entrystr=None,
+               **kw):
         """Return the rendering of the table in the specified format (default=ascii).
 
             * hide_blank_rows is True (default) to remove rows for which there is no value(s)
@@ -244,6 +245,7 @@ class KVITable(object):
               renderable string; the default is to simply convert the
               value to a string (if necessary).
 
+            * caption [HTML-format only] specifies the caption markup text.
         """
         kseq = list(self._kv.keys())
         return {
@@ -257,6 +259,7 @@ class KVITable(object):
                      row_group=row_group,
                      valstr=valstr,
                      entrystr=entrystr,
+                     **kw
         ).render()
 
 
@@ -462,16 +465,19 @@ class FmtLine(object):
 # ######################################################################
 
 class KVITable__Render_HTML(KVITable__Render_):
-    def __init__(self, *args, valstr=None, entrystr=None, **kw):
+    def __init__(self, *args, caption=None, valstr=None, entrystr=None, **kw):
         super(KVITable__Render_HTML, self).__init__(*args, **kw)
         self._valstr = (lambda v: RenderVal(valstr(v))) if valstr else RenderVal
         self._entrystr = (lambda p,e: RenderCell(p, entrystr(p,e))) if entrystr else RenderCell
+        self._caption = caption
 
     def render(self):
         kseq = list(self._table._kv.keys())
         fmt, hdr = self._html_renderhdrs(kseq)
         body = self._html_renderseq(fmt, kseq, self._table._entries)
-        return '\n'.join(['<table class="kvitable"><thead class="kvitable_head">',
+        return '\n'.join(['<table class="kvitable">',
+                          ('<caption>%s</caption>' % self._caption) if self._caption else '',
+                          '<thead class="kvitable_head">',
                          '\n'.join(hdr),
                          '</thead><tbody class="kvitable_body">',
                          '\n'.join(body),
