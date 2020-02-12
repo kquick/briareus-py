@@ -84,7 +84,7 @@ def tcell_entshow(base_builder_url):
     return _t_es
 
 def html_summary(repdata, base_builder_url=None):
-    section_hdrfun = lambda msg: '<br/><hline class="section_line"/><br/><h2>' + msg + '</h2><br/>'
+    section_hdrfun = lambda msg: '<br/><hr class="section_line"/><br/><h2>' + msg + '</h2><br/>'
     subsection_hdrfun = lambda msg: '<br/><h3>' + msg + '</h3>'
     entshow_fun = tcell_entshow(base_builder_url)
 
