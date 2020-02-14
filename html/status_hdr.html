@@ -2,36 +2,130 @@
 <html>
   <head>
     <style>
-      .kvitable, .kvitable_th, .kvitable_td, .kvitable_tr {
-          border-collapse: collapse;
+      :root {
+        --padding: 0.5rem;
       }
-      .kvitable_th, .kvitable_td {
-          padding: 8px;
+
+      hr {
+        border: 0;
+        height: 1px;
+        background-image: linear-gradient(
+          to right,
+          rgba(20, 44, 59, 0.25),
+          rgba(20, 44, 59, 0.75),
+          rgba(20, 44, 59, 0.25)
+        );
       }
-      .kvitable_th {
-          text-align: left;
-          background-color: lightgray;
-          border-right: 1px solid black;
+
+      html {
+        font-family: sans-serif;
+        box-sizing: border-box;
+        color: rgb(20, 44, 59);
       }
-      .rightlabel {
-          background-color: #eeeeee;
+
+      table {
+        table-layout: fixed;
       }
-      .kvitable_td {
-          text-align: right;
-          border-right: 1px dashed gray;
+
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
       }
-      .last_in_group, thead {
-          border-bottom: 1px solid black;
+
+      thead th {
+        font-weight: 900;
+        text-transform: uppercase;
+        padding: calc(var(--padding) * 2);
       }
-      thead > :last-child th
-      {
-          position: sticky;
-          top: 30px;
+
+      th,
+      td {
+        padding: var(--padding);
       }
-      thead > :first-child th
-      {
-          position: sticky;
-          top: 0px;
+
+      .rightlabel,
+      tbody tr:nth-child(odd) {
+        background-color: rgb(246, 252, 255);
+      }
+
+      th {
+        box-shadow: 0 4px 2px -2px rgba(40, 19, 188, 0.6);
+      }
+
+      th.multicol {
+        text-align: center;
+      }
+
+      .bldsts {
+        display: flex;
+        text-transform: uppercase;
+        align-content: center;
+        justify-content: center;
+        padding: calc(var(--padding) * 2);
+        margin: calc(var(--padding) * -1);
+        font-weight: 900;
+      }
+
+      .bldsts.good {
+        color: rgb(230, 239, 248);
+        background-color: rgb(82, 145, 82);
+      }
+
+      .bldsts.pending {
+        color: rgb(54, 119, 188);
+        background-color: rgb(230, 239, 248);
+      }
+
+      .bldsts.fail {
+        color: rgb(230, 239, 248);
+        background-color: rgb(153, 64, 64);
+      }
+
+      th {
+        text-align: left;
+        background-color: rgb(230, 239, 248);
+      }
+
+      thead > :last-child th,
+      thead > :first-child th {
+        position: sticky;
+        box-shadow: 0 4px 2px -2px rgba(54, 119, 188, 0.4);
+      }
+
+      thead > :last-child th {
+        top: 52px;
+      }
+
+      thead > :first-child th {
+        top: 0;
+      }
+
+      caption,
+      #gendate,
+      .bldsts.pending:after {
+        font-size: 85%;
+        font-weight: 100;
+        align-self: center;
+        margin-left: 0.25em;
+        font-style: italic;
+      }
+
+      caption {
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      #gendate {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 20ch;
+        border: 3px solid rgb(240, 180, 0);
+        background-color: rgba(54, 119, 188, 0.4);
+        padding: calc(var(--padding) / 2) var(--padding);
       }
     </style>
   </head>
