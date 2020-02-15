@@ -111,7 +111,7 @@ action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) 
 action(notify(main_submodules_broken, Project, Configs)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
-    , useable_submodules(R, MainBr)
+    , useable_submodules(Project, R, MainBr)
     , \+ report(complete_failure(Project))
     , no_pending_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
@@ -128,7 +128,7 @@ action(notify(main_submodules_broken, Project, Configs)) :-
 action(notify(main_submodules_good, Project, MainBr)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
-    , useable_submodules(R, MainBr)
+    , useable_submodules(Project, R, MainBr)
     , \+ report(complete_failure(Project))
     , no_pending_branch(Project, MainBr)
     , no_failing_non_varfailure_branch(Project, MainBr)
@@ -141,7 +141,7 @@ action(notify(main_good, Project, MainBr)) :-
     , is_main_branch(R, MainBr)
     , \+ report(complete_failure(Project))
     % No submodules builds; if there were, this would be a main_submodules_good
-    , \+ has_gitmodules(R, MainBr)
+    , \+ useable_submodules(Project, R, MainBr)
     , no_pending_branch(Project, MainBr)
     , no_failing_non_varfailure_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
@@ -152,7 +152,7 @@ action(notify(main_broken, Project, CS)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
     , \+ report(complete_failure(Project))
-    , \+ has_gitmodules(R, MainBr)
+    , \+ useable_submodules(Project, R, MainBr)
     , no_pending_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
     , findall(C

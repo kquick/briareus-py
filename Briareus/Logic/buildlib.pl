@@ -43,12 +43,12 @@ branch_type(regular, B, project_primary) :-
 strategy_plan(submodules, PName, B) :-
     project(PName, R)
     , (branch_type(pullreq, B, _I) ; branchreq(PName, B); is_main_branch(R, B))
-    , useable_submodules(R, B)
+    , useable_submodules(PName, R, B)
 .
 strategy_plan(heads, PName, B) :-
     project(PName, R)
     , (branchreq(PName, B); is_main_branch(R, B))
-    , useable_submodules(R, B)
+    , useable_submodules(PName, R, B)
 .
 strategy_plan(heads, PName, B) :-
     project(PName, R)
@@ -64,11 +64,11 @@ strategy_plan(standard, PName, B) :-
     , \+ strategy_plan(heads, PName, B)
 .
 
-useable_submodules(R, B) :-
-    (branch(R, B), has_gitmodules(R, B));
-    (is_main_branch(R, MB), has_gitmodules(R, MB), \+ branch(R, B)).
+useable_submodules(PName, R, B) :-
+    (branch(R, B), has_gitmodules(PName, R, B));
+    (is_main_branch(R, MB), has_gitmodules(PName, R, MB), \+ branch(R, B)).
 
-has_gitmodules(R, B) :-
+has_gitmodules(PName, R, B) :-
     project(PName, R)
     , is_project_repo(R)
     , bagof(S, V^P^((proj_repo_branch(PName, B) ; pullreq(R,_,B,_,_))
