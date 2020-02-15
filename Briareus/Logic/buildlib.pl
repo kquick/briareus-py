@@ -1,8 +1,8 @@
 %% This provides a library of various logic predicates that can be
 %% used in the generation and analysis of build configurations.
 
-%% Test if an argument is a Project Repo
-is_project_repo(R) :- project(_, R).
+%% Test if an argument is a Project Repo.  A single match is sufficient.
+is_project_repo(R) :- project(_, R), !.
 
 is_main_branch(Repo, Branch) :-
     branch(Repo, Branch),
