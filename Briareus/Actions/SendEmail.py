@@ -43,8 +43,8 @@ def send_email(recipients, subject, message):
         print('Warning: email to %s suppressed: %s' % (recipients, subject), file=sys.stderr)
         return recipients
     if can_email != "1":
-        send_to = can_email.split(',')
         message = "::: Originally to: " + str(send_to) + "\n\n" + message
+        send_to = can_email.split(',')
     message = '\n'.join([ 'From: ' + platform.node() + ' Briareus <noreply@noreply.noreply>',
                           'To: ' + ', '.join(send_to),
                           'Subject: ' + subject,
