@@ -22,7 +22,7 @@ class GitExample2(ActorTypeDispatcher):
             'Repo2': [ 'develop', 'humdrum' ],
             'Repo3': [ 'develop' ],
             'Repo4': [ ],
-        }[msg.reponame] + ['master']
+        }.get(msg.reponame, []) + ['master']
         # All repos have a master branch
         chk = branch in repo_branches
         ### EXAMPLE-^^^
