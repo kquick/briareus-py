@@ -235,6 +235,7 @@ def prior_fact_SendEmail(prior):
         'main_submodules_good': asStr,
         'main_broken': asStrList,
         'main_good': asStr,
+        'completely_broken': lambda: '%d' % prior.notification.params,
     }.get(prior.notification.what,
           lambda: (prior.notification.params.as_fact()
                    if hasattr(prior.notification.params, "as_fact")
