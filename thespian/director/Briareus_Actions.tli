@@ -1,0 +1,12 @@
+{ 'Actors':
+  { 'Briareus.Actions.Actors.EmailSender.EmailSender':
+    { 'OnLoad': { 'GlobalName': 'EmailSender'
+                , 'Message': 'Start'
+                , 'Role': 'Action:EmailSender'
+                },
+      'OnDeactivate': { 'Message': 'Deactivate' },
+    },
+  },
+  'AutoUnload': True,
+  'TLS_Keep_Limit': 3,
+}
