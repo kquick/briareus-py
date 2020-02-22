@@ -286,7 +286,7 @@ def run_hh(params, inpcfg=None, inputArg=None):
         verbosely(params, 'multiple input configs from:', inputArg)
     else:
         verbosely(params, 'input from:', inpcfg.hhd)
-    if params.report_file and (not params.up_to or params.up_to.enough('report')):
+    if params.report_file and (not params.up_to or params.up_to.enough('built_facts')):
         verbosely(params, 'Reporting to', params.report_file)
         prior_rep_fd, prior_report = get_prior_report(params.report_file)
         # n.b. the rep_fd references the locked file descriptor; keep
