@@ -67,14 +67,18 @@ class HydraBuilder(BuilderBase.Builder):
                      if self._conf_file else {})
         project_name = input_cfg.get('project_name', 'unnamed')
 
-        vcs_inputs = VCSInputs(project_name, False)
+        gen_files_path = os.path.abspath(
+            os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) if bldcfg_fname else None
+
+        vcs_inputs = VCSInputs(project_name, True if bldcfg_fname else False)
         for each in bldcfgs.cfg_build_configs:
             vcs_inputs.get_bldcfg_vcs_inputs(input_desc, bldcfgs, each)
 
         jobsets = { buildcfg_name(each) :
                            self._jobset(input_desc, bldcfgs, input_cfg, vcs_inputs, each)
                            for each in bldcfgs.cfg_build_configs }
-        jobsets.update(vcs_inputs.vcs_input_jobsets())
+        vcs_jobsets, vcs_files = vcs_inputs.vcs_input_jobsets(gen_files_path)
+        jobsets.update(vcs_jobsets)
 
         # Sort by key for output stability
         out_bldcfg_json = json.dumps(jobsets, sort_keys=True)
@@ -82,58 +86,54 @@ class HydraBuilder(BuilderBase.Builder):
         if not bldcfg_fname:
             return {None: out_bldcfg_json }
 
-        copy_hh_src_path = os.path.abspath(
-            os.path.join(os.path.dirname(bldcfg_fname), 'hydra'))
-
         if verbose:
             print('## Generating', len(jobsets), 'Hydra jobsets,',
-                  'input compression', vcs_inputs.verbose())
+                  'input compression', vcs_inputs.verbose_info())
 
-        return {
-            None: out_bldcfg_json,
-            (project_name + '-hydra-project-config.json') :
-            json.dumps(
-                { 'checkinterval': 300,
-                  'keepnr': 3,
-                  'schedulingshares': 1,
-                  'emailoverride': '',
-                  'description': "Briareus-generated %s Project declaration" % project_name,
-                  'nixexprinput': "copy_hh_src",
-                  'nixexprpath': "copy_hh.nix",
-                  'enabled': 1,
-                  'hidden': False,
-                  'enableemail': True,
-                  'inputs': {
-                      'hh_output': {
-                          'type': "path",
-                          'value': os.path.abspath(bldcfg_fname),
-                          'emailresponsible': False,
-                          },
-                      'copy_hh_src': {
-                          'type': 'path',
-                          'value': copy_hh_src_path,
-                          'emailresponsible': False,
-                      },
-                      'nixpkgs': {
-                          'type': "git",
-                          'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
-                          'emailresponsible': False,
-                      },
-                  },
-                }),
-            os.path.join(copy_hh_src_path, 'copy_hh.nix') :
-            '\n'.join([
-                '{ nixpkgs, hh_output }:',
-                'let pkgs = import <nixpkgs> {}; in',
-                '{ jobsets = pkgs.stdenv.mkDerivation {',
-                '    name = "copy_hh";',
-                '    phases = [ "installPhase" ];',
-                '    installPhase = "cp ${hh_output} $out";',
-                '  };',
-                '}',
-                '',
-                ]),
-        }
+        return dict([
+            (None, out_bldcfg_json),
+            ((project_name + '-hydra-project-config.json'),
+             json.dumps(
+                 { 'checkinterval': 300,
+                   'keepnr': 3,
+                   'schedulingshares': 1,
+                   'emailoverride': '',
+                   'description': "Briareus-generated %s Project declaration" % project_name,
+                   'nixexprinput': "copy_hh_src",
+                   'nixexprpath': "copy_hh.nix",
+                   'enabled': 1,
+                   'hidden': False,
+                   'enableemail': True,
+                   'inputs': {
+                       'hh_output': {
+                           'type': "path",
+                           'value': os.path.abspath(bldcfg_fname),
+                           'emailresponsible': False,
+                       },
+                       'copy_hh_src': {
+                           'type': 'path',
+                           'value': gen_files_path,
+                           'emailresponsible': False,
+                       },
+                       'nixpkgs': {
+                           'type': "git",
+                           'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
+                           'emailresponsible': False,
+                       },
+                   },
+                 })),
+            (os.path.join(gen_files_path, 'copy_hh.nix'),
+             '\n'.join([
+                 '{ nixpkgs, hh_output }:',
+                 '{ jobsets = (import <nixpkgs> {}).stdenv.mkDerivation {',
+                 '    name = "copy_hh";',
+                 '    phases = [ "installPhase" ];',
+                 '    installPhase = "cp ${hh_output} $out";',
+                 '  };',
+                 '}',
+                 '',
+             ])),
+        ] + vcs_files)
 
     def _jobset(self, input_desc, bldcfgs, input_cfg, vcs_inputs, bldcfg):
         jobset_inputs = self._jobset_inputs(input_desc, bldcfgs, vcs_inputs, bldcfg)
@@ -300,7 +300,7 @@ class VCSInputs(object):
         # determination of the key name for the source VCS reference
         # in that repo, so the pr_ident will be unique in this
         # context and is therefore safe to use to uniquely specify this key.
-        return (brr.reponame, 'PR:%s' % mbpr.pr_ident if mbpr else brr.repover)
+        return (brr.reponame, 'PR%s' % mbpr.pr_ident if mbpr else brr.repover)
 
     def get_bldcfg_vcs_inputs(self, input_desc, bldcfgs, bldcfg):
         repo_url_maybe_pullreq = lambda brr, mbpr: \
@@ -312,7 +312,7 @@ class VCSInputs(object):
                                    pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr))
         for each in bldcfg.blds:
             key = self.key_for(bldcfgs, bldcfg, each)
-            self._inputs[key] = repo_url(each)
+            self._inputs[key] = (repo_url(each), each.repover)
             self._inputcount[key] += 1
 
     def get_vcs_inputs(self, bldcfgs, bldcfg, blds):
@@ -326,31 +326,101 @@ class VCSInputs(object):
                   {
                       "emailresponsible": False,
                       "type": "git",
-                      "value": ' '.join([self._inputs[self.key_for(bldcfgs, bldcfg, each)],
-                                         each.repover])
+                      "value": ' '.join(list(self._inputs[self.key_for(bldcfgs, bldcfg, each)])),
                   })
                  for each in blds ]
 
     def _collated_vcs_inputs(self, bldcfgs, bldcfg, blds):
-        raise NotImplementedError("TBD")
+        return [ (each.reponame + "-src",
+                  {
+                      "emailresponsible": False,
+                      "type": "build",
+                      "value": ':'.join(
+                          [self._project_name,
+                           'VCSinputs',
+                           self._collated_input_name(self.key_for(bldcfgs, bldcfg, each))]),
+                  })
+                 for each in blds ]
 
-    def vcs_input_jobsets(self):
+    def vcs_input_jobsets(self, gen_files_path):
         if self._collated:
-            return self._collated_vcs_input_jobsets()
-        return self._distinct_vcs_input_jobsets()
+            return self._collated_vcs_input_jobsets(gen_files_path)
+        return self._distinct_vcs_input_jobsets(gen_files_path)
 
-    def _distinct_vcs_input_jobsets(self):
+    def _distinct_vcs_input_jobsets(self, gen_files_path):
         "Old style where inputs are in the main jobsets"
-        return dict()
+        return dict(), []
 
-    def _collated_vcs_input_jobsets(self):
-        return dict([ ("-".join([repo, ver, "src"]),
-                       {
-                           "emailresponsible": False,
-                           "type": "git",
-                           "value": ' '.join([self._inputs[(repo,ver)], ver])
-                       })
-                      for repo, ver in self._inputs ])
+    @staticmethod
+    def _collated_input_name(key_for):
+        return '-'.join(list(key_for))
 
-    def verbose(self):
+    def _collated_vcs_input_jobsets(self, gen_files_path):
+        name = 'VCSinputs'
+        fname = self._project_name + '-' + name + '.nix'
+        inputs = [
+            ('realize_inputs',
+             {
+                 'type': 'path',
+                 'value': gen_files_path,
+                 'emailresponsible': False,
+             }),
+            ('nixpkgs',
+             {
+                 'type': "git",
+                 'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
+                 'emailresponsible': False,
+             }),
+        ] + [ (self._collated_input_name(eachkey) + "-src",
+                {
+                    "emailresponsible": False,
+                    "type": "git",
+                    "value": ' '.join(list(self._inputs[eachkey])),
+                })
+               for eachkey in self._inputs ]
+
+        return dict([
+            (name,
+             { 'checkinterval': 600,  # 10 minutes
+                  'keepnr': 1,
+                  'schedulingshares': 1,
+                  'emailoverride': '',
+                  'description': "Briareus-generated %s Project VCS inputs" % self._project_name,
+                  'nixexprinput': "realize_inputs",
+                  'nixexprpath': fname,
+                  'enabled': 1,
+                  'hidden': False,
+                  'enableemail': False,
+                  'inputs': dict(inputs),
+                },
+             )
+        ]), [
+            (os.path.join(gen_files_path, fname),
+             '\n'.join([
+                 '{ nixpkgs,'
+             ] + [
+                 self._collated_input_name(eachkey) + "-src," for eachkey in self._inputs
+             ] + [
+                 'last ? null',
+                 '}:',
+                 'let gen = name: inp:',
+                 '  nixpkgs.stdenv.mkDerivation {',
+                 '    name = name;',
+                 '    phases = [ "installPhase" ];',
+                 '    installPhase = "cp -r ${inp} $out";',
+                 '  };',
+                 'in',
+                 '{',
+             ] + [
+                 '%s = gen "%s" %s;' % (self._collated_input_name(eachkey),
+                                        self._collated_input_name(eachkey),
+                                        self._collated_input_name(eachkey) + "-src")
+                 for eachkey in self._inputs
+             ] + [
+                 '}',
+                 '',
+             ])),
+        ]
+
+    def verbose_info(self):
         return str(dict(self._inputcount))
