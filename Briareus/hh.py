@@ -161,6 +161,9 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
         # If r is None, then an --up-to probably halted production
         return None
 
+    if params.up_to and not params.up_to.enough('write_bldcfgs'):
+        return r
+
     for fname in r[1]:
         if fname:
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
@@ -317,6 +320,7 @@ class UpTo(object):
 
     # In order:
     valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
+                    "write_bldcfgs",
                     "build_results", "built_facts", "raw_built_analysis",
                     "actions", "report" ]
 
