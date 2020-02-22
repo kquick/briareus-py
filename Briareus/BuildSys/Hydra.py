@@ -403,7 +403,7 @@ class VCSInputs(object):
                  'last ? null',
                  '}:',
                  'let gen = name: inp:',
-                 '  nixpkgs.stdenv.mkDerivation {',
+                 '  (import nixpkgs {}).stdenv.mkDerivation {',
                  '    name = name;',
                  '    phases = [ "installPhase" ];',
                  '    installPhase = "cp -r ${inp} $out";',
