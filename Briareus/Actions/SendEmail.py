@@ -13,11 +13,15 @@ recipients); this is intended for testing mode.
 """
 
 import os
-import platform
-import smtplib
 import sys
+from datetime import timedelta
+from thespian.actors import *
 from Briareus.Actions.Content import gen_content
+from Briareus.Actions.Actors.Msgs import *
 from Briareus.Types import SendEmail
+
+SEND_EMAIL_TIMEOUT = timedelta(seconds=20)
+
 
 def do_send_email_action(email_action, full_report, inpcfg):
     "Sends email, where email_action is Briareus.Types.SendEmail"
@@ -36,24 +40,22 @@ def do_send_email_action(email_action, full_report, inpcfg):
                                  sent_to = list(set(email_action.sent_to).union(sent_to)))
     return email_action
 
-def send_email(recipients, subject, message):
-    send_to = recipients
-    can_email = os.getenv('BRIAREUS_SMTP', None)
-    if not can_email:
-        print('Warning: email to %s suppressed: %s' % (recipients, subject), file=sys.stderr)
-        return recipients
-    if can_email != "1":
-        message = "::: Originally to: " + str(send_to) + "\n\n" + message
-        send_to = can_email.split(',')
-    message = '\n'.join([ 'From: ' + platform.node() + ' Briareus <noreply@noreply.noreply>',
-                          'To: ' + ', '.join(send_to),
-                          'Subject: ' + subject,
-    ]) + "\n\n" + message
+
+def send_email(recipients, subject, message, actor_system=None):
+    asys = actor_system or ActorSystem('multiprocTCPBase')
     try:
-        smtp = smtplib.SMTP(os.getenv('BRIAREUS_SMTP_SERVER', 'localhost'),
-                            port=int(os.getenv('BRIAREUS_SMTP_PORT', '0')))
-        smtp.sendmail('briareus', send_to, message)
-        return recipients
-    except Exception as ex:
-        print('Error sending email to %s: %s' % (str(send_to), str(ex)), file=sys.stderr)
-        return []
+        # Use a global name for this actor to re-connect to the existing "daemon"
+        rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.EmailSender.EmailSender',
+                                        globalName='Action:EmailSender'),
+                       toJSON(EmailEnvelope(recipients, subject, message)),
+                       SEND_EMAIL_TIMEOUT)
+        if rsp == None:
+            raise RuntimeError('Timeout waiting for EmailSender response')
+        rspobj = fromJSON(rsp)
+        if isinstance(rspobj, SendReceipt):
+            return rspobj.recipients
+        raise RuntimeError('Unexpected response to EmailSender request: %s' % str(rsp))
+    finally:
+        if actor_system is None:
+            #asys.shutdown()  # actor_system is not passed, so this would always get invoked
+            pass

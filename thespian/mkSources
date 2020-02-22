@@ -4,6 +4,7 @@
 
 cd director
 export THESPIAN_DIRECTOR_DIR=$(pwd)
+
 python -m thespian.director gensrc \
     Briareus_VCS $(pwd)/../briareus_key.pem ../.. \
     version:date deps:$(pwd)/../deps \
@@ -19,3 +20,9 @@ python -m thespian.director gensrc \
 # of the environment used to run the thespian.director start.
 
 # Should be able to remove Input portions if Description is available in VCS portion...
+
+python -m thespian.director gensrc \
+    Briareus_Actions $(pwd)/../briareus_key.pem ../.. \
+    version:date deps:$(pwd)/../deps \
+    tli:$(pwd)/../Briareus_Actions.tli \
+    '../../Briareus/Actions/Actors/*.py'
