@@ -220,6 +220,9 @@ def prior_fact_VarFailure(prior):
     return None
 
 def prior_fact_SendEmail(prior):
+    # Code to read text from the previous report and convert it to
+    # Fact specification of prior data for the analysis logic
+    # processing.
     targets = [ '"%s"' % A for A in prior.recipients ]
     sent = [ '"%s"' % A for A in prior.sent_to ]
     # n.b. asStrList and params_logic is a lambda to avoid the computation cost of *all* elements
