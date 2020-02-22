@@ -186,6 +186,7 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
     else:
         if data.file_data:
             try:
+                os.makedirs(os.path.dirname(fname), exist_ok=True)
                 atomic_write_to(fname, lambda f: f.write(data.file_data))
             except Exception as ex:
                 print('Warning: failed writing to %s: %s  [contents: %s]'
