@@ -110,6 +110,9 @@ prior = [
                  ],
                  blddesc=BranchReq('Project #1', 'master'),
     ),
+    SendEmail(recipients=['eddy@nocompany.com'],
+              notification=Notify(what='main_submodules_good', subject='Project #1', params='master'),
+              sent_to=['eddy@nocompany.com']),
 ]
 
 analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s

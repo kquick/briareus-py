@@ -181,7 +181,7 @@ def prior_fact(prior):
              'SepHandledVar': prior_ignored,
              'MergeablePR': prior_ignored,
              'Notify': prior_ignored,
-             'SendEmail': prior_fact_SendEmail, # ignored as a prior
+             'SendEmail': prior_fact_SendEmail,
              'PostChatMessage': prior_ignored,
              'PendingStatus' : prior_ignored,
              'NewPending' : prior_ignored,
@@ -224,14 +224,15 @@ def prior_fact_SendEmail(prior):
     sent = [ '"%s"' % A for A in prior.sent_to ]
     # n.b. asStrList and params_logic is a lambda to avoid the computation cost of *all* elements
     asStrList = lambda: '[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']'
+    asStr = lambda: '"%s"' % prior.notification.params
     params_logic = {
         'variable_failing': lambda: ('varvalue('
                                      '      "{prior.notification.params.project}"'
                                      '    , "{prior.notification.params.varname}"'
                                      '    , "{prior.notification.params.varvalue}"'
                                      '  )'),
-        'main_submodules_broken': asStrList, # KWQ: tests for these!
-        'main_submodules_good': asStrList,
+        'main_submodules_broken': asStr,
+        'main_submodules_good': asStr,
         'main_broken': asStrList,
         'main_good': asStrList,
     }.get(prior.notification.what,

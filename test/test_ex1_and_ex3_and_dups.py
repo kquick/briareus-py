@@ -448,11 +448,16 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
                      notification=Notify(what='main_submodules_good', subject='Project #1',
                                          params='master'),
                      sent_to=filter(lambda r: 'betty' not in r, recipients_with_owner)) in rep
-    send_email.assert_has_calls([call(recipients, ANY, ANY),
-                                 call(list(filter(lambda r: 'betty' not in r, recipients_with_owner)),
+    print(send_email.call_args_list)
+    send_email.assert_has_calls([call(recipients, ANY, ANY),  # <- varfailure clang in Project #1
+                                 call(["fred@nocompany.com"], ANY, ANY), # <- varfailure ghc881 in Repo1
+                                 # vv main_submodules success in Project #1
+                                 call(list(filter(lambda r: 'betty' not in r
+                                                  and 'eddy' not in r
+                                                  , recipients_with_owner)),
                                       ANY, ANY),
+                                 # vv main success in Repo1
                                  call(["fred@nocompany.com", "george@_company.com"], ANY, ANY),
-                                 call(["fred@nocompany.com"], ANY, ANY),
     ],
                                 any_order=True)
     assert send_email.call_count == 4
