@@ -46,7 +46,7 @@ def send_email(recipients, subject, message, actor_system=None):
     try:
         # Use a global name for this actor to re-connect to the existing "daemon"
         rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.EmailSender.EmailSender',
-                                        globalName='Action:EmailSender'),
+                                        globalName='EmailSender'),
                        toJSON(EmailEnvelope(recipients, subject, message)),
                        SEND_EMAIL_TIMEOUT)
         if rsp == None:
