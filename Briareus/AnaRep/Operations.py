@@ -231,10 +231,10 @@ def prior_fact_SendEmail(prior):
                                      '    , "{prior.notification.params.varname}"'
                                      '    , "{prior.notification.params.varvalue}"'
                                      '  )'),
-        'main_submodules_broken': asStr,
+        'main_submodules_broken': asStrList,
         'main_submodules_good': asStr,
         'main_broken': asStrList,
-        'main_good': asStrList,
+        'main_good': asStr,
     }.get(prior.notification.what,
           lambda: (prior.notification.params.as_fact()
                    if hasattr(prior.notification.params, "as_fact")
