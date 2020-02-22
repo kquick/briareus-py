@@ -29,7 +29,8 @@ class HydraBuilder(BuilderBase.Builder):
 
     builder_type = 'hydra'
 
-    def output_build_configurations(self, input_desc, bldcfgs, bldcfg_fname=None):
+    def output_build_configurations(self, input_desc, bldcfgs, bldcfg_fname=None,
+                                    verbose=False):
         """Given an input description and the set of build configurations
            generated from the BCGen logic, return the Hydra-specific
            configuration of those build configurations, along with any
