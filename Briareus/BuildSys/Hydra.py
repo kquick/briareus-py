@@ -66,54 +66,177 @@ class HydraBuilder(BuilderBase.Builder):
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
         project_name = input_cfg.get('project_name', 'unnamed')
-
         gen_files_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) if bldcfg_fname else None
+        collated_inputs = True if bldcfg_fname else False
+        vcs_inputs = VCSInputs(project_name, collated_inputs)
 
-        vcs_inputs = VCSInputs(project_name, True if bldcfg_fname else False)
         for each in bldcfgs.cfg_build_configs:
             vcs_inputs.get_bldcfg_vcs_inputs(input_desc, bldcfgs, each)
 
         jobsets = { buildcfg_name(each) :
                            self._jobset(input_desc, bldcfgs, input_cfg, vcs_inputs, each)
                            for each in bldcfgs.cfg_build_configs }
-        vcs_jobsets, vcs_files = vcs_inputs.vcs_input_jobsets(gen_files_path)
-        jobsets.update(vcs_jobsets)
-
-        # Sort by key for output stability
-        out_bldcfg_json = json.dumps({ n: jobsets[n].spec() for n in jobsets }, sort_keys=True)
 
         if not bldcfg_fname:
-            return {None: out_bldcfg_json }
+            # Sort by key for output stability
+            return {None: json.dumps({ n: jobsets[n].spec() for n in jobsets }, sort_keys=True) }
 
-        projectdef_jobset = Jobset("Briareus-generated %s Project declaration" % project_name,
-                                   "copy_hh.nix",
-                                   "copy_hh_src") \
-                                   .add_input('hh_output', os.path.abspath(bldcfg_fname), 'path') \
-                                   .add_input('copy_hh_src', gen_files_path, 'path') \
+        proj_cfgfname = project_name + '-hydra-project-config.json'
+        mkpath = lambda fname: os.path.abspath(os.path.join(gen_files_path, fname))
+
+        if collated_inputs:
+            projcfg_job = project_name + '-cfg'
+            projcfgs = [ (projcfg_job, os.path.abspath(bldcfg_fname), 'path') ]
+
+            if 'jobset' in input_cfg:
+                for each in input_cfg['jobset'].get('inputs', dict()):
+                    inpty = input_cfg['jobset']['inputs'][each]['type']
+                    if inpty in [ 'git' ]:
+                        projcfgs.append( (each,
+                                          input_cfg['jobset']['inputs'][each]['value'],
+                                          inpty) )
+                        for js in jobsets:
+                            jobsets[js].add_input(each,
+                                                  ':'.join([project_name + '-inputs',
+                                                            vcs_inputs.jobset_name,
+                                                            each]),
+                                                  'build')
+                    else:
+                        for js in jobsets:
+                            jobsets[js].add_input(each,
+                                                  input_cfg['jobset']['inputs'][each]['value'],
+                                                  inpty)
+
+            update_inputs_jobset, vcs_files = vcs_inputs.vcs_input_jobsets(gen_files_path, projcfgs)
+            inps_cfgfname = project_name + '-hydra-inputs-config.json'
+            inpcfg_fname = "gen_inpupd.nix"
+            inpcfg_body = '\n'.join([
+                '{ nixpkgs, inpupd_jobset_def }:',
+                '{ jobsets =',
+                '    (import nixpkgs {}).stdenv.mkDerivation {',
+                '      name = "gen_inpupd";',
+                '      phases = [ "installPhase" ];',
+                '      installPhase = "cp ${inpupd_jobset_def} $out";',
+                '    };',
+                '}', ''
+            ])
+            inpupd_jobset_fname = project_name + "_inpupd_jobsets.json"
+            inpupd_jobset_body = json.dumps(update_inputs_jobset)
+            inp_cfgjobset = Jobset('Briareus-generated %s Project inputs declaration' % project_name,
+                                   inpcfg_fname,
+                                   "inpupd_cfg") \
+                                   .add_input("inpupd_cfg", gen_files_path, 'path') \
+                                   .add_input("inpupd_jobset_def", mkpath(inpupd_jobset_fname), 'path') \
                                    .add_input('nixpkgs',
                                               "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+
+            projcfg_fname = "gen_proj_jobsets.nix"
+            projcfg_body = '\n'.join([
+                '{ nixpkgs, projcfg }:',
+                '{ jobsets =',
+                '    (import nixpkgs {}).stdenv.mkDerivation {',
+                '      name = "gen_proj_jobsets";',
+                '      phases = [ "installPhase" ];',
+                '      installPhase = "cp ${projcfg} $out";',
+                '    };',
+                '}', ''
+            ])
+            proj_cfgjobset = Jobset("Briareus-generated %s Project declaration" % project_name,
+                                    projcfg_fname,
+                                    "mkjobsets") \
+                                    .add_input("mkjobsets", gen_files_path, 'path') \
+                                    .add_input("projcfg",
+                                               ':'.join([project_name + "-inputs",
+                                                         list(update_inputs_jobset.keys())[0],
+                                                         projcfg_job]),
+                                               # matterhorn-hydra-inputs-config.json:input_updates:matterhorn-cfg BAD
+                                               # matterhorn-inputs:update_inputs:matterhorn-cfg WANTED
+                                               "build") \
+                                    .add_input('nixpkgs',
+                                               "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+
+            otherfiles = [
+                ( proj_cfgfname, json.dumps(proj_cfgjobset.spec()) ),
+                ( inps_cfgfname, json.dumps(inp_cfgjobset.spec()) ),
+                ( mkpath(inpcfg_fname), inpcfg_body ),
+                ( mkpath(inpupd_jobset_fname), inpupd_jobset_body ),
+                ( mkpath(projcfg_fname), projcfg_body ),
+                ( project_name + ".txt",
+                  '\n'.join([
+                      'Instructions for configuring Hydra for the %s project:' % project_name,
+                      '',
+                      '  1. Create a new project on the Hydra system',
+                      '     a. Identifer = %s-inputs' % project_name,
+                      '     b. Declarative spec file = %s' % inps_cfgfname,
+                      '     c. Declarative input',
+                      '         type: Local path or URL',
+                      '         value: %s' % os.path.abspath(os.path.dirname(bldcfg_fname)),
+                      '',
+                      '  2. Create a new project on the Hydra system',
+                      '     a. Identifer = %s' % project_name,
+                      '     b. Declarative spec file = %s' % proj_cfgfname,
+                      '     c. Declarative input',
+                      '         type: Local path or URL',
+                      '         value: %s' % os.path.abspath(os.path.dirname(bldcfg_fname)),
+                      '',
+                  ]) ),
+            ] + vcs_files
+        else:
+                                     # Not collated mode
+            inpcfg_fname = "copy_hh.nix"
+            projectdef_jobset = Jobset("Briareus-generated %s Project declaration" % project_name,
+                                       inpcfg_fname,
+                                       "copy_hh_src") \
+                                       .add_input('hh_output', mkpath(bldcfg_fname), 'path') \
+                                       .add_input('copy_hh_src', gen_files_path, 'path') \
+                                       .add_input('nixpkgs',
+                                                  "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+
+            if 'jobset' in input_cfg:
+                for each in input_cfg['jobset'].get('inputs', dict()):
+                    for js in jobsets:
+                        js.add_input(each,
+                                     input_cfg['jobset']['inputs'][each]['value'],
+                                     input_cfg['jobset']['inputs'][each]['type'])
+
+            vcs_jobsets, vcs_files = vcs_inputs.vcs_input_jobsets(gen_files_path)
+            jobsets.update(vcs_jobsets)
+
+            otherfiles = [
+                ( proj_cfgfname, json.dumps(projectdef_jobset.spec()) ),
+                ( mkpath(inpcfg_fname),
+                  '\n'.join([
+                      '{ nixpkgs, hh_output }:',
+                      '{ jobsets = (import <nixpkgs> {}).stdenv.mkDerivation {',
+                      '    name = "copy_hh";',
+                      '    phases = [ "installPhase" ];',
+                      '    installPhase = "cp ${hh_output} $out";',
+                      '  };',
+                      '}', '',
+                  ]) ),
+                ( project_name + ".txt",
+                  '\n'.join([
+                      'Instructions for configuring Hydra for the %s project:' % project_name,
+                      '',
+                      '  1. Create a new project on the Hydra system',
+                      '     a. Identifer = %s' % project_name,
+                      '     b. Declarative spec file = %s' % proj_cfgfname,
+                      '     c. Declarative input',
+                      '         type: Local path or URL',
+                      '         value: %s' % os.path.abspath(os.path.dirname(bldcfg_fname)),
+                      '',
+                  ]) ),
+            ] + vcs_files
 
         if verbose:
             print('## Generating', len(jobsets), 'Hydra jobsets,',
                   'input compression', vcs_inputs.verbose_info())
 
-        return dict([
-            (None, out_bldcfg_json),
-            ((project_name + '-hydra-project-config.json'),
-             json.dumps(projectdef_jobset.spec())),
-            (os.path.join(gen_files_path, 'copy_hh.nix'),
-             '\n'.join([
-                 '{ nixpkgs, hh_output }:',
-                 '{ jobsets = (import <nixpkgs> {}).stdenv.mkDerivation {',
-                 '    name = "copy_hh";',
-                 '    phases = [ "installPhase" ];',
-                 '    installPhase = "cp ${hh_output} $out";',
-                 '  };',
-                 '}',
-                 '',
-             ])),
-        ] + vcs_files)
+        return dict([ (None, json.dumps({ n: jobsets[n].spec()
+                                          for n in jobsets },
+                                        # Sort by key for output stability
+                                        sort_keys=True)) ] + otherfiles)
 
     def _jobset(self, input_desc, bldcfgs, input_cfg, vcs_inputs, bldcfg):
         projrepo = [ r for r in input_desc.RL if r.project_repo ][0]
@@ -122,11 +245,6 @@ class HydraBuilder(BuilderBase.Builder):
                      projrepo.repo_name + "-src",  # must be an input
         )
         ret = self._jobset_add_inputs(ret, input_desc, bldcfgs, vcs_inputs, bldcfg)
-        if 'jobset' in input_cfg:
-            for each in input_cfg['jobset'].get('inputs', dict()):
-                ret.add_input(each,
-                              input_cfg['jobset']['inputs'][each]['value'],
-                              input_cfg['jobset']['inputs'][each]['type'])
         ret.update_fields(input_cfg.get('jobset', {}))
         return ret
 
@@ -251,6 +369,7 @@ class VCSInputs(object):
     def __init__(self, project_name, collated_input_jobset=True):
         self._project_name = project_name
         self._collated = collated_input_jobset
+        self.jobset_name = 'update_inputs'
         self._inputs = {}
         self._inputcount = Counter()
         self.add_vcs_inputs = self._add_collated_vcs_inputs \
@@ -290,8 +409,8 @@ class VCSInputs(object):
         for each in blds:
             jobset.add_input(each.reponame + "-src",
                              ':'.join(
-                                 [self._project_name,
-                                  'VCSinputs',
+                                 [self._project_name + '-inputs',
+                                  self.jobset_name,
                                   self._collated_input_name(self.key_for(bldcfgs, bldcfg, each))]),
                              'build')
         return jobset
@@ -301,26 +420,26 @@ class VCSInputs(object):
             return self._collated_vcs_input_jobsets(gen_files_path)
         return self._distinct_vcs_input_jobsets(gen_files_path)
 
-    def _distinct_vcs_input_jobsets(self, gen_files_path):
+    def _distinct_vcs_input_jobsets(self, gen_files_path, additional_passthru_inputs=[]):
         "Old style where inputs are in the main jobsets"
-        return dict(), []
+        assert additional_passthru_inputs == []
+        return {}, []
 
     @staticmethod
     def _collated_input_name(key_for):
         return '-'.join(list(key_for)).replace('.','---').replace('/','--')
 
-    def _collated_vcs_input_jobsets(self, gen_files_path):
-        name = 'VCSinputs'
-        fname = self._project_name + '-' + name + '.nix'
-        ret = Jobset('VCSinputs', fname, 'realize_inputs') \
+    def _collated_vcs_input_jobsets(self, gen_files_path, additional_passthru_inputs=[]):
+        fname = self._project_name + '-' + "updinputs" + '.nix'
+        jobset = Jobset('Check for actual input updates', fname, 'realize_inputs') \
             .add_input('realize_inputs', gen_files_path, 'path') \
             .add_input('nixpkgs',
                        "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
         for eachkey in self._inputs:
-            ret.add_input(self._collated_input_name(eachkey) + "-src",
-                          ' '.join(list(self._inputs[eachkey])))
-
-        jobsets = dict([ (name, ret) ])
+            jobset.add_input(self._collated_input_name(eachkey) + "-src",
+                             ' '.join(list(self._inputs[eachkey])))
+        for nm,vl,ty in additional_passthru_inputs:
+            jobset.add_input(nm + "-inp", vl, ty)
 
         nixfiles = [
             (os.path.join(gen_files_path, fname),
@@ -328,6 +447,8 @@ class VCSInputs(object):
                  '{ nixpkgs,'
              ] + [
                  self._collated_input_name(eachkey) + "-src," for eachkey in self._inputs
+             ] + [
+                 nm + "-inp," for nm,_,_ in additional_passthru_inputs
              ] + [
                  'last ? null',
                  '}:',
@@ -345,12 +466,15 @@ class VCSInputs(object):
                                         self._collated_input_name(eachkey) + "-src")
                  for eachkey in self._inputs
              ] + [
+                 '%s = gen "%s" %s;' % (nm, nm, nm + "-inp")
+                 for nm,_,_ in additional_passthru_inputs
+             ] + [
                  '}',
                  '',
              ])),
         ]
 
-        return jobsets, nixfiles
+        return { self.jobset_name: jobset.spec() }, nixfiles
 
     def verbose_info(self):
         return str(dict(self._inputcount))
