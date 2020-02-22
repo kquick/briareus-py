@@ -81,10 +81,18 @@ class HydraBuilder(BuilderBase.Builder):
         jobsets.update(vcs_jobsets)
 
         # Sort by key for output stability
-        out_bldcfg_json = json.dumps(jobsets, sort_keys=True)
+        out_bldcfg_json = json.dumps({ n: jobsets[n].spec() for n in jobsets }, sort_keys=True)
 
         if not bldcfg_fname:
             return {None: out_bldcfg_json }
+
+        projectdef_jobset = Jobset("Briareus-generated %s Project declaration" % project_name,
+                                   "copy_hh.nix",
+                                   "copy_hh_src") \
+                                   .add_input('hh_output', os.path.abspath(bldcfg_fname), 'path') \
+                                   .add_input('copy_hh_src', gen_files_path, 'path') \
+                                   .add_input('nixpkgs',
+                                              "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
 
         if verbose:
             print('## Generating', len(jobsets), 'Hydra jobsets,',
@@ -93,35 +101,7 @@ class HydraBuilder(BuilderBase.Builder):
         return dict([
             (None, out_bldcfg_json),
             ((project_name + '-hydra-project-config.json'),
-             json.dumps(
-                 { 'checkinterval': 300,
-                   'keepnr': 3,
-                   'schedulingshares': 1,
-                   'emailoverride': '',
-                   'description': "Briareus-generated %s Project declaration" % project_name,
-                   'nixexprinput': "copy_hh_src",
-                   'nixexprpath': "copy_hh.nix",
-                   'enabled': 1,
-                   'hidden': False,
-                   'enableemail': True,
-                   'inputs': {
-                       'hh_output': {
-                           'type': "path",
-                           'value': os.path.abspath(bldcfg_fname),
-                           'emailresponsible': False,
-                       },
-                       'copy_hh_src': {
-                           'type': 'path',
-                           'value': gen_files_path,
-                           'emailresponsible': False,
-                       },
-                       'nixpkgs': {
-                           'type': "git",
-                           'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
-                           'emailresponsible': False,
-                       },
-                   },
-                 })),
+             json.dumps(projectdef_jobset.spec())),
             (os.path.join(gen_files_path, 'copy_hh.nix'),
              '\n'.join([
                  '{ nixpkgs, hh_output }:',
@@ -136,27 +116,19 @@ class HydraBuilder(BuilderBase.Builder):
         ] + vcs_files)
 
     def _jobset(self, input_desc, bldcfgs, input_cfg, vcs_inputs, bldcfg):
-        jobset_inputs = self._jobset_inputs(input_desc, bldcfgs, vcs_inputs, bldcfg)
-        if 'jobset' in input_cfg and 'inputs' in input_cfg['jobset']:
-            jobset_inputs.update(input_cfg['jobset']['inputs'])
         projrepo = [ r for r in input_desc.RL if r.project_repo ][0]
-        jobset = {
-            # These are the defaults which can be overridden by
-            # input_cfg which was the passed in builder_config file.
-            "checkinterval": 600,  # 5 minutes
-            "description": self._jobset_desc(bldcfgs, bldcfg),
-            "emailoverride": "",
-            "enabled": 1,
-            "enableemail": False,
-            "hidden": False,
-            "keepnr": 3,  # number of builds to keep
-            "nixexprinput": projrepo.repo_name + "-src",  # must be an input
-            "nixexprpath": "./release.nix",  # the hydra convention
-            "schedulingshares": 1,
-            }
-        jobset.update(input_cfg.get('jobset', {}))
-        jobset['inputs'] = jobset_inputs
-        return jobset
+        ret = Jobset(self._jobset_desc(bldcfgs, bldcfg),
+                     "./release.nix",  # the hydra convention
+                     projrepo.repo_name + "-src",  # must be an input
+        )
+        ret = self._jobset_add_inputs(ret, input_desc, bldcfgs, vcs_inputs, bldcfg)
+        if 'jobset' in input_cfg:
+            for each in input_cfg['jobset'].get('inputs', dict()):
+                ret.add_input(each,
+                              input_cfg['jobset']['inputs'][each]['value'],
+                              input_cfg['jobset']['inputs'][each]['type'])
+        ret.update_fields(input_cfg.get('jobset', {}))
+        return ret
 
     def _jobset_variant(self, bldcfg):
         # Provides a string "variant" input to the jobset to allow the
@@ -194,22 +166,12 @@ class HydraBuilder(BuilderBase.Builder):
                             for v in sorted(bldcfg.bldvars) ]
                 ))
 
-    def _jobset_inputs(self, input_desc, bldcfgs, vcs_inputs, bldcfg):
-        return dict(
-            [ ('variant',
-               {
-                   'emailresponsible': False,
-                   'type': 'string',
-                   'value': self._jobset_variant(bldcfg)
-                }),
-            ] +
-            vcs_inputs.get_vcs_inputs(bldcfgs, bldcfg, bldcfg.blds) +
-            [ (v.varname, {
-                "emailresponsible": False,
-                "type": "string",
-                "value": v.varvalue
-            }) for v in bldcfg.bldvars ]
-        )
+    def _jobset_add_inputs(self, jobset, input_desc, bldcfgs, vcs_inputs, bldcfg):
+        for v in bldcfg.bldvars:
+            jobset.add_input(v.varname, v.varvalue, 'string')
+        vcs_inputs.add_vcs_inputs(jobset, bldcfgs, bldcfg, bldcfg.blds)
+        jobset.add_input('variant', self._jobset_variant(bldcfg), 'string')
+        return jobset
 
     def update(self, cfg_spec):
         print("Takes output of output_build_configurations and updates the actual remote builder")
@@ -291,6 +253,10 @@ class VCSInputs(object):
         self._collated = collated_input_jobset
         self._inputs = {}
         self._inputcount = Counter()
+        self.add_vcs_inputs = self._add_collated_vcs_inputs \
+            if self._collated else self._add_distinct_vcs_inputs
+        self.vcs_input_jobsets = self._collated_vcs_input_jobsets \
+            if self._collated else self._distinct_vcs_input_jobsets
 
     @staticmethod
     def key_for(bldcfgs, bldcfg, brr):
@@ -314,32 +280,21 @@ class VCSInputs(object):
             self._inputs[key] = (repo_url(each), each.repover)
             self._inputcount[key] += 1
 
-    def get_vcs_inputs(self, bldcfgs, bldcfg, blds):
-        if self._collated:
-            return self._collated_vcs_inputs(bldcfgs, bldcfg, blds)
-        return self._distinct_vcs_inputs(bldcfgs, bldcfg, blds)
+    def _add_distinct_vcs_inputs(self, jobset, bldcfgs, bldcfg, blds):
+        for each in blds:
+            jobset.add_input(each.reponame + '-src',
+                             ' '.join(list(self._inputs[self.key_for(bldcfgs, bldcfg, each)])))
+        return jobset
 
-    def _distinct_vcs_inputs(self, bldcfgs, bldcfg, blds):
-        "Old style where each jobset specifies its VCS inputs directly"
-        return [ (each.reponame + "-src",
-                  {
-                      "emailresponsible": False,
-                      "type": "git",
-                      "value": ' '.join(list(self._inputs[self.key_for(bldcfgs, bldcfg, each)])),
-                  })
-                 for each in blds ]
-
-    def _collated_vcs_inputs(self, bldcfgs, bldcfg, blds):
-        return [ (each.reponame + "-src",
-                  {
-                      "emailresponsible": False,
-                      "type": "build",
-                      "value": ':'.join(
-                          [self._project_name,
-                           'VCSinputs',
-                           self._collated_input_name(self.key_for(bldcfgs, bldcfg, each))]),
-                  })
-                 for each in blds ]
+    def _add_collated_vcs_inputs(self, jobset, bldcfgs, bldcfg, blds):
+        for each in blds:
+            jobset.add_input(each.reponame + "-src",
+                             ':'.join(
+                                 [self._project_name,
+                                  'VCSinputs',
+                                  self._collated_input_name(self.key_for(bldcfgs, bldcfg, each))]),
+                             'build')
+        return jobset
 
     def vcs_input_jobsets(self, gen_files_path):
         if self._collated:
@@ -357,43 +312,17 @@ class VCSInputs(object):
     def _collated_vcs_input_jobsets(self, gen_files_path):
         name = 'VCSinputs'
         fname = self._project_name + '-' + name + '.nix'
-        inputs = [
-            ('realize_inputs',
-             {
-                 'type': 'path',
-                 'value': gen_files_path,
-                 'emailresponsible': False,
-             }),
-            ('nixpkgs',
-             {
-                 'type': "git",
-                 'value': "https://github.com/NixOS/nixpkgs-channels nixos-unstable",
-                 'emailresponsible': False,
-             }),
-        ] + [ (self._collated_input_name(eachkey) + "-src",
-                {
-                    "emailresponsible": False,
-                    "type": "git",
-                    "value": ' '.join(list(self._inputs[eachkey])),
-                })
-               for eachkey in self._inputs ]
+        ret = Jobset('VCSinputs', fname, 'realize_inputs') \
+            .add_input('realize_inputs', gen_files_path, 'path') \
+            .add_input('nixpkgs',
+                       "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+        for eachkey in self._inputs:
+            ret.add_input(self._collated_input_name(eachkey) + "-src",
+                          ' '.join(list(self._inputs[eachkey])))
 
-        return dict([
-            (name,
-             { 'checkinterval': 600,  # 10 minutes
-                  'keepnr': 1,
-                  'schedulingshares': 1,
-                  'emailoverride': '',
-                  'description': "Briareus-generated %s Project VCS inputs" % self._project_name,
-                  'nixexprinput': "realize_inputs",
-                  'nixexprpath': fname,
-                  'enabled': 1,
-                  'hidden': False,
-                  'enableemail': False,
-                  'inputs': dict(inputs),
-                },
-             )
-        ]), [
+        jobsets = dict([ (name, ret) ])
+
+        nixfiles = [
             (os.path.join(gen_files_path, fname),
              '\n'.join([
                  '{ nixpkgs,'
@@ -421,5 +350,37 @@ class VCSInputs(object):
              ])),
         ]
 
+        return jobsets, nixfiles
+
     def verbose_info(self):
         return str(dict(self._inputcount))
+
+
+class Jobset(object):
+    def __init__(self, description, nixexprpath, nixexprinput, checkinterval=600):
+        self._fields = { 'description': description,
+                         'nixexprpath': nixexprpath,
+                         'nixexprinput': nixexprinput,
+                         'checkinterval': checkinterval,
+                         'keepnr': 3,
+                         'schedulingshares': 1,
+                         'emailoverride': '',
+                         'enabled': 1,
+                         'hidden': False,
+                         'enableemail': False,
+                         }
+        self._inputs = []
+
+    def update_fields(self, newfields):
+        self._fields.update(newfields)
+
+    def add_input(self, name, value, inptype='git'):
+        self._inputs.append( (name,
+                              { 'type': inptype,
+                                'value': value,
+                                'emailresponsible': False,
+                              }) )
+        return self
+
+    def spec(self):
+        return dict(list(self._fields.items()) + [('inputs', dict(self._inputs))])
