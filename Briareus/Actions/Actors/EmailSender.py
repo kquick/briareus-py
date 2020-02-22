@@ -30,6 +30,15 @@ class EmailSender(ActorTypeDispatcher):
 
     def __init__(self, *args, **kw):
         super(EmailSender, self).__init__(*args, **kw)
+        self.server = os.getenv('BRIAREUS_SMTP_SERVER', 'localhost')
+        port = os.getenv('BRIAREUS_SMTP_PORT', '0')
+        try:
+            port = int(port)
+        except Exception:
+            logging.error('Unable to identify EmailSender SMTP port: using 0 (default)',
+                          show_exc=True)
+            port = 0
+        self.port = port
         self.can_email = os.getenv('BRIAREUS_SMTP', None)
         try:
             hlimit = int(os.getenv('BRIAREUS_SMTP_PER_HOUR', '3'))
@@ -47,11 +56,36 @@ class EmailSender(ActorTypeDispatcher):
             # Sent by Thespian Director based on the TLI file; this
             # is intended only to ensure this Actor is instantiated.
             pass
+        elif msg.startswith('Start:'):
+            # The start message overrides ENV variables (useful in
+            # situations where the ENV vars are not available, such as
+            # systemd + director).
+            start, can_email, hval, dval, unlimval, server, port = msg.split()
+            self.can_email = can_email
+            self.server = server
+            try:
+                self.port = int(port)
+            except Exception:
+                logging.error('Error setting port, SMTP port unchanged for EmailSender',
+                              show_exc=True)
+            try:
+                hlimit = int(hval)
+                dlimit = int(dval)
+                unlimited = '' if unlimval == '-' else unlimval
+                self._delivered = RateLimiter(hourly=hlimit, daily=dlimit, unlimited=unlimited)
+            except Exception:
+                logging.error('Error reconfiguring EmailSender RateLimiter; previous rates still apply',
+                              show_exc=True)
         elif msg == 'Deactivate':
             # Sent by Thespian Director prior to shutdown.
             pass
         elif msg == 'status':
-            self.send(sender, toJSON(self._delivered.status()))
+            rdict = self._delivered.status()
+            rdict.update({'can_email': self.can_email,
+                          'server': self.server,
+                          'port': self.port,
+                          })
+            self.send(sender, toJSON(rdict))
         else:
             objmsg = fromJSON(msg)
             self._dispatch(objmsg, sender, jsonReply=True)
@@ -81,7 +115,6 @@ class EmailSender(ActorTypeDispatcher):
                                   'To: ' + ', '.join(send_to),
                                   'Subject: ' + envelope.subject,
             ]) + "\n\n" + message
-        smtp = smtplib.SMTP(os.getenv('BRIAREUS_SMTP_SERVER', 'localhost'),
-                            port=int(os.getenv('BRIAREUS_SMTP_PORT', '0')))
+        smtp = smtplib.SMTP(self.server, self.port)
         smtp.sendmail('briareus', send_to, message)
         self.send(sender, fmtReply(SendReceipt(envelope, envelope.recipients)))

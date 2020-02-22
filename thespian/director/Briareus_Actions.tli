@@ -1,7 +1,15 @@
 { 'Actors':
   { 'Briareus.Actions.Actors.EmailSender.EmailSender':
     { 'OnLoad': { 'GlobalName': 'EmailSender'
-                , 'Message': 'Start'
+                , 'Message': ('Start: %s %s %s %s %s %s' %
+                              (os.getenv('BRIAREUS_SMTP', 'noone@badaddress'),
+                               os.getenv('BRIAREUS_SMTP_PER_HOUR', 3),
+                               os.getenv('BRIAREUS_SMTP_PER_DAY', 10),
+                               os.getenv('BRIAREUS_SMTP_UNLIMITED', '-'),
+                               os.getenv('BRIAREUS_SMTP_SERVER', 'localhost'),
+                               os.getenv('BRIAREUS_SMTP_PORT', '0')))
+                             if os.getenv('BRIAREUS_SMTP', None)
+                             else 'Start'
                 , 'Role': 'Action:EmailSender'
                 },
       'OnDeactivate': { 'Message': 'Deactivate' },

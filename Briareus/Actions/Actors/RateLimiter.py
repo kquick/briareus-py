@@ -104,4 +104,6 @@ class RateLimiter(object):
                              'suppressed': month_suppressed,
             },
             'unlimited' : self._unlimited,
+            'hourly': self._hourly,
+            'daily': self._daily,
         }
