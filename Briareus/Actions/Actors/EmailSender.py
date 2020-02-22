@@ -72,7 +72,7 @@ class EmailSender(ActorTypeDispatcher):
         message = envelope.message
         if not self.can_email:
             logging.warn('email to %s suppressed: %s', send_to, envelope.subject)
-            self.send(sender, fmtReply(SendReceipt(envelope, recipients)))
+            self.send(sender, fmtReply(SendReceipt(envelope, envelope.recipients)))
             return
         if self.can_email != "1":
             message = "::: Originally to: " + str(send_to) + "\n\n" + message
