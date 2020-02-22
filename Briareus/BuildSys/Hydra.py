@@ -270,7 +270,6 @@ def VCS_repo_url(input_desc, bldcfgs, bldreporev):
 
 
 def pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr):
-    print('pullreq_for_bldcfg',bldcfg,' _and_brr',brr)
     return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
                if p.pr_target_repo == brr.reponame and
                   p.pr_branch == bldcfg.branchname and
