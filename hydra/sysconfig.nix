@@ -247,16 +247,16 @@ rec {
     let n = builtins.length projectList;
         p = mapEnum 0 (mkBriareusProject envvars) projectList;
         c = mapEnum n (mkBriareusWithConfig envvars) inpcfgList;
-    in [briareusServiceBase] ++ p ++ c;
+    in [(briareusServiceBase envvars)] ++ p ++ c;
 
-  briareusServiceBase = {
+  briareusServiceBase = envvars: {
     systemd.services."briareus" = {
       description = "Briareus central support";
       after = [ "network-online.target" ];
       environment = {
         THESPIAN_DIRECTOR_DIR=thespian_director_dir;
         BRIAREUS_PAT=briareus_pat;
-      };
+      } // envvars;
       path = [ pkgs.swiProlog ];
       serviceConfig = {
         Type = "forking";
