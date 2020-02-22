@@ -25,4 +25,6 @@ python -m thespian.director gensrc \
     Briareus_Actions $(pwd)/../briareus_key.pem ../.. \
     version:date deps:$(pwd)/../deps \
     tli:$(pwd)/../Briareus_Actions.tli \
+    ../../Briareus/__init__.py \
+    ../../Briareus/Actions/__init__.py \
     '../../Briareus/Actions/Actors/*.py'
