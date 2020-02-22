@@ -6,6 +6,7 @@ from Briareus.BuildSys import buildcfg_name
 import requests
 import json
 import os
+from collections import Counter
 
 
 class HydraBuilder(BuilderBase.Builder):
@@ -65,16 +66,29 @@ class HydraBuilder(BuilderBase.Builder):
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
         project_name = input_cfg.get('project_name', 'unnamed')
-        out_bldcfg_json = json.dumps(
-            # Sort by key for output stability
-            { buildcfg_name(each) :
-              self._jobset(input_desc, bldcfgs, input_cfg, each)
-              for each in bldcfgs.cfg_build_configs },
-            sort_keys=True)
+
+        vcs_inputs = VCSInputs(project_name, False)
+        for each in bldcfgs.cfg_build_configs:
+            vcs_inputs.get_bldcfg_vcs_inputs(input_desc, bldcfgs, each)
+
+        jobsets = { buildcfg_name(each) :
+                           self._jobset(input_desc, bldcfgs, input_cfg, vcs_inputs, each)
+                           for each in bldcfgs.cfg_build_configs }
+        jobsets.update(vcs_inputs.vcs_input_jobsets())
+
+        # Sort by key for output stability
+        out_bldcfg_json = json.dumps(jobsets, sort_keys=True)
+
         if not bldcfg_fname:
             return {None: out_bldcfg_json }
+
         copy_hh_src_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra'))
+
+        if verbose:
+            print('## Generating', len(jobsets), 'Hydra jobsets,',
+                  'input compression', vcs_inputs.verbose())
+
         return {
             None: out_bldcfg_json,
             (project_name + '-hydra-project-config.json') :
@@ -121,8 +135,8 @@ class HydraBuilder(BuilderBase.Builder):
                 ]),
         }
 
-    def _jobset(self, input_desc, bldcfgs, input_cfg, bldcfg):
-        jobset_inputs = self._jobset_inputs(input_desc, bldcfgs, bldcfg)
+    def _jobset(self, input_desc, bldcfgs, input_cfg, vcs_inputs, bldcfg):
+        jobset_inputs = self._jobset_inputs(input_desc, bldcfgs, vcs_inputs, bldcfg)
         if 'jobset' in input_cfg and 'inputs' in input_cfg['jobset']:
             jobset_inputs.update(input_cfg['jobset']['inputs'])
         projrepo = [ r for r in input_desc.RL if r.project_repo ][0]
@@ -164,18 +178,10 @@ class HydraBuilder(BuilderBase.Builder):
                      'PR' if bldcfg.branchtype == "pullreq" else None,
                    ]))
 
-    def _pullreq_for_bldcfg_and_brr(self, bldcfgs, bldcfg, brr):
-        return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
-                   if p.pr_target_repo == brr.reponame and
-                      p.pr_branch == bldcfg.branchname and
-                      p.pr_ident == brr.pullreq_id
-                 ] + [None])[0]
-                if bldcfg.branchtype == 'pullreq' and brr.pullreq_id != 'project_primary' else None)
-
     def _jobset_desc(self, bldcfgs, bldcfg):
         brr_info = []
         for brr in sorted(bldcfg.blds):  # BuildConfigs.BuildRepoRev
-            preq = self._pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr)
+            preq = pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr)
             if preq:
                 brr_info.append( "PR%(pr_ident)s-brr%%(srcident)s:%%(reponame)s"
                                  % preq.__dict__ % brr.__dict__ )
@@ -188,45 +194,22 @@ class HydraBuilder(BuilderBase.Builder):
                             for v in sorted(bldcfg.bldvars) ]
                 ))
 
-    def _jobset_inputs(self, input_desc, bldcfgs, bldcfg):
-        repo_url_maybe_pullreq = lambda brr, mbpr: \
-            (mbpr.pr_srcrepo_url
-             if mbpr else
-             self._repo_url(input_desc, bldcfgs, brr))
-        repo_url = lambda brr: \
-            repo_url_maybe_pullreq(brr,
-                                   self._pullreq_for_bldcfg_and_brr(bldcfgs,
-                                                                    bldcfg,
-                                                                    brr))
+    def _jobset_inputs(self, input_desc, bldcfgs, vcs_inputs, bldcfg):
         return dict(
             [ ('variant',
                {
                    'emailresponsible': False,
                    'type': 'string',
                    'value': self._jobset_variant(bldcfg)
-               }),
+                }),
             ] +
-            [ (each.reponame + "-src",
-               {
-                   "emailresponsible": False,
-                   "type": "git",
-                   "value": ' '.join([repo_url(each), each.repover,])
-               }) for each in bldcfg.blds ] +
+            vcs_inputs.get_vcs_inputs(bldcfgs, bldcfg, bldcfg.blds) +
             [ (v.varname, {
                 "emailresponsible": False,
                 "type": "string",
                 "value": v.varvalue
             }) for v in bldcfg.bldvars ]
         )
-
-    def _repo_url(self, input_desc, bldcfgs, bldreporev):
-        for each in input_desc.RL:
-            if each.repo_name == bldreporev.reponame:
-                return each.repo_url
-        for each in bldcfgs.cfg_subrepos:  # RepoDesc
-            if each.repo_name == bldreporev.reponame:
-                return each.repo_url
-        return '--<unknown URL for repo %s>--' % bldreporev.reponame
 
     def update(self, cfg_spec):
         print("Takes output of output_build_configurations and updates the actual remote builder")
@@ -268,8 +251,106 @@ class HydraBuilder(BuilderBase.Builder):
             for e in r if e['name'] == n
         ] + ['No results available for jobset ' + n])[0]
 
+
 def get_or_show(obj, fieldname):
     if fieldname not in obj:
         print('Missing field "%s" in builder result: %s'
               % ( fieldname, str(obj) ))
     return obj.get(fieldname)
+
+
+def VCS_repo_url(input_desc, bldcfgs, bldreporev):
+    for each in input_desc.RL:
+        if each.repo_name == bldreporev.reponame:
+            return each.repo_url
+    for each in bldcfgs.cfg_subrepos:  # RepoDesc
+        if each.repo_name == bldreporev.reponame:
+            return each.repo_url
+    return '--<unknown URL for repo %s>--' % bldreporev.reponame
+
+
+def pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr):
+    print('pullreq_for_bldcfg',bldcfg,' _and_brr',brr)
+    return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
+               if p.pr_target_repo == brr.reponame and
+                  p.pr_branch == bldcfg.branchname and
+                  p.pr_ident == brr.pullreq_id
+             ] + [None])[0]
+            if bldcfg.branchtype == 'pullreq' and brr.pullreq_id != 'project_primary' else None)
+
+
+class VCSInputs(object):
+    """Collects all of the VCS inputs so that shared VCS inputs can be
+       aggregated so that hydra-evaluator only needs to check the
+       remote VCS once for this project instead of once for each
+       jobset in the project using the input.  The inputs are then
+       output as separate, hidden jobsets.
+
+    """
+    def __init__(self, project_name, collated_input_jobset=True):
+        self._project_name = project_name
+        self._collated = collated_input_jobset
+        self._inputs = {}
+        self._inputcount = Counter()
+
+    @staticmethod
+    def key_for(bldcfgs, bldcfg, brr):
+        mbpr = pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr)
+        # The pr is relative to a specific repo and this is a
+        # determination of the key name for the source VCS reference
+        # in that repo, so the pr_ident will be unique in this
+        # context and is therefore safe to use to uniquely specify this key.
+        return (brr.reponame, 'PR:%s' % mbpr.pr_ident if mbpr else brr.repover)
+
+    def get_bldcfg_vcs_inputs(self, input_desc, bldcfgs, bldcfg):
+        repo_url_maybe_pullreq = lambda brr, mbpr: \
+            (mbpr.pr_srcrepo_url
+             if mbpr else
+             VCS_repo_url(input_desc, bldcfgs, brr))
+        repo_url = lambda brr: \
+            repo_url_maybe_pullreq(brr,
+                                   pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr))
+        for each in bldcfg.blds:
+            key = self.key_for(bldcfgs, bldcfg, each)
+            self._inputs[key] = repo_url(each)
+            self._inputcount[key] += 1
+
+    def get_vcs_inputs(self, bldcfgs, bldcfg, blds):
+        if self._collated:
+            return self._collated_vcs_inputs(bldcfgs, bldcfg, blds)
+        return self._distinct_vcs_inputs(bldcfgs, bldcfg, blds)
+
+    def _distinct_vcs_inputs(self, bldcfgs, bldcfg, blds):
+        "Old style where each jobset specifies its VCS inputs directly"
+        return [ (each.reponame + "-src",
+                  {
+                      "emailresponsible": False,
+                      "type": "git",
+                      "value": ' '.join([self._inputs[self.key_for(bldcfgs, bldcfg, each)],
+                                         each.repover])
+                  })
+                 for each in blds ]
+
+    def _collated_vcs_inputs(self, bldcfgs, bldcfg, blds):
+        raise NotImplementedError("TBD")
+
+    def vcs_input_jobsets(self):
+        if self._collated:
+            return self._collated_vcs_input_jobsets()
+        return self._distinct_vcs_input_jobsets()
+
+    def _distinct_vcs_input_jobsets(self):
+        "Old style where inputs are in the main jobsets"
+        return dict()
+
+    def _collated_vcs_input_jobsets(self):
+        return dict([ ("-".join([repo, ver, "src"]),
+                       {
+                           "emailresponsible": False,
+                           "type": "git",
+                           "value": ' '.join([self._inputs[(repo,ver)], ver])
+                       })
+                      for repo, ver in self._inputs ])
+
+    def verbose(self):
+        return str(dict(self._inputcount))
