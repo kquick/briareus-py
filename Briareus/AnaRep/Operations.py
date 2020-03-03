@@ -158,6 +158,7 @@ def prior_fact(prior):
              'Notify': prior_ignored,
              'SendEmail': prior_fact_SendEmail,
              'PostChatMessage': prior_ignored,
+             'SetForgeStatus': prior_fact_SetForgeStatus,
              'PendingStatus' : prior_ignored,
              'NewPending' : prior_ignored,
              'PR_Status' : prior_ignored,
@@ -193,6 +194,8 @@ def prior_fact_StatusReport(prior):
 
 def prior_fact_VarFailure(prior):
     return None
+
+toStrList = lambda l: '[' + ', '.join([ '"%s"'%e for e in l]) + ']'
 
 def prior_fact_SendEmail(prior):
     # Code to read text from the previous report and convert it to
@@ -231,6 +234,18 @@ def prior_fact_SendEmail(prior):
                           sent_to = ', '.join(sent),
                           params_logic=params_logic,
                  ))
+
+
+def prior_fact_SetForgeStatus(prior):
+    return Fact(('set_forge_status(' +
+                 toStrList(prior.targetrepos) +
+                 ', notify({prior.notification.what}'
+                 '  , "{prior.notification.subject}"'
+                 '  , ' + prior.notification.params.as_fact() +
+                 ')'
+                 ', ' + toStrList(prior.updated) +
+                 ')'
+                 ).format(prior=prior))
 
 
 def built_fact(result):

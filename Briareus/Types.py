@@ -246,6 +246,12 @@ class PostChatMessage(object):
     what = attr.ib() # Notification type
     posted = attr.ib() # list of channels message has been posted to already
 
+@attr.s(frozen=True)
+class SetForgeStatus(object):
+    targetrepos = attr.ib(converter=sorted_nub_list) # list of repo names
+    notification = attr.ib() # Notify object
+    updated = attr.ib(converter=sorted_nub_list) # list of repo names posting has been made to
+
 # ----------------------------------------------------------------------
 # The Prolog output is currently interpreted via an "eval({output})"
 # operation, so define some terms to re-ify the eval'd string into
@@ -295,6 +301,7 @@ logic_result_expr = {
     "notify": lambda *args: Notify(*args),
     "email": lambda *args: SendEmail(*args),
     "chat": lambda *args: PostChatMessage(*args),
+    "set_forge_status": SetForgeStatus,
     "merge_pr": "merge_pr",
     "completely_broken": "completely_broken",
     "main_submodules_broken": "main_submodules_broken",
