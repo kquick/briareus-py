@@ -13,7 +13,7 @@ class FileContent(object):
        {n} for format substitution.
 
     """
-    def __call__(self, action_type, notification):
+    def __call__(self, action_type, notification, runctxt):
         ntype = notification.what
         fromdir = os.path.dirname(sys.modules['Briareus.Actions'].__file__)
         content_fname = os.path.join(fromdir, '{' + action_type + '}' + ntype + '.txt')
@@ -43,7 +43,7 @@ notify_generators = {
     'completely_broken': FileContent(),
 }
 
-def gen_content(action_type, notification):
+def gen_content(action_type, notification, runctxt):
     """Generates a tagline and content for the specified Notify
        notification.  The action_type can be used to adjust the
        message to be appropriate to the action type.
@@ -57,4 +57,4 @@ def gen_content(action_type, notification):
     gen = notify_generators.get(notification.what, FileContent())
     if not gen:
         return 'Build Issue', str(notification)
-    return gen(action_type, notification)
+    return gen(action_type, notification, runctxt)

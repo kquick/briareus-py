@@ -29,7 +29,7 @@ def do_send_email_action(email_action, inpcfg, run_context):
     done = email_action.sent_to
     send_to = sorted(list(set(rec) - set(done)))
     if send_to:
-        subj, body = gen_content('email', email_action.notification)
+        subj, body = gen_content('email', email_action.notification, run_context)
         if body:
             sent_to = send_email(send_to, subj, body, run_context)
         else:
