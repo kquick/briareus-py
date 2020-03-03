@@ -132,6 +132,15 @@ class RemoteGit__Info(object):
             rsp.raise_for_status()
         return rsp
 
+    def api_post(self, reqtype, data):
+        # POST operations are not cached
+        req_url = self._url + reqtype
+        rsp = self._request_session.post(req_url, json=data)
+        # if rsp.status_code == 201:
+        #     return rsp
+        rsp.raise_for_status()
+        return rsp
+
     def get_file_contents_raw(self, target_filepath, branch):
         rsp = self._get_file_contents_info(target_filepath, branch)
         if rsp != self.NotFound:
