@@ -141,7 +141,7 @@
           transition: 0.4s;
       }
       .active, .accordion:hover {
-          background-color: rgba(54, 89, 188, 0.4);
+          background-color: rgba(54, 89, 230, 0.7);
       }
       button.accordion:after {
           content: "\002B";
@@ -155,7 +155,8 @@
       }
       .panel {
           padding: 0 18px;
-          display: none;
+          max-height: 0;
+          transition: max-height 0.57s ease-out;
           /* overflow: hidden; need to allow sticky table headers */
       }
     </style>
