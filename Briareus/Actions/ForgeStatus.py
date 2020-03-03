@@ -50,14 +50,14 @@ def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
               file=sys.stderr)
         return forge_list
 
-
     proj_results = [ each
                      for each in runctxt.result_sets
                      if project == each.inp_desc.PNAME ][0] # must match at least one!
 
     url_and_rev = defaultdict(list)  # key=(loc, rev), value = [repos]
 
-    for r in proj_results.inp_desc.RL:  # r is Description.RepoDesc
+    for r in (list(proj_results.inp_desc.RL) +     # r is Description.RepoDesc
+              list(proj_results.repo_info['subrepos'])):
         if r.repo_name in forge_list:
             repo, loc, rev = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
             url_and_rev[(loc,rev)].append(repo)
