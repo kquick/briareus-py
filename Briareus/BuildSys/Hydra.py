@@ -196,9 +196,9 @@ class HydraBuilder(BuilderBase.Builder):
             if 'jobset' in input_cfg:
                 for each in input_cfg['jobset'].get('inputs', dict()):
                     for js in jobsets:
-                        js.add_input(each,
-                                     input_cfg['jobset']['inputs'][each]['value'],
-                                     input_cfg['jobset']['inputs'][each]['type'])
+                        jobsets[js].add_input(each,
+                                              input_cfg['jobset']['inputs'][each]['value'],
+                                              input_cfg['jobset']['inputs'][each]['type'])
 
             vcs_jobsets, vcs_files = vcs_inputs.vcs_input_jobsets(gen_files_path)
             jobsets.update(vcs_jobsets)
