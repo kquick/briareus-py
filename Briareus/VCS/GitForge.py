@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import requests
+import logging
 from urllib.parse import urlparse, urlunparse
 from Briareus.VCS.InternalMessages import *
 
@@ -61,7 +62,7 @@ class RemoteGit__Info(object):
         if reqtype.startswith('//'):
             # Drop the owner/repo at the tail of the url
             parsed = urlparse(self._url)
-            req_url = urlunparse(parsed._replace(path='/'.join(parsed.path.split('/')[:-2] + [reqtype])))
+            req_url = urlunparse(parsed._replace(path='/'.join(parsed.path.split('/')[:-2] + [reqtype[2:]])))
         else:
             req_url = self._url + reqtype
         return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
@@ -237,7 +238,9 @@ class GitLabInfo(RemoteGit__Info):
         # actual URL to the caller who does have that information.
         if mergereq.get('source_project_id', "no_spid") == mergereq.get('target_project_id', "no_tpid"):
             return "SameProject"
-        rsp = self.api_req(mergereq.get('source_project_id', "no_spid"))
+        rsp = self.api_req('//projects/%d' % mergereq.get('source_project_id', "no_spid"), notFoundOK=True)
+        if rsp == self.NotFound:
+            return rsp
         return ("DifferentProject", rsp.name)
 
     def get_pullreqs(self, reponame):
@@ -249,15 +252,39 @@ class GitLabInfo(RemoteGit__Info):
         # n.b. GitLab pullreqs have an id and and iid.  The iid is the
         # one that is presented to the user on the Web page.
 
-        preqs = [ PullReqInfo(str(pr["iid"]),   # for user reference
-                              pullreq_title=pr["title"],    # for user reference
-                              pullreq_srcurl=self._src_repo_url(pr),  # source repo URL
-                              pullreq_branch=pr["source_branch"],          # source repo branch
-                              pullreq_ref=pr["sha"],
-                              pullreq_user=pr['author']['username'],
-                              pullreq_email=self.get_user_email(pr['author']['id']),
-                              pullreq_mergeref=None)
-                  for pr in rsp if pr["state"] == "opened" and not pr["merged_at"] ]
+        preqs = []
+        for pr in rsp:
+            if pr["state"] == "opened" and not pr["merged_at"]:
+                src_repo_url = self._src_repo_url(pr)
+                if src_repo_url == self.NotFound:
+                    # Gitlab has a dubious feature where if a user
+                    # forks a private repository, the user's fork is
+                    # NOT accessible to other members of the private
+                    # repository.  When a merge request is generated
+                    # from that private repository, the merge request
+                    # information is visible as part of the merge
+                    # request, but the source repository is *not*
+                    # visible.  For Briareus and the buildsys, this
+                    # means that the .gitmodules of the source
+                    # repository cannot be examined (if it was a
+                    # project repository) and that the buildsys cannot
+                    # check out the source repo to build against.  At
+                    # this point, the only real option available at
+                    # this time is to just ignore this merge request.
+                    # Sorry!
+                    logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
+                                    reponame, pr['iid'], pr['title'])
+                else:
+                    prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
+                                         pullreq_title=pr["title"],    # for user reference
+                                         pullreq_srcurl=src_repo_url,
+                                         pullreq_branch=pr["source_branch"],          # source repo branch
+                                         pullreq_ref=pr["sha"],
+                                         pullreq_user=pr['author']['username'],
+                                         pullreq_email=self.get_user_email(pr['author']['id']),
+                                         pullreq_mergeref=None)
+                    preqs.append(prinfo)
+
         return PullReqsData(reponame, preqs)
 
     def get_user_email(self, userid):
