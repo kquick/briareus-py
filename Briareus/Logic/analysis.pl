@@ -183,6 +183,21 @@ action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fail
     , NFail > 0
 .
 
+% Filter notify(pr_projstatus_X, ...) to the specified PR.
+notify_is_for_PR(notify(_, _, prdata(PRType, _)), PRType).
+notify_is_for_PR(notify(_, _, prfaildata(PRType, _, _, _)), PRType).
+
+% Filter notify(any, ...) for association with the specified users
+notify_is_for_user(notify(_, _, prdata(_, PRCfgs)), User) :-
+    prcfg_has_user(PRCfgs, User)
+    , !  % one is enough
+.
+notify_is_for_user(notify(_, _, prfaildata(_, PRCfgs, _, _)), User) :-
+    prcfg_has_user(PRCfgs, User)
+    , !  % one is enough
+.
+
+
 %% ----------------------------------------------------------------------
 %% Action bindings
 

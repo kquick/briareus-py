@@ -109,3 +109,6 @@ branch_for_prtype(pr_type(pr_repogroup, _, RepoList), Branch) :-
     , is_main_branch(R0, Branch)
 .
 branch_for_prtype(pr_type(pr_grouped, Branch), Branch).
+
+prcfg_has_user([prcfg(_Repo, _PRID, _Branch, User, _Email)|_], User).
+prcfg_has_user([_|PRCfgs], User) :- prcfg_has_user(PRCfgs, User).
