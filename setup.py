@@ -27,7 +27,9 @@ setup(
                        ],
                  },
     data_files=[('hydra', ['hydra/sysconfig.nix', 'hydra/copy_hh.nix']),
-                ('html',  ['html/status_hdr.html']),
+                ('html',  [ 'html/status_hdr.html',
+                            'html/status_footer.html',
+                          ]),
     ],
     python_requires = '>=3.3',
     # install_requires=[],  # for pip

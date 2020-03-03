@@ -73,11 +73,10 @@ let
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
-             cp ${briareus}/html/status_hdr.html $htmlout
-             chmod +w $htmlout
-             ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr >> $htmlout
-             echo "<div id=\"gendate\">Updated: $(date)</div>" >>  $htmlout
-             echo '</body></html>' >> $htmlout
+             cat ${briareus}/html/status_hdr.html \
+                 <(${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr) \
+                 <(echo "<div id=\"gendate\">Updated: $(date)</div>") \
+                 ${briareus}/html/status_footer.html > $htmlout
              set +x
       '';
 
@@ -173,11 +172,10 @@ let
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
-             cp ${briareus}/html/status_hdr.html $htmlout
-             chmod +w $htmlout
-             ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr >> $htmlout
-             echo "<br><hr><p><i>Updated: $(date)</i></p>" >>  $htmlout
-             echo '</body></html>' >> $htmlout
+             cat ${briareus}/html/status_hdr.html \
+               <(${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr) \
+               <(echo "<br><hr><p><i>Updated: $(date)</i></p>") \
+               ${briareus}/html/status_footer.html > $htmlout
 
 	     set +x
              '';
