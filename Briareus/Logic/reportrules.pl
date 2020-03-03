@@ -153,9 +153,6 @@ cmpPrType(pr_type(pr_repogroup,I,RL),
 
 
 report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
     prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     good_status(Status),
@@ -163,9 +160,6 @@ report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bl
     listcmp(Vars, PriorVars).
 
 report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
     prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     bad_status(PrevSts),
@@ -173,9 +167,6 @@ report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldnam
     listcmp(Vars, PriorVars).
 
 report(status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
     findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
                 cmpBldDesc(BldDesc, BldDesc2, _),
@@ -183,16 +174,10 @@ report(status_report(initial_success, project(PName), Strategy, BranchType, Bran
     length(PS, 0).
 
 report(status_report(N, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, N, 0, configValid, BldDesc),
     N > 0.
 
 report(status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, _, configError, BldDesc).
 
 % Note, pending_status is different than status_report because
@@ -200,9 +185,6 @@ report(status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bl
 % still good) and with only one layer of history, introducing a
 % status_report(pending, ...) would obscure the previous results.
 report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _),
-    strategy(Strategy, PName, Branch),
-    branch_type(BranchType, Branch, _),
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
     N > 0.
 
@@ -211,20 +193,14 @@ report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Va
     % configs for which there is no bldres yet (e.g. the .jobsets
     % hasn't run) There is no Bldname assigned, but Briareus can
     % synthesize one from the bldcfg.
-    project(PName, _)
-    , strategy(Strategy, PName, Branch)
-    , branch_type(BranchType, Branch, _)
-    , build_config2(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))
+    build_config2(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))
     , no_bldres(PName, BranchType, Branch, Strategy, BldDesc, Vars1)
     .
 
 
 % This preserves the previous status for a pending build
 report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    project(PName, _)
-    , strategy(Strategy, PName, Branch)
-    , branch_type(BranchType, Branch, _)
-    , bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
+    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
     , N > 0
     , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2)
     , cmpBldDesc(BldDesc1, BldDesc2, BldDesc)
