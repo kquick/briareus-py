@@ -96,11 +96,12 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     ret = anarep.report_on(gen_result, prior_report,
                            reporting_logic_defs=reporting_logic_defs)
     te = datetime.datetime.now()
-    verbosely(params, 'Generated Analysis/Report: %d items in %s' %
-              (len(ret[1].report), str(te - t0)))
 
     if ret[0] != 'report':
         return None
+
+    verbosely(params, 'Generated Analysis/Report: %d items in %s' %
+              (len(ret[1].report), str(te - t0)))
 
     return ret[1]
 
