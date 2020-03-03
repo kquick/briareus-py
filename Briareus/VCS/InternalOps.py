@@ -429,17 +429,21 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='gitmodules_repo_vers')
 
 
+class NoURLForRepo(Exception): pass
+
 class GetGitInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw):
         super(GetGitInfo, self).__init__(*args, **kw)
-        self.gitinfo_actors = {}
-        self.gitinfo_actors_by_url = {}
+        self.gitinfo_actors = {}  # reponame:actoraddr
+        self.gitinfo_actors_by_url = {}  # repourl:actoraddr
+        self.gitinfo_pending_actor = defaultdict(list)  # reponame:[requests pending a DeclareRepo/repourl]
+        self.statpoints = defaultdict(int)
 
     def _get_subactor(self, reponame, repourl=None, repolocs=None):
         suba = self.gitinfo_actors.get(reponame, None)
         if not suba:
             if not repourl:
-                raise RuntimeError('No URL for defined repo %s' % reponame)  # KWQ: make a message
+                raise NoURLForRepo('No URL for defined repo %s' % reponame)
 
             # Optimization: sometimes different modules
             # share a repo (they are different subdirectories).  In
@@ -448,13 +452,19 @@ class GetGitInfo(ActorTypeDispatcher):
             # entry for this repo URL, just re-use it.
             if repourl in self.gitinfo_actors_by_url:
                 self.gitinfo_actors[reponame] = self.gitinfo_actors_by_url[repourl]
-                return self.gitinfo_actors[reponame]
-
-            suba = self.createActor(GitRepoInfo)
-            self.gitinfo_actors[reponame] = suba
-            self.gitinfo_actors_by_url[repourl] = suba
-            apiloc = to_http_url(repourl, repolocs or [])
-            self.send(suba, RepoRemoteSpec(apiloc))
+                self.statpoints['fromurl'] += 1
+                suba = self.gitinfo_actors[reponame]
+            else:
+                suba = self.createActor(GitRepoInfo)
+                self.gitinfo_actors[reponame] = suba
+                self.gitinfo_actors_by_url[repourl] = suba
+                self.statpoints['fromname'] += 1
+                apiloc = to_http_url(repourl, repolocs or [])
+                self.send(suba, RepoRemoteSpec(apiloc))
+            for msg in self.gitinfo_pending_actor[reponame]:
+                self.statpoints['resent'] += 1
+                self.send(suba, msg)
+            self.gitinfo_pending_actor[reponame] = []
         return suba
 
     def receiveMsg_ActorExitRequest(self, msg, sender):
@@ -472,12 +482,22 @@ class GetGitInfo(ActorTypeDispatcher):
             del self.gitinfo_actors_by_url[each]
 
     def receiveMsg_DeclareRepo(self, msg, sender):
+        self.statpoints['declared'] += 1
         suba = self._get_subactor(msg.reponame, msg.repo_url, msg.repolocs)
         self.send(sender, RepoDeclared(msg.reponame))
 
     def receiveMsg_Repo__ReqMsg(self, msg, sender):
-        suba = self._get_subactor(msg.reponame)
+        self.statpoints['reqmsg'] += 1
         msg.orig_sender = sender
+        try:
+            suba = self._get_subactor(msg.reponame)
+        except NoURLForRepo:
+            self.statpoints['norepoactor'] += 1
+            self.gitinfo_pending_actor[msg.reponame].append(msg)
+            return
+        except RuntimeError as er:
+            logging.critical('Error on message %s', msg)
+            raise er
         self.send(suba, msg)
 
     def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
@@ -489,6 +509,7 @@ class GetGitInfo(ActorTypeDispatcher):
         if not suba:
             suba = self.createActor(GitRepoInfo)
             self.gitinfo_actors_by_url[loc] = suba
+            self.statpoints['altloc_create'] += 1
             # No self.gitinfo_actors entry: all primary requests are
             # routed by reponame to the main GitRepoInfo actor; this
             # is just for alternate locations (e.g. source of
@@ -499,4 +520,9 @@ class GetGitInfo(ActorTypeDispatcher):
 
     def receiveMsg_str(self, msg, sender):
         if msg == "status":
-            self.send(sender, self.gitinfo_actors)
+            self.send(sender,
+                      { "actors": self.gitinfo_actors,
+                        "actors by url": self.gitinfo_actors_by_url,
+                        "pending": self.gitinfo_pending_actor,
+                        "statpoints": self.statpoints,
+                      })
