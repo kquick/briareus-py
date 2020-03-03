@@ -76,11 +76,8 @@ def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
     for loc,rev in url_and_rev:
         forge = GitForge(loc)
         try:
-            rsp = forge.set_commit_status(sts, desc, rev, stsurl, project)
-            if rsp.status_code in [ 201, 404 ]:
+            if forge.set_commit_status(sts, desc, rev, stsurl, project):
                 successful.extend(url_and_rev[(loc,rev)])
-            else:
-                print('rsp',rsp)
         except Exception as ex:
             print('Error posting forge status to %s: %s'
                   % (str(loc), str(ex)),
@@ -113,4 +110,8 @@ class GitForge(object):
 
 
     def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
-        return self._ghinfo.set_commit_status(sts, desc, commitref, url, context_ref)
+        rval = self._ghinfo.set_commit_status(sts, desc, commitref, url, context_ref)
+        if rval == self._ghinfo.NotFound or rval.status_code in [ 201, 404 ]:
+            return True
+        print('set_commit_sts response',rval)
+        return False
