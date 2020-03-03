@@ -96,6 +96,7 @@ class BuilderResult(object):
     nrfailed    = attr.ib()  # int
     nrscheduled = attr.ib()  # int
     cfgerror    = attr.ib()  # bool
+    builder_url = attr.ib()  # string URL for this builder result
 
 
 # ----------------------------------------------------------------------

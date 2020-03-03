@@ -109,10 +109,10 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
         anarep = AnaRep.AnaRep(verbose=True, actor_system=actor_system)
         # n.b. the name values for build_results come from
         # buildcfg_name, which is revealed by this print loop.
-        builder = BldSys.HydraBuilder(None)
+        builder = BldSys.HydraBuilder(None, "http://hydra.builder/path")
         for each in build_cfgs.cfg_build_configs:
             print(buildcfg_name(each))
-        builder._build_results = build_results
+        builder._build_results = "projname", build_results
         rcontext = RunContext(actor_system,
                               [AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)])
         report = anarep.report_on(rcontext,

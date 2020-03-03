@@ -302,7 +302,7 @@ def test_example_report_length(example_hydra_results):
 @pytest.fixture(scope="module")
 def example_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "project name", {
             "Repo1": tex2.build_results,
             "alt-proj": build_results,
         }[each.inp_desc.PNAME]

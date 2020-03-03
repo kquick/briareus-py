@@ -310,15 +310,16 @@ class HydraBuilder(BuilderBase.Builder):
             if r.status_code == 404:
                 return 'No build results at specified target (%s)' % url
             r.raise_for_status()
-            self._build_results = r.json()
+            self._build_results = project_name, r.json()
         return self._build_results
 
 
     def get_build_result(self, bldcfg):
         n = buildcfg_name(bldcfg)
-        r = self._get_build_results()
-        if isinstance(r, str):
-            return r
+        rval = self._get_build_results()
+        if isinstance(rval, str):
+            return rval
+        project_name, r = rval
         return ([
             BuilderResult(
                 buildname=n,
@@ -327,6 +328,8 @@ class HydraBuilder(BuilderBase.Builder):
                 nrfailed=get_or_show(e, 'nrfailed'),
                 nrscheduled=get_or_show(e, 'nrscheduled'),
                 cfgerror=get_or_show(e, 'haserrormsg') or bool(get_or_show(e, "fetcherrormsg")),
+                builder_url = ("/".join([self._builder_url, "jobset", project_name, n])
+                               if self._builder_url else None),
             )
             for e in r if e['name'] == n
         ] + ['No results available for jobset ' + n])[0]

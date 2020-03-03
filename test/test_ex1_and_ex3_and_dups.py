@@ -146,7 +146,7 @@ def test_exampledups_bldcfg_count(generated_inp_config_bldconfigs):
 @pytest.fixture(scope="module")
 def example_empty_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = []
+        each.builder._build_results = "empty project", []
     return generate_report(testing_dir, generated_inp_config_bldconfigs, []).report
 
 
@@ -185,7 +185,7 @@ def make_fail(bldres):
 @pytest.fixture(scope="module")
 def all_failed_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "my project", {
             "R1": [make_fail(r) for r in texres.build_results],
             "R10": [make_fail(r) for r in tex3.build_results],
             "Repo1": [make_fail(r) for r in tdups.build_results],
@@ -204,7 +204,7 @@ def test_example_fail_report_complete_failures(all_failed_report):
 @pytest.fixture
 def example_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "project", {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
@@ -264,7 +264,7 @@ def test_example_report_do_list(example_report):
 def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs):
     "Demonstrate that email whitelists and blacklists can be combined"
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "proj", {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
@@ -319,7 +319,7 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
 def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
     "Check email whitelist auto-disable all and only allow whitelisted."
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "prj", {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
@@ -347,7 +347,7 @@ def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
 def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
     "Check email blacklist only disables blacklisted."
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "a project", {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
@@ -387,7 +387,7 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
 def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfigs):
     "Check email blacklist only disables blacklisted."
     for each in generated_inp_config_bldconfigs.result_sets:
-        each.builder._build_results = {
+        each.builder._build_results = "project", {
             "R1": texres.build_results,
             "R10": [],
             "Repo1": tdups.build_results,
