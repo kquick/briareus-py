@@ -133,12 +133,12 @@ class RemoteGit__Info(object):
             rsp.raise_for_status()
         return rsp
 
-    def api_post(self, reqtype, data):
+    def api_post(self, reqtype, data, notFoundOK=False):
         # POST operations are not cached
         req_url = self._url + reqtype
         rsp = self._request_session.post(req_url, json=data)
-        # if rsp.status_code == 201:
-        #     return rsp
+        if notFoundOK and rsp.status_code == 404:
+            return self.NotFound
         rsp.raise_for_status()
         return rsp
 
@@ -346,7 +346,9 @@ class GitLabInfo(RemoteGit__Info):
                               "target_url": url,
                               "context": ("ci/briareus:" + context_ref
                                           if context_ref else "ci/briareus"),
-        })
+                             },
+                             # Allow 404: means no permissions to set a status, so don't retry
+                             notFoundOK=True)
 
 
 # ----------------------------------------------------------------------
@@ -440,7 +442,9 @@ class GitHubInfo(RemoteGit__Info):
                               "target_url": url,
                               "context": ("ci/briareus:" + context_ref
                                           if context_ref else "ci/briareus"),
-        })
+                             },
+                             # Allow 404: means no permissions to set a status, so don't retry
+                             notFoundOK=True)
 
 
 # ----------------------------------------------------------------------

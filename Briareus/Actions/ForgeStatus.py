@@ -45,7 +45,8 @@ def do_set_forge_status(action, full_report, runctxt):
 def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
     can_post = os.getenv('BRIAREUS_FORGE_STATUS', None)
     if not can_post:
-        print('Warning: post to %s suppressed: %s' % (forge_list, desc),
+        print('Warning: post to %s suppressed: %s (for %s)'
+              % (forge_list, desc, notify_params.prtype),
               file=sys.stderr)
         return forge_list
 
@@ -76,13 +77,15 @@ def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
         forge = GitForge(loc)
         try:
             rsp = forge.set_commit_status(sts, desc, rev, stsurl, project)
-            print('rsp',rsp)
-            if rsp.status_code == 201:
+            if rsp.status_code in [ 201, 404 ]:
                 successful.extend(url_and_rev[(loc,rev)])
+            else:
+                print('rsp',rsp)
         except Exception as ex:
             print('Error posting forge status to %s: %s'
                   % (str(loc), str(ex)),
                   file = sys.stderr)
+            successful.extend(url_and_rev[(loc,rev)])
 
     return successful
 
