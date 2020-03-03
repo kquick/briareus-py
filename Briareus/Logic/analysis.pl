@@ -199,19 +199,19 @@ email_address_useable(Addr) :-
 % based on the Do operation and the Notification.  These are mapped to
 % enable(DoWhat, Target, Notification) entries in the Reporting logic
 % of the input configuration.
-action_to(DoWhat, Target, Notification) :- enable(DoWhat, Target, Notification).
+action_enabled(DoWhat, Target, Notification) :- enable(DoWhat, Target, Notification).
 
 % Some convenience action enablers.  The project_owner(Project, Email)
 % is defined in the Reporting logic of the input configuration.
-action_to(email, UserEmail, notify(main_broken, Project, _)) :-
+action_enabled(email, UserEmail, notify(main_broken, Project, _)) :-
     project_owner(Project, UserEmail).
-action_to(email, UserEmail, notify(main_good, Project, _)) :-
+action_enabled(email, UserEmail, notify(main_good, Project, _)) :-
     project_owner(Project, UserEmail).
-action_to(email, UserEmail, notify(completely_broken, Project, _)) :-
+action_enabled(email, UserEmail, notify(completely_broken, Project, _)) :-
     project_owner(Project, UserEmail).
-action_to(email, UserEmail, notify(main_submodules_broken, Project, _)) :-
+action_enabled(email, UserEmail, notify(main_submodules_broken, Project, _)) :-
     project_owner(Project, UserEmail).
-action_to(email, UserEmail, notify(main_submodules_good, Project, _)) :-
+action_enabled(email, UserEmail, notify(main_submodules_good, Project, _)) :-
     project_owner(Project, UserEmail).
 
 % do_new inherits Previous from any prior specification of this type.
@@ -231,7 +231,7 @@ do(email(Users, Notification, Notified)) :-
     Notification = notify(_, _, _),
     action(Notification),
     setof(User
-          , ( action_to(email, User, Notification)
+          , ( action_enabled(email, User, Notification)
               , email_address_useable(User)
           )
           , Users),
@@ -240,6 +240,6 @@ do(email(Users, Notification, Notified)) :-
 do(chat(Channels, notify(What, Subject, Args), Posted)) :-
     Notification = notify(What, Subject, Args)
     , action(Notification)
-    , setof(Channel, action_to(chat, Channel, Notification), Channels)
+    , setof(Channel, action_enabled(chat, Channel, Notification), Channels)
     , do_new(chat, Notification, Posted)
 .
