@@ -23,7 +23,7 @@ from Briareus.Types import SendEmail
 SEND_EMAIL_TIMEOUT = timedelta(seconds=20)
 
 
-def do_send_email_action(email_action, full_report, inpcfg):
+def do_send_email_action(email_action, inpcfg, run_context):
     "Sends email, where email_action is Briareus.Types.SendEmail"
     rec = email_action.recipients
     done = email_action.sent_to
@@ -31,7 +31,7 @@ def do_send_email_action(email_action, full_report, inpcfg):
     if send_to:
         subj, body = gen_content('email', email_action.notification)
         if body:
-            sent_to = send_email(send_to, subj, body)
+            sent_to = send_email(send_to, subj, body, run_context)
         else:
             # Output is suppressed, so indicate all targets have been satisfied
             sent_to = send_to
@@ -41,21 +41,19 @@ def do_send_email_action(email_action, full_report, inpcfg):
     return email_action
 
 
-def send_email(recipients, subject, message, actor_system=None):
-    asys = actor_system or ActorSystem('multiprocTCPBase')
-    try:
-        # Use a global name for this actor to re-connect to the existing "daemon"
-        rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.EmailSender.EmailSender',
-                                        globalName='EmailSender'),
-                       toJSON(EmailEnvelope(recipients, subject, message)),
-                       SEND_EMAIL_TIMEOUT)
-        if rsp == None:
-            raise RuntimeError('Timeout waiting for EmailSender response')
-        rspobj = fromJSON(rsp)
-        if isinstance(rspobj, SendReceipt):
-            return rspobj.recipients
-        raise RuntimeError('Unexpected response to EmailSender request: %s' % str(rsp))
-    finally:
-        if actor_system is None:
-            #asys.shutdown()  # actor_system is not passed, so this would always get invoked
-            pass
+def send_email(recipients, subject, message, run_context):
+    if not run_context.actor_system:
+        run_context.actor_system = ActorSystem('multiprocTCPBase')
+    asys = run_context.actor_system
+
+    # Use a global name for this actor to re-connect to the existing "daemon"
+    rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.EmailSender.EmailSender',
+                                    globalName='EmailSender'),
+                   toJSON(EmailEnvelope(recipients, subject, message)),
+                   SEND_EMAIL_TIMEOUT)
+    if rsp == None:
+        raise RuntimeError('Timeout waiting for EmailSender response')
+    rspobj = fromJSON(rsp)
+    if isinstance(rspobj, SendReceipt):
+        return rspobj.recipients
+    raise RuntimeError('Unexpected response to EmailSender request: %s' % str(rsp))

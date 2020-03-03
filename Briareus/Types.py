@@ -305,3 +305,52 @@ logic_result_expr = {
 
     "project": lambda n: n,
 }
+
+
+# ----------------------------------------------------------------------
+# Information accumulated and managed internally to Briareus
+
+@attr.s
+class RunContext(object):
+    "Stores the result of one or more generated build configurations"
+
+    actor_system = attr.ib()
+    result_sets = attr.ib(factory=list) # list of ResultSet
+    report = attr.ib(factory=list)  # list of report-generated items
+
+    def add_results(self, builder, inp_desc, repo_info, build_cfgs):
+        self.result_sets.append(ResultSet(builder, inp_desc, repo_info, build_cfgs))
+
+
+
+@attr.s
+class ResultSet(object):
+    """This object accumulates the various project-specific information
+    obtained during the Briareus processing.
+    """
+
+    # At present, the builder is used by reporting to get the build
+    # results, so any builder will suffice.  In the future, all
+    # builders should be the same, and the first generated should be
+    # threaded through, or the builder map should be passed to AnaRep
+    # for consuting project-specific builders for results.
+    builder = attr.ib(default=None)
+
+    # inp_desc is an array of Briareus.Input.Description.InputDesc
+    # object.  These are kept separate so that the set of input logic
+    # facts are consistent to each inp_desc.
+    inp_desc = attr.ib(default=None)
+
+    # repo_info is a dictionary gathered from the remote repositories.
+    # Assume that the dictionaries can simply be combined and that any
+    # duplicates are identical.  This might not be true if the same
+    # name were chosen for different repositories, but we currently
+    # deem that a bad input configuration.
+    repo_info = attr.ib(default=None)
+
+    # build_cfgs is the internal build configs,
+    # Briareus.BCGen.Generator.GeneratedConfigs
+    build_cfgs = attr.ib(default=None)
+
+    # build_results are the array of [BuildResult]
+    build_results = attr.ib(factory=list)

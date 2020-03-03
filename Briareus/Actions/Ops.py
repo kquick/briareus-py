@@ -9,8 +9,8 @@ actions = {
     'SendEmail': do_send_email_action
 }
 
-def do_action(possible_action, full_report, inpcfg):
+def do_action(possible_action, inpcfg, run_context):
     act = actions.get(possible_action.__class__.__name__, None)
     if not act:
         return possible_action
-    return act(possible_action, full_report, inpcfg)
+    return act(possible_action, inpcfg, run_context)

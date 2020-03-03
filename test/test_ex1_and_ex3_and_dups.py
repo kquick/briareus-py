@@ -95,7 +95,7 @@ expected_facts = sorted(filter(None,
 
 # ----------------------------------------------------------------------
 # The build configurations do not need to be exhaustively tested: the
-# GenResults returned by example_internal_bldconfigs is simply an
+# RunContext's returned by example_internal_bldconfigs is simply an
 # array of the individual configurations already tested by
 # test_example.py, test_example3.py, and test_exampledups.py.
 #
@@ -147,7 +147,7 @@ def test_exampledups_bldcfg_count(generated_inp_config_bldconfigs):
 def example_empty_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = []
-    return generate_report(testing_dir, generated_inp_config_bldconfigs, [])
+    return generate_report(testing_dir, generated_inp_config_bldconfigs, []).report
 
 
 def test_example_empty_report_summary(example_empty_report):
@@ -190,7 +190,7 @@ def all_failed_report(testing_dir, generated_inp_config_bldconfigs):
             "R10": [make_fail(r) for r in tex3.build_results],
             "Repo1": [make_fail(r) for r in tdups.build_results],
         }[[R.repo_name for R in each.inp_desc.RL if R.project_repo][0]]
-    return generate_report(testing_dir, generated_inp_config_bldconfigs, [])
+    return generate_report(testing_dir, generated_inp_config_bldconfigs, []).report
 
 def test_example_fail_report_complete_failures(all_failed_report):
     reps = all_failed_report
@@ -201,7 +201,7 @@ def test_example_fail_report_complete_failures(all_failed_report):
 
 # ----------------------------------------
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def example_report(testing_dir, generated_inp_config_bldconfigs):
     for each in generated_inp_config_bldconfigs.result_sets:
         each.builder._build_results = {
@@ -223,7 +223,7 @@ def generate_report(testdir, inp_config_bldconfigs, prior, reporting_logic_defs=
     return rep
 
 def test_example_report_summary(example_report):
-    reps = example_report
+    reps = example_report.report
 
     for each in reps:
         print('')
@@ -233,13 +233,13 @@ def test_example_report_summary(example_report):
                           bldcfg_count=92, subrepo_count=6, pullreq_count=15) in reps
 
 def test_example_report_varfailures(example_report):
-    reps = example_report
+    reps = example_report.report
     assert VarFailure(project='Project #1', varname='c_compiler', varvalue='clang') in reps
     assert VarFailure(project='Repo1', varname='ghcver', varvalue='ghc881') in reps
 
 def test_example_report_do_list(example_report):
     "Check email actions with no whitelisting or blacklisting."
-    reps = example_report
+    reps = example_report.report
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
                          'betty@nocompany.com',
@@ -289,7 +289,7 @@ def test_example_report_do_list_wwb(testing_dir, generated_inp_config_bldconfigs
                              email_domain_whitelist("_company.com").
                              email_domain_blacklist("not_a_company.com").
                            ''',
-                           )
+                           ).report
 
     for each in reps:
         if isinstance(each, SendEmail):
@@ -329,7 +329,7 @@ def test_example_report_do_list_w(testing_dir, generated_inp_config_bldconfigs):
                            reporting_logic_defs='''
                              email_domain_whitelist("_company.com").
                            ''',
-                           )
+                           ).report
 
     for each in reps:
         if isinstance(each, SendEmail):
@@ -357,7 +357,7 @@ def test_example_report_do_list_b(testing_dir, generated_inp_config_bldconfigs):
                            reporting_logic_defs='''
                              email_domain_blacklist("not_a_company.com").
                            ''',
-                           )
+                           ).report
 
     for each in reps:
         if isinstance(each, SendEmail):
@@ -398,7 +398,7 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
                              email_user_blacklist("fred@nocompany.com").
                              email_user_blacklist("john@_company.com").
                            ''',
-                           )
+                           ).report
 
     recipients = sorted(['eddy@nocompany.com',
                          'betty@nocompany.com',
@@ -414,9 +414,10 @@ def test_example_report_do_list_userb(testing_dir, generated_inp_config_bldconfi
 def test_example_report_take_actions(send_email, inp_configs, example_report):
     "Check email actions with no whitelisting or blacklisting."
 
-    send_email.side_effect = lambda r, s, m: r
+    send_email.side_effect = lambda r, s, m, c: r.copy()
 
-    rep = hh.perform_hh_actions(inp_configs, example_report)
+    rctxt = hh.perform_hh_actions(inp_configs, example_report.report, example_report)
+    rep = rctxt.report
 
     for each in rep:
         if isinstance(each, SendEmail):
@@ -449,15 +450,15 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
                                          params='master'),
                      sent_to=filter(lambda r: 'betty' not in r, recipients_with_owner)) in rep
     print(send_email.call_args_list)
-    send_email.assert_has_calls([call(recipients, ANY, ANY),  # <- varfailure clang in Project #1
-                                 call(["fred@nocompany.com"], ANY, ANY), # <- varfailure ghc881 in Repo1
+    send_email.assert_has_calls([call(recipients, ANY, ANY, example_report),  # <- varfailure clang in Project #1
+                                 call(["fred@nocompany.com"], ANY, ANY, example_report), # <- varfailure ghc881 in Repo1
                                  # vv main_submodules success in Project #1
                                  call(list(filter(lambda r: 'betty' not in r
                                                   and 'eddy' not in r
                                                   , recipients_with_owner)),
-                                      ANY, ANY),
+                                      ANY, ANY, example_report),
                                  # vv main success in Repo1
-                                 call(["fred@nocompany.com", "george@_company.com"], ANY, ANY),
+                                 call(["fred@nocompany.com", "george@_company.com"], ANY, ANY, example_report),
     ],
                                 any_order=True)
     assert send_email.call_count == 4

@@ -275,7 +275,8 @@ def test_example_hydra_count(example_hydra_jobsets):
 
 @pytest.fixture(scope="module")
 def example_hydra_results(generate_hydra_results):
-    return generate_hydra_results(build_results=build_results, prior=prior)
+    r = generate_hydra_results(build_results=build_results, prior=prior)
+    return r[0], r[1].report
 
 def test_example_report_summary(example_hydra_results):
     bldcfgs, reps = example_hydra_results

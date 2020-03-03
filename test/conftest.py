@@ -3,6 +3,7 @@
 import pytest
 from datetime import datetime, timedelta
 from thespian.actors import *
+from Briareus.Types import *
 import Briareus.AnaRep.Operations as AnaRep
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
@@ -45,7 +46,7 @@ def generated_inp_config_facts(actor_system, testing_dir, inp_configs):
     "Generate facts from a list of (gitactor, outcfg_fname, InpConfig) inputs"
     params = hh.Params(verbose=True, up_to=hh.UpTo("facts"),
                        report_file=testing_dir.join("testreport.hhr"))
-    prev_result = hh.GenResult(actor_system=actor_system)
+    prev_result = RunContext(actor_system=actor_system)
     result = []
     for git, outf, inpcfg in inp_configs:
         # Generate canned info instead of actually doing git operations
@@ -71,7 +72,7 @@ def generated_inp_config_bldconfigs(actor_system, testing_dir, inp_configs, requ
     starttime = datetime.now()
     params = hh.Params(verbose=True, up_to=hh.UpTo("builder_configs"),
                        report_file=testing_dir.join("testreport_bldcfgs.hhr"))
-    result = hh.GenResult(actor_system=actor_system)
+    result = RunContext(actor_system=actor_system)
     for git, outf, inpcfg in inp_configs:
         # Generate canned info instead of actually doing git operations
         gitActor = actor_system.createActor(git, globalName="GetGitInfo")
@@ -112,7 +113,9 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
         for each in build_cfgs.cfg_build_configs:
             print(buildcfg_name(each))
         builder._build_results = build_results
-        report = anarep.report_on([AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)],
+        rcontext = RunContext(actor_system,
+                              [AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)])
+        report = anarep.report_on(rcontext,
                                   prior,
                                   reporting_logic_defs=reporting_logic_defs)
         assert report[0] == 'report'

@@ -241,7 +241,8 @@ def test_example_internal_regular_master_HEADs(generated_inp_config_bldconfigs):
 
 @pytest.fixture(scope="module")
 def example_hydra_results(generate_hydra_results):
-    return generate_hydra_results(build_results=build_results, prior=prior)
+    r = generate_hydra_results(build_results=build_results, prior=prior)
+    return r[0], r[1].report
 
 def test_example_report_summary(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -319,7 +320,7 @@ def generate_report(testdir, inp_config_bldconfigs, prior, reporting_logic_defs=
     return rep
 
 def test_combined_report_summary(example_report):
-    reps = example_report
+    reps = example_report.report
     for each in reps:
         print(str(each))
         print()
@@ -327,7 +328,7 @@ def test_combined_report_summary(example_report):
                           bldcfg_count=14, subrepo_count=6, pullreq_count=0) in reps
 
 def test_combined_report_add_status1(example_report):
-    reps = example_report
+    reps = example_report.report
     assert StatusReport(status='fixed', project='alt-proj',
                         strategy='HEADs', branchtype="regular", branch="master",
                         buildname='master.HEADs-ghc865',
@@ -337,7 +338,7 @@ def test_combined_report_add_status1(example_report):
     ) in reps
 
 def test_combined_report_add_status3(example_report):
-    reps = example_report
+    reps = example_report.report
     assert StatusReport(status=1, project='alt-proj',
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc865',
@@ -347,7 +348,7 @@ def test_combined_report_add_status3(example_report):
     ) in reps
 
 def test_combined_report_add_send_email(example_report):
-    reps = example_report
+    reps = example_report.report
     assert StatusReport(status=1, project='alt-proj',
                         strategy='submodules', branchtype="regular", branch="master",
                         buildname='master.submodules-ghc865',
@@ -357,43 +358,43 @@ def test_combined_report_add_send_email(example_report):
     ) in reps
 
 def test_combined_report_status1(example_report):
-    tex2.test_example_report_status1((None, example_report))
+    tex2.test_example_report_status1((None, example_report.report))
 
 def test_combined_report_status3(example_report):
-    tex2.test_example_report_status3((None, example_report))
+    tex2.test_example_report_status3((None, example_report.report))
 
 def test_combined_report_status5(example_report):
-    tex2.test_example_report_status5((None, example_report))
+    tex2.test_example_report_status5((None, example_report.report))
 
 def test_combined_report_status6(example_report):
-    tex2.test_example_report_status6((None, example_report))
+    tex2.test_example_report_status6((None, example_report.report))
 
 def test_combined_report_status7(example_report):
-    tex2.test_example_report_status7((None, example_report))
+    tex2.test_example_report_status7((None, example_report.report))
 
 def test_combined_report_status8(example_report):
-    tex2.test_example_report_status8((None, example_report))
+    tex2.test_example_report_status8((None, example_report.report))
 
 def test_combined_report_status9(example_report):
-    tex2.test_example_report_status9((None, example_report))
+    tex2.test_example_report_status9((None, example_report.report))
 
 def test_combined_report_status10(example_report):
-    tex2.test_example_report_status10((None, example_report))
+    tex2.test_example_report_status10((None, example_report.report))
 
 def test_combined_report_status11(example_report):
-    tex2.test_example_report_status11((None, example_report))
+    tex2.test_example_report_status11((None, example_report.report))
 
 def test_combined_report_status12(example_report):
-    tex2.test_example_report_status12((None, example_report))
+    tex2.test_example_report_status12((None, example_report.report))
 
 def test_combined_report_status13(example_report):
-    tex2.test_example_report_status13((None, example_report))
+    tex2.test_example_report_status13((None, example_report.report))
 
 def test_combined_report_ghc881_varfailure(example_report):
-    tex2.test_example_report_ghc881_varfailure((None, example_report))
+    tex2.test_example_report_ghc881_varfailure((None, example_report.report))
 
 def test_combined_report_length(example_report):
-    reps = example_report
+    reps = example_report.report
     num_varfailure = 1 + 0
     pr_status = 0 + 0
     num_notify = (num_varfailure + pr_status +

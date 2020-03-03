@@ -119,7 +119,8 @@ analysis_time_budget = timedelta(seconds=1, milliseconds=750)  # avg 1.06s
 
 @pytest.fixture(scope="module")
 def example_hydra_results(generate_hydra_results):
-    return generate_hydra_results(build_results=build_results, prior=prior)
+    r = generate_hydra_results(build_results=build_results, prior=prior)
+    return r[0], r[1].report
 
 
 def test_example_report_summary(example_hydra_results):
@@ -271,7 +272,7 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
     """Express a prior send of an email to the target; this ensures that
        these prior sends are retained.
     """
-    bldcfgs, reps = generate_hydra_results(
+    bldcfgs, ctxt = generate_hydra_results(
         build_results=build_results,
         prior=prior + [
             SendEmail(recipients=['fred@nocompany.com'],
@@ -283,12 +284,8 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
                       sent_to=['fred@nocompany.com'])
         ],
     )
+    reps = ctxt.report
 
-    for each in reps:
-        print('')
-        print(each)
-    print('')
-    print(len(reps))
     recipients = sorted(['eddy@nocompany.com',
                          'fred@nocompany.com',
                          'john@_company.com',

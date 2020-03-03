@@ -203,7 +203,8 @@ prior = [
 
 @pytest.fixture(scope="module")
 def example_hydra_results(generate_hydra_results):
-    return generate_hydra_results(build_results=build_results, prior=prior)
+    r = generate_hydra_results(build_results=build_results, prior=prior)
+    return r[0], r[1].report
 
 analysis_time_budget = timedelta(seconds=1, milliseconds=500)  # avg 1.03s
 

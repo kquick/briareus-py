@@ -8,7 +8,7 @@ import Briareus.Input.Operations as BInput
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
-from Briareus.Types import SendEmail
+from Briareus.Types import SendEmail, RunContext
 import argparse
 import datetime
 import os
@@ -49,21 +49,10 @@ def verbosely(params, *msgargs):
 # ----------------------------------------------------------------------
 # Actual generation and reporting functions
 
-@attr.s
-class GenResult(object):
-    "Stores the result of one or more generated build configurations"
-
-    actor_system = attr.ib()
-    result_sets = attr.ib(factory=list) # list of AnaRep.ResultSet
-
-    def add_results(self, builder, inp_desc, repo_info, build_cfgs):
-        self.result_sets.append(AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs))
-
-
 def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
     verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
     result = (prev_gen_result or
-              GenResult(actor_system=ActorSystem('multiprocTCPBase')))
+              RunContext(actor_system=ActorSystem('multiprocTCPBase')))
     if inpcfg.builder_type == 'hydra':
         builder = BldSys.HydraBuilder(inpcfg.builder_conf,
                                       builder_url=inpcfg.builder_url)
@@ -104,21 +93,22 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=gen_result.actor_system)
-    report = anarep.report_on(gen_result.result_sets, prior_report,
-                              reporting_logic_defs=reporting_logic_defs)
+    ret = anarep.report_on(gen_result, prior_report,
+                           reporting_logic_defs=reporting_logic_defs)
     te = datetime.datetime.now()
     verbosely(params, 'Generated Analysis/Report: %d items in %s' %
-              (len(report[1]), str(te - t0)))
+              (len(ret[1].report), str(te - t0)))
 
-    if report[0] != 'report':
+    if ret[0] != 'report':
         return None
 
-    return report[1]
+    return ret[1]
 
 
-def perform_hh_actions(inpcfg, inp_report):
-    return [ Actions.do_action(each, inp_report, inpcfg)
-             for each in inp_report ]
+def perform_hh_actions(inpcfg, inp_report, run_context):
+    run_context.report = [ Actions.do_action(each, inp_report, run_context)
+                           for each in run_context.report ]
+    return run_context
 
 # ----------------------------------------------------------------------
 
@@ -265,16 +255,16 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
 
     if reportf or (params.up_to and params.up_to.enough('built_facts')):
 
-        report = run_hh_report(params, gen_result, prior_report,
-                               reporting_logic_defs=reporting_logic_defs)
+        upd_result = run_hh_report(params, gen_result, prior_report,
+                                   reporting_logic_defs=reporting_logic_defs)
 
         if params.up_to and not params.up_to.enough('actions'):
             return
 
-        report = perform_hh_actions(inpcfg, report)
+        act_result = perform_hh_actions(inpcfg, upd_result.report, upd_result)
 
         if reportf and (not params.up_to or params.up_to.enough('report')):
-            write_report_output(reportf, report)
+            write_report_output(reportf, act_result.report)
 
 
 def atomic_write_to(outfname, gen_output):
