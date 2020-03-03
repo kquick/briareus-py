@@ -117,6 +117,9 @@ cmpPrType(pr_type(pr_repogroup,I,RL),
     member(R, RL).
 
 
+cmpPRCfg(PC1, PC2) :- listcmp(PC1, PC2).
+
+
 branch_for_prtype(pr_type(pr_solo, Repo, _), Branch) :-
     is_main_branch(Repo, Branch)
 .

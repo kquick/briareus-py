@@ -273,9 +273,30 @@ action_enabled(email, UserEmail, notify(main_submodules_good, Project, _)) :-
 % the notification processing does nothing.  When the Notification is
 % no longer generated, then the do is no longer expressed and both
 % previous and new versions are removed.
-do_new(What, Item, Previous) :- call(What, _, Item, Previous), !.  % acquire Previous
+do_new(Action, notify(What, Subject, Params), Previous) :-
+    call(Action, _, PrevNotify, Previous)
+    , cmpNotify(notify(What, Subject, Params), PrevNotify)
+    , !
+    .
 do_new(_, _, []).  % Initially, start with no deliveries
 
+% Compare two notifications.  Some special handling may be needed for
+% comparing unstable Params.
+cmpNotify(notify(What, Subject, prdata(PRType, PRCfg)),
+          notify(What, Subject, prdata(PRT2, PRC2))) :-
+    cmpPrType(PRType, PRT2, _)
+    , cmpPRCfg(PRCfg, PRC2)
+    , !
+.
+cmpNotify(notify(What, Subject, prfaildata(PRType, PRCfg, Goods, Fails)),
+          notify(What, Subject, prfaildata(PRT2, PRC2, Good2, Fail2))) :-
+    cmpPrType(PRType, PRT2, _)
+    , cmpPRCfg(PRCfg, PRC2)
+    , listcmp(Goods, Good2)
+    , listcmp(Fails, Fail2)
+    , !
+.
+cmpNotify(N, N).
 
 :- discontiguous email/3.
 :- discontiguous chat/3.
