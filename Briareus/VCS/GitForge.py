@@ -302,8 +302,19 @@ class GitLabInfo(RemoteGit__Info):
 
         """
 
+        # Note: github uses "failure" but gitlab uses "failed".
+
+        # Note: gitlab has a "pending" status, but it is not used here
+        # because while in "pending" it rejects (400 Client Error) any
+        # attempts to set any state other than "running".  However,
+        # any transition between running, failed, and success is
+        # allowed (and once in this set of states, an attempt to set
+        # "pending" sets the actual state to "running", not
+        # "pending").
+
         return self.api_post('/statuses/' + commitref,
-                             {"state": "failure" if sts == "failed" else sts,
+                             {"state": ("failed" if sts == "failure" else
+                                        "running" if sts == "pending" else sts),
                               "description": desc,
                               "target_url": url,
                               "context": ("ci/briareus:" + context_ref
