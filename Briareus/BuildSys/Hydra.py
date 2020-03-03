@@ -294,6 +294,11 @@ class HydraBuilder(BuilderBase.Builder):
     def update(self, cfg_spec):
         print("Takes output of output_build_configurations and updates the actual remote builder")
 
+    def get_project_url(self, project):
+        if not self._builder_url:
+            return None
+        return '/'.join([self._builder_url, 'project', project])
+
     def _get_build_results(self):
         r = getattr(self, '_build_results', None)
         if not r:
