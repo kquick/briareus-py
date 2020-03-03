@@ -38,9 +38,6 @@ bad_status(failed).
 bad_status(N) :- integer(N).
 bad_status(badconfig).
 
-listcmp([A|AS], BS) :- member(A, BS), listcmp(AS, BS).
-listcmp([], _).
-
 %% ----------------------------------------------------------------------
 
 %% no_good_status returns true if the project has no

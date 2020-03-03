@@ -1,6 +1,11 @@
 %% This provides a library of various logic predicates that can be
 %% used in the generation and analysis of build configurations.
 
+listcmp(AS, BS) :- length(AS, L), length(BS, L), listcmp_(AS, BS).
+listcmp_([A|AS], BS) :- member(A, BS), listcmp_(AS, BS).
+listcmp_([], _).
+
+
 %% Test if an argument is a Project Repo.  A single match is sufficient.
 is_project_repo(R) :- project(_, R), !.
 
