@@ -127,6 +127,52 @@
         background-color: rgba(54, 119, 188, 0.4);
         padding: calc(var(--padding) / 2) var(--padding);
       }
+
+      .accordion {
+          background-color: rgba(54, 99, 188, 0.4);
+          cursor: pointer;
+          padding: 18px;
+          width: 100%;
+          text-align: left;
+          font-weight: bold;
+          font-size: 120%;
+          border: none;
+          outline: none;
+          transition: 0.4s;
+      }
+      .active, .accordion:hover {
+          background-color: rgba(54, 89, 188, 0.4);
+      }
+      button.accordion:after {
+          content: "\002B";
+          font-weight: bold;
+          font-size: 120%;
+          float: right;
+          margin-left: 5px;
+      }
+      button.accordion.active:after {
+          content: "\2212";
+      }
+      .panel {
+          padding: 0 18px;
+          display: none;
+          /* overflow: hidden; need to allow sticky table headers */
+      }
     </style>
+    <script>
+      var acc = document.getElementsByClassName("accordion");
+      var i;
+      for (i = 0; i < acc.length; i++) {
+          acc[i].addEventListener("click", function () {
+              this.classList.toggle("active");
+              var panel = this.nextElementSibling;
+              if (panel.style.display === "block") {
+                  panel.style.display = "none";
+              } else {
+                  panel.style.display = "block";
+              }
+          });
+      }
+    </script>
   </head>
   <body>

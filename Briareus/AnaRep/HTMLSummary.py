@@ -84,8 +84,6 @@ def tcell_entshow(base_builder_url):
     return _t_es
 
 def html_summary(repdata, base_builder_url=None):
-    section_hdrfun = lambda msg: '<br/><hr class="section_line"/><br/><h2>' + msg + '</h2><br/>'
-    subsection_hdrfun = lambda msg: '<br/><h3>' + msg + '</h3>'
     entshow_fun = tcell_entshow(base_builder_url)
 
     projects = set([ sr.project for sr in repdata if isinstance(sr, StatusReport) ])
@@ -204,16 +202,24 @@ def html_summary(repdata, base_builder_url=None):
                                          Branch=tbl_branch(sr),
                                          Strategy=sr.strategy)
 
+    # section_hdrfun = lambda msg: '<br/><hr class="section_line"/><br/><h2>' + msg + '</h2><br/>'
+    # subsection_hdrfun = lambda msg: '<br/><h3>' + msg + '</h3>'
+
+    section_hdrfun = lambda msg: '<button class="accordion">' + msg + '</button><div class="panel">'
+    subsection_hdrfun = section_hdrfun
+    section_endfun = lambda: '</div>'
+
     return '\n\n'.join([
         summary.render(as_format='html', sort_vals=True),
-        section_hdrfun('Per-project Build Status Summary ::'),
+        section_hdrfun('Per-project Build Status Summary'),
         projtable.render(row_group=['Project'],
                          row_repeat=False,
                          sort_vals=False,
                          as_format='html',
                          caption='Per-project Build Status Summary',
                          colstack_at='Status'),
-        section_hdrfun('Combined Details ::'),
+        section_endfun(),
+        section_hdrfun('Combined Details'),
         fulltable.render(row_group=['system', 'Branch', 'Strategy'],
                          row_repeat=False,
                          sort_vals=True,
@@ -221,15 +227,18 @@ def html_summary(repdata, base_builder_url=None):
                          as_format='html',
                          caption='Combined Details',
                          colstack_at=(list(fulltable.keyvals().keys()) + [None])[4],),
-        section_hdrfun('Individual Project Summaries ::'),
-        '\n\n'.join([subsection_hdrfun('Project %s:\n' % p) +
-                     detailtables[p].render(row_repeat=False,
-                                            as_format='html',
-                                            caption='Project %s' % p,
-                                            sort_vals=True,
-                                            colstack_at=(list(detailtables[p].keyvals().keys()) + [None])[3],
-                                            row_group=['system', 'Branch'],
-                                            entrystr=entshow_fun,
-                     )
-                     for p in sorted(projects)])
+        section_endfun(),
+        # section_hdrfun('Individual Project Summaries ::'),
+        ] + [ '\n\n'.join([ subsection_hdrfun('Project %s' % p),
+                            detailtables[p].render(row_repeat=False,
+                                                   as_format='html',
+                                                   caption='Project %s' % p,
+                                                   sort_vals=True,
+                                                   colstack_at=(list(detailtables[p].keyvals().keys()) + [None])[3],
+                                                   row_group=['system', 'Branch'],
+                                                   entrystr=entshow_fun,
+                            ),
+                            section_endfun(),
+                           ])
+            for p in sorted(projects)
         ])
