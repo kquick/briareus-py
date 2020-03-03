@@ -302,6 +302,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                                  self.RX) or
                                    self._url_for_repo(msg.reponame)),
                    pr_branch=p.pullreq_branch,
+                   pr_revision=p.pullreq_ref,
                    pr_ident=str(p.pullreq_number),  # PR idents must be strings
                    pr_title=p.pullreq_title,
                    pr_user=p.pullreq_user,
