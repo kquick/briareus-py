@@ -101,6 +101,22 @@ pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
 % ----------------------------------------------------------------------
 % Misc support
 
+
+% Normally the PRType can be compared directly, but as a special case,
+% a configuration identified as PR_Solo for one project could also be
+% involved in another project where that PR affects multiple repos and
+% therefore be a PR_Repogrouped, so allow those two to equate to each
+% other.  This function is successful if two PRTypes are equivalent
+% under the above rules and returns the pre-eminent PRType to use.
+cmpPrType(PT1, PT1, PT1).
+cmpPrType(pr_type(pr_solo,R,I),
+          pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
+    member(R, RL).
+cmpPrType(pr_type(pr_repogroup,I,RL),
+          pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
+    member(R, RL).
+
+
 branch_for_prtype(pr_type(pr_solo, Repo, _), Branch) :-
     is_main_branch(Repo, Branch)
 .

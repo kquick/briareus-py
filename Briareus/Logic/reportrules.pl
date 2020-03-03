@@ -132,23 +132,10 @@ no_bldres(PName, BrType, Branch, Strategy, BldDesc, Vars) :-
 no_bldres(_, _, _, _, _, _).
 
 
-% Normally the PRType or corresponding BldDesc can be compared
-% directly, but as a special case, a configuration identified as
-% PR_Solo for one project could also be involved in another project
-% where that PR affects multiple repos and therefore be a
-% PR_Repogrouped, so allow those two to equate to each other.  This
-% function compares the BldDescs and returns the pre-eminent BldDesc
-% to use.
+% A BldDesc is really a PRType, so special PRType comparison must be
+% performed (see cmpPrType in pullreqinfo.pl)
 cmpBldDesc(D1, D1, D1) :- ! .  % red cut to avoid duplicates on below
 cmpBldDesc(D1, D2, D3) :- cmpPrType(D1, D2, D3).
-
-cmpPrType(PT1, PT1, PT1).
-cmpPrType(pr_type(pr_solo,R,I),
-          pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
-    member(R, RL).
-cmpPrType(pr_type(pr_repogroup,I,RL),
-          pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
-    member(R, RL).
 
 
 
