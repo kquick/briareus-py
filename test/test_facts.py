@@ -43,6 +43,8 @@ enable(email, "sam@not_a_company.com", notify(_, "Project #1", _)).
 enable(email, "john@_company.com", notify(_, "Project #1", _)).
 enable(email, "anne@nocompany.com", notify(master_submodules_broken, "Project #1", _)).
 enable(email, "betty@nocompany.com", notify(variable_failing, "Project #1", _)).
+
+enable(forge_status, "Project #1", _).
       """
     }
     )

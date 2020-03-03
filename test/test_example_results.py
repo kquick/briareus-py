@@ -1,8 +1,10 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, StatusReport, VarFailure,
                             PR_Grouped, BranchReq, MainBranch,
+                            PRCfg, BranchCfg,
+                            PRFailData,
                             Notify,
-                            SendEmail)
+                            SendEmail, SetForgeStatus)
 from git_example1 import GitExample1
 import json
 import pytest
@@ -243,7 +245,10 @@ def test_example_report_length(example_hydra_results):
     num_varfailure = 1
     pr_status = 2
     num_notify = num_varfailure + (pr_status * 2)  # 2 = projstatus and fullstatus
-    num_actions = num_varfailure + pr_status
+    num_actions = (num_varfailure +
+                   pr_status +  # SendEmail
+                   pr_status    # SetForgeStatus
+                   )
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
                 + (num_varfailure * 2)  # VarValue + SepHandledVar
@@ -305,3 +310,79 @@ def test_example_report_varfail_do_email_again(generate_hydra_results):
                                                             varname='c_compiler',
                                                             varvalue='clang')),
                      sent_to=['fred@nocompany.com']) in reps
+
+def test_pr_projstatus_fail_do_email(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    print('')
+    print(len(reps))
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print(str(each))
+            print('')
+    assert SendEmail(recipients=sorted(['eddy@nocompany.com',
+                                        'fred@nocompany.com',
+                                        'john@_company.com',
+                                        'sam@not_a_company.com']),
+                     notification=Notify(what='pr_projstatus_fail',
+                                         subject='Project #1',
+                                         params=PRFailData(PR_Grouped('blah'),
+                                                           [PRCfg('R1', '1', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            PRCfg('R2', '1111', 'blah', 'not_nick', 'not_nick@bad.seeds'),
+                                                            PRCfg('R3', '11', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            PRCfg('R6', '111', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            BranchCfg('R5', 'blah'),
+                                                            ],
+                                                           goods=['PR-blah.HEADs-gnucc-ghc844',
+                                                                  'PR-blah.HEADs-gnucc-ghc865',
+                                                                  'PR-blah.HEADs-gnucc-ghc881',
+                                                                  'PR-blah.submodules-gnucc-ghc844',
+                                                                  'PR-blah.submodules-gnucc-ghc865',
+                                                                  'PR-blah.submodules-gnucc-ghc881',
+                                                                  ],
+                                                           fails=['PR-blah.HEADs-clang-ghc844',
+                                                                  'PR-blah.HEADs-clang-ghc865',
+                                                                  'PR-blah.HEADs-clang-ghc881',
+                                                                  'PR-blah.submodules-clang-ghc844',
+                                                                  'PR-blah.submodules-clang-ghc865',
+                                                                  'PR-blah.submodules-clang-ghc881',
+                                                                  ],
+                                                           )),
+                     sent_to=[]) in reps
+
+def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    print('')
+    print(len(reps))
+    for each in reps:
+        if isinstance(each, SendEmail):
+            print(str(each))
+            print('')
+    assert SendEmail(recipients=sorted(['eddy@nocompany.com',
+                                        'fred@nocompany.com',
+                                        'john@_company.com',
+                                        'sam@not_a_company.com']),
+                     notification=Notify(what='pr_projstatus_fail',
+                                         subject='Project #1',
+                                         params=PRFailData(PR_Grouped('blah'),
+                                                           [PRCfg('R1', '1', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            PRCfg('R2', '1111', 'blah', 'not_nick', 'not_nick@bad.seeds'),
+                                                            PRCfg('R3', '11', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            PRCfg('R6', '111', 'blah', 'nick', 'nick@bad.seeds'),
+                                                            BranchCfg('R5', 'blah'),
+                                                            ],
+                                                           goods=['PR-blah.HEADs-gnucc-ghc844',
+                                                                  'PR-blah.HEADs-gnucc-ghc865',
+                                                                  'PR-blah.HEADs-gnucc-ghc881',
+                                                                  'PR-blah.submodules-gnucc-ghc844',
+                                                                  'PR-blah.submodules-gnucc-ghc865',
+                                                                  'PR-blah.submodules-gnucc-ghc881',
+                                                                  ],
+                                                           fails=['PR-blah.HEADs-clang-ghc844',
+                                                                  'PR-blah.HEADs-clang-ghc865',
+                                                                  'PR-blah.HEADs-clang-ghc881',
+                                                                  'PR-blah.submodules-clang-ghc844',
+                                                                  'PR-blah.submodules-clang-ghc865',
+                                                                  'PR-blah.submodules-clang-ghc881',
+                                                                  ],
+                                                           )),
+                     sent_to=[]) in reps

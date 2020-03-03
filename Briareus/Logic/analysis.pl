@@ -309,7 +309,7 @@ do(set_forge_status(TargetRepos, Notification, Updated)) :-
     % (i.e. there is an enable(forge_status, Repo, Notification) set).
     , setof(TargetRepo
             , (repo_in_project(Subject, TargetRepo)
-               , action_enabled(forge_status, TargetRepo, Notification)
+               , action_enabled(forge_status, Subject, Notification)
             )
             , AllowedTargetRepos)
     % Of the postable target repos, which ones are associated with this PR?

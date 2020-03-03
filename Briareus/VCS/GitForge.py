@@ -288,6 +288,28 @@ class GitLabInfo(RemoteGit__Info):
                            remote_info['url'],
                            submod_info['blob_id'])
 
+    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+        """Posts a status to the commit (usually shown on the pull request/
+           merge request page.  The sts should be one of "pending",
+           "running", "success", "canceled", or "failed".  The desc is
+           a short description (about 144 chars), the commitref is the
+           sha256 commit the status should be posted about.  The
+           optional url is a "click for details" link for the status.
+           The context_ref is used to make this status report unique
+           (github uses a "context" as the index key for a status:
+           posting to the same context overrides previous status
+           values).
+
+        """
+
+        return self.api_post('/statuses/' + commitref,
+                             {"state": "failure" if sts == "failed" else sts,
+                              "description": desc,
+                              "target_url": url,
+                              "context": ("ci/briareus:" + context_ref
+                                          if context_ref else "ci/briareus"),
+        })
+
 
 # ----------------------------------------------------------------------
 #
@@ -361,6 +383,26 @@ class GitHubInfo(RemoteGit__Info):
         return SubRepoVers(submod_info['name'],
                            submod_info['submodule_git_url'],
                            submod_info['sha'])
+
+    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+        """Posts a status to the commit (usually shown on the pull request/
+           merge request page.  The sts should be one of "pending",
+           "success", or "failure".  The desc is a short description
+           (about 144 chars), the commitref is the sha256 commit the
+           status should be posted about.  The optional url is a
+           "click for details" link for the status.  The context_ref
+           is used to make this status report unique (github uses a
+           "context" as the index key for a status: posting to the
+           same context overrides previous status values).
+        """
+
+        return self.api_post('/statuses/' + commitref,
+                             {"state": sts,
+                              "description": desc,
+                              "target_url": url,
+                              "context": ("ci/briareus:" + context_ref
+                                          if context_ref else "ci/briareus"),
+        })
 
 
 # ----------------------------------------------------------------------

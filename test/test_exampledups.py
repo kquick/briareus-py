@@ -43,6 +43,8 @@ project_owner("Repo3", "john@not_a_company.com").
 
 enable(email, "fred@nocompany.com", notify(_, "Repo1", _)).
 enable(email, "anne@nocompany.com", notify(main_submodules_broken, "Repo1", _)).
+
+enable(forge_status, "Repo1", _).
       """
   }
 }
@@ -922,7 +924,9 @@ def test_example_report_length(example_hydra_results):
     prstatus = 6 # develop, dog, foo, 1, 2, 9
     num_varfailure = 1
     num_notify = num_varfailure + prfails + 1 # main good
-    num_actions = num_notify
+    num_actions = (num_notify +  # SendEmail
+                   prfails    # SetForgeStatus
+                   )
     expected = ((len(top_level) * len(GS)) +   # 8 * 2
                 len(['ProjectSummary', ])
                 + prstatus

@@ -38,9 +38,37 @@ class FileContent(object):
             tagline = notification.what
         return tagline, content
 
+class PR_ProjStatus_Fail(object):
+    def __call__(self, action_type, notification, runctxt):
+        if action_type == 'forge_status':
+
+            project = notification.subject
+
+            proj_resultlist = [ each
+                                for each in runctxt.result_sets
+                                if project == each.inp_desc.PNAME ]
+            if not proj_resultlist:
+                raise ValueError("Expected to find \"%s\" in: %s" %
+                                 (project, [(each.inp_desc.PNAME, r.repo_name)
+                                            for each in runctxt.result_sets
+                                            for r in each.inp_desc.RL
+                                            if r.project_repo]))
+
+            proj_results = proj_resultlist[0]
+
+            return action_type, 'Failing {numfail} of {numtotal} {n.subject} builds.'.format(
+                n=notification,
+                numfail=len(notification.params.fails),
+                numtotal=len(notification.params.fails)+len(notification.params.goods))
+
+        return None, None
+
 notify_generators = {
     'variable_failing': FileContent(),
     'completely_broken': FileContent(),
+    'pr_projstatus_pending': FileContent(),
+    'pr_projstatus_good': FileContent(),
+    'pr_projstatus_fail': PR_ProjStatus_Fail(),
 }
 
 def gen_content(action_type, notification, runctxt):
