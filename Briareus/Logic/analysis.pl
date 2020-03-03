@@ -148,7 +148,7 @@ action(notify(main_good, Project, MainBr)) :-
     , at_least_one_success(Project, MainBr)
 .
 
-action(notify(main_broken, Project, CS)) :-
+action(notify(main_broken, Project, Configs)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
     , \+ report(complete_failure(Project))
@@ -163,6 +163,7 @@ action(notify(main_broken, Project, CS)) :-
               , CS)
     , length(CS, CSN)
     , CSN > 0
+    , sort(CS, Configs)
 .
 
 % ----------------------------------------------------------------------
