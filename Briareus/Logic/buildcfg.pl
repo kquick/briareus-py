@@ -1,12 +1,12 @@
 :- consult(buildlib).
 :- consult(pullreqinfo).
 
-build_config2(bldcfg(PName, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-
+build_config2(bldcfg(PName, pullreq, Branch, Strategy, PRType, BLDS, VARS)) :-
     project(PName)
-    , pr_config(Cfg, PName, CFG)
+    , pr_config(PRType, PName, CFG)
     , length(CFG, CFGLen)
     , CFGLen > 0  % eliminate PR's that don't affect this project
-    , branch_for_prtype(Cfg, Branch)
+    , branch_for_prtype(PRType, Branch)
     , finish_config(PName, CFG, Branch, Strategy, BLDS, VARS)
     .
 
