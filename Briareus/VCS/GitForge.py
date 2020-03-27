@@ -130,6 +130,9 @@ class RemoteGit__Info(object):
             self._rsp_fetched[req_url] = datetime.datetime.now()
             return self.NotFound
         else:
+            for err in rsp.json().get('errors', []):
+                logging.error('GET %s err: %s', req_url,
+                              err.get('message', rsp.status_code))
             rsp.raise_for_status()
         return rsp
 
@@ -139,6 +142,9 @@ class RemoteGit__Info(object):
         rsp = self._request_session.post(req_url, json=data)
         if notFoundOK and rsp.status_code == 404:
             return self.NotFound
+        for err in rsp.json().get('errors', []):
+            logging.error('POST %s err: %s', req_url,
+                         err.get('message', rsp.status_code))
         rsp.raise_for_status()
         return rsp
 
