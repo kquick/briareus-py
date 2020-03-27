@@ -193,3 +193,18 @@ Priority C means this is extended functionality to be added later
 
    The cause of this should be found and fixed.
 
+** DONE [#A] forge status refresh bug
+   DEADLINE: <2020-03-24 Tue>
+    Situation:
+     * PR changes committed
+     * Briareus runs, marks that revision in the PR as in-progress
+     * Frying pan running, hasn't finished builds yet
+     * More PR changes committed
+       - The new changes occlude the previous status, but since
+         Briareus thinks it already set "in-progress" status, it does
+         not update.
+    Solution:
+     * Comparison for SetForgeStatus needs to take into account the
+       sha revision it has set the commit on, either in the
+       Notification match or as part of the targetrepos/updated
+       settings.
