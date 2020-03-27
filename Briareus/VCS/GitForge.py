@@ -298,7 +298,11 @@ class GitLabInfo(RemoteGit__Info):
         return userinfo['public_email']
 
     def get_branches(self):
-        return self.api_req('/repository/branches')
+        r = self.api_req('/repository/branches')
+        return [ dict([('name', e['name']),
+                       ('ref', e['commit']['id']),
+                      ])
+                 for e in r ]
 
     def _get_file_contents_info(self, target_filepath, branch):
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
@@ -416,7 +420,11 @@ class GitHubInfo(RemoteGit__Info):
         return userinfo['email'] or ''
 
     def get_branches(self):
-        return self.api_req('/branches')
+        r = self.api_req('/branches')
+        return [ dict([('name', e['name']),
+                       ('ref', e['commit']['sha']),
+                      ])
+                 for e in r ]
 
     def _get_file_contents_info(self, target_filepath, branch):
         return self.api_req('/contents/' + target_filepath + '?ref=' + branch, notFoundOK=True)

@@ -72,6 +72,11 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         # probing the VCS.  The format is: branch(Repo, BranchName).
         DeclareFact('branch/2'),
 
+        # Specifies the reference (sha) of the branch head revision in
+        # a repository by probing the VCS.  The format is:
+        # branch(Repo, BranchName, BranchRef).
+        DeclareFact('branch_ref/3'),
+
         # Specifies the existence of a submodule specification; this
         # corresponds to the SubModuleInfo as defined in
         # Briareus/VCS/InternalMessages.py.  The format is:
@@ -132,15 +137,19 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     # other projects sharing this repository) for the branch.
 
     repos_without_branches = [r.repo_name for r in RL] + [r.repo_name for r in repo_info['subrepos']]
-    for rb in repo_info['branches']:
-        while rb[0] in repos_without_branches:
-            repos_without_branches.remove(rb[0])
+    for rb in repo_info['branches']:  # VCS.InternalMessages.BranchRef
+        while rb.reponame in repos_without_branches:
+            repos_without_branches.remove(rb.reponame)
     if repos_without_branches:
         raise RuntimeError("The following repos have no available branches: %s"
                            % str(repos_without_branches))
 
-    repobranch_facts = [ Fact('branch("%s", "%s")' % rb)
-                         for rb in repo_info['branches'] ]
+    repobranch_facts = [ Fact('branch("%s", "%s")' % (rb.reponame, rb.branchname))
+                         for rb in repo_info['branches']
+                       ] + [ Fact('branch_ref("%s", "%s", "%s")'
+                                  % (rb.reponame, rb.branchname, rb.branchref))
+                             for rb in repo_info['branches']
+                       ]
 
     submodules_facts = []
     # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;

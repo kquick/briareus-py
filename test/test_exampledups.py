@@ -235,6 +235,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
+:- discontiguous branch_ref/3.
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
@@ -260,6 +261,13 @@ branch("Repo3", "master").
 branch("Repo2", "develop").
 branch("Repo1", "master").
 branch("Repo2", "foo").
+branch_ref("Repo3", "develop", "r3-develop-ref").
+branch_ref("Repo1", "develop", "r1-develop-ref").
+branch_ref("Repo2", "master", "Repo2-master-ref").
+branch_ref("Repo3", "master", "Repo3-master-ref").
+branch_ref("Repo2", "develop", "r2-develop-ref").
+branch_ref("Repo1", "master", "Repo1-master-ref").
+branch_ref("Repo2", "foo", "r2-foo-ref").
 varname("Repo1", "ghcver").
 varvalue("Repo1", "ghcver", "ghc865").
 varvalue("Repo1", "ghcver", "ghc881").

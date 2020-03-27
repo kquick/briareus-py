@@ -115,18 +115,20 @@ class GitExample1(ActorTypeDispatcher):
         branch = msg.branch_name
         ### EXAMPLE-vvv
         if self.main_branches.get(msg.reponame, "master") == branch:
-            chk = True
+            chk = msg.reponame + '-master-ref'
         else:
-            chk = branch in {
-                'R1': [ 'feat1' ],
-                'R2': [ 'bugfix9' ],
-                'R3': [ 'blah' ],
-                'R4': [ 'feat1' ],
-                'R5': [ 'bugfix9', 'blah', 'dev' ],
-                'R6': [ 'feat1' ],
+            chk = dict({
+                'R1': [ ('feat1', 'r1-feat1-ref'), ],
+                'R2': [ ('bugfix9', 'r2-bugfix9-ref'), ],
+                'R3': [ ('blah', 'r3-blah-ref'), ],
+                'R4': [ ('feat1', 'r4-feat1-ref'), ],
+                'R5': [ ('bugfix9', 'r5-bugfix9-ref'),
+                        ('blah', 'r5-blah-ref'),
+                        ('dev', 'r5-dev-ref'), ],
+                'R6': [ ('feat1', 'r6-feat1-ref'), ],
                 'R7': [],
                 'R10': [],
-            }[msg.reponame]
+            }[msg.reponame]).get(branch, False)
         ### EXAMPLE-^^^
         self.send(sender, BranchPresent(msg.reponame, branch, chk))
 

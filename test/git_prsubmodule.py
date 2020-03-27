@@ -39,9 +39,8 @@ class GitPRSub(ActorTypeDispatcher):
     def receiveMsg_HasBranch(self, msg, sender):
         self.send(sender,
                   BranchPresent(msg.reponame, msg.branch_name,
-                                msg.branch_name ==
-                                self.main_branches.get(msg.reponame,
-                                                       "master")))
+                                msg.reponame + "-master-ref"
+                                if msg.branch_name == "master" else False))
 
     def receiveMsg_GitmodulesData(self, msg, sender):
         self._gitmodules_data(msg, sender, '')

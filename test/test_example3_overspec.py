@@ -53,6 +53,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous subrepo/2.
 :- discontiguous pullreq/6.
 :- discontiguous branch/2.
+:- discontiguous branch_ref/3.
 :- discontiguous submodule/5.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
@@ -70,6 +71,11 @@ branch("R3", "blah").
 branch("R4", "feat1").
 branch("R3", "master").
 branch("R10", "master").
+branch_ref("R4", "master", "R4-master-ref").
+branch_ref("R3", "blah", "r3-blah-ref").
+branch_ref("R4", "feat1", "r4-feat1-ref").
+branch_ref("R3", "master", "R3-master-ref").
+branch_ref("R10", "master", "R10-master-ref").
 pullreq("R4", "8192", "bugfix9", prsts_new, "ozzie", "ozzie@crazy.train").
 pullreq("R3", "11", "blah", prsts_active, "nick", "nick@bad.seeds").
 pullreq("R3", "22", "closed_pr", prsts_closed, "done", "done@already.yo").

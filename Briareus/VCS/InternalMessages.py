@@ -122,8 +122,16 @@ class HasBranch(Repo__ReqMsg):          #           --> BranchPresent
 @attr.s
 class BranchPresent(Repo__RspMsg):      # HasBranch -->
     branch_name = attr.ib()
-    branch_present = attr.ib(default=False)
-    known_branches = attr.ib(factory=list)
+    branch_present = attr.ib(default=False)  # either False or the current branch head ref (SHA)
+    known_branches = attr.ib(factory=list)   # array of tuples: (name,head_ref)
+
+
+@attr.s(frozen=True)
+class BranchRef(object):
+    reponame = attr.ib() # string
+    branchname = attr.ib() # string
+    branchref = attr.ib() # string reference (e.g. SHA)
+
 
 @attr.s
 class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers

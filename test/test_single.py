@@ -51,7 +51,8 @@ class GitTestSingle(ActorTypeDispatcher):
     def receiveMsg_HasBranch(self, msg, sender):
         branch = msg.branch_name
         self.send(sender, BranchPresent(msg.reponame, branch,
-                                        branch in ['master', 'feat1']))
+                                        dict([('master', 'master-ref'),
+                                              ('feat1', 'feat1-ref'),]).get(branch, False)))
         # Note that toad and frog are not in the branch list because
         # those exist on the remote toad_repo_url and frog_repo_url,
         # not on TheRepo.
@@ -76,6 +77,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
+:- discontiguous branch_ref/3.
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
@@ -87,6 +89,8 @@ branchreq("TheRepo", "feat1").
 branchreq("TheRepo", "dev").
 branch("TheRepo", "master").
 branch("TheRepo", "feat1").
+branch_ref("TheRepo", "master", "master-ref").
+branch_ref("TheRepo", "feat1", "feat1-ref").
 pullreq("TheRepo", "134", "toad", prsts_active, "hoppy", "").
 pullreq("TheRepo", "91", "frog", prsts_active, "frog", "frog@lilypond.pad").
 '''.split('\n')))

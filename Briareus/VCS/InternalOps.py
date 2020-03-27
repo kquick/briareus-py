@@ -92,7 +92,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     GatheredInfo({ "pullreqs" : self.pullreqs,
                                    "submodules": self.submodules,
                                    "subrepos" : self.subrepos,
-                                   "branches" : self.branches
+                                   "branches" : self.branches  # [ Types.BranchRef ]
                     })))
 
     def receiveMsg_ChildActorExited(self, msg, sender):
@@ -342,17 +342,16 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.get_git_info(HasBranch(repo_name, branch_name))
 
     def _branch_checked(self, repo_name, branch_name):
-        curbr = (repo_name, branch_name)
         for br in self.branches:
-            if curbr == br:
+            if repo_name == br.reponame and branch_name == br.branchname:
                 return True
         if repo_name in self.known_branches and self.known_branches[repo_name]:
             # Have known_branches for this repo, so presumably *all*
             # branches for this repo are known without needing to
             # issue a query.
             for br in self.known_branches[repo_name]:
-                if branch_name == br:
-                    self.branches.add(curbr)
+                if branch_name == br.branchname:
+                    self.branches.add(br)
             return True
         return False
 
@@ -377,7 +376,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
         "Response message from the GetGitInfo actor to a HasBranch message"
         if msg.branch_present:
             self.branches_check[(msg.reponame, msg.branch_name)] = False  # no longer pending
-            self.branches.add( (msg.reponame, msg.branch_name) )
+            self.branches.add( BranchRef(reponame=msg.reponame,
+                                         branchname=msg.branch_name,
+                                         branchref=msg.branch_present,
+            ) )
             for repo in self.RL:
                 if repo.project_repo and repo.repo_name == msg.reponame:
                     # This is a branch on the project repo, so see if
@@ -389,12 +391,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
         main_r = ([ r for r in self._all_repos() if r.repo_name == msg.reponame ] +
                   [ None ])[0]
         for br in msg.known_branches:
-            self.known_branches[msg.reponame].add(br)
+            bref = BranchRef(reponame=msg.reponame, branchname=br[0], branchref=br[1])
+            self.known_branches[msg.reponame].add(bref)
             if main_r:
                 # Set branches any other projects sharing this repo
                 for each in self._all_repos():
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
-                        self.known_branches[each.repo_name].add(br)
+                        self.known_branches[each.repo_name].add(bref)
 
         if msg.reponame not in self.BL_queried:
             self.BL_queried.append(msg.reponame)

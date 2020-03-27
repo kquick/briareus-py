@@ -18,13 +18,16 @@ class GitExample2(ActorTypeDispatcher):
         branch = msg.branch_name
         ### EXAMPLE-vvv
         repo_branches = {
-            'Repo1': [ 'develop', 'misc', 'stuff/here' ],
-            'Repo2': [ 'develop', 'humdrum' ],
-            'Repo3': [ 'develop' ],
+            'Repo1': [ ('develop', 'r1-develop-ref'),
+                       ('misc', 'r1-misc-ref'),
+                       ('stuff/here', 'r1-stuff/here-ref') ],
+            'Repo2': [ ('develop', 'r2-develop-ref'),
+                       ('humdrum', 'r2-humdrum-ref'), ],
+            'Repo3': [ ('develop', 'r3-develop-ref') ],
             'Repo4': [ ],
-        }.get(msg.reponame, []) + ['master']
+        }.get(msg.reponame, []) + [('master', msg.reponame + '-master-ref')]
         # All repos have a master branch
-        chk = branch in repo_branches
+        chk = dict(repo_branches).get(branch, False)
         ### EXAMPLE-^^^
         self.send(sender, BranchPresent(msg.reponame, branch, chk,
                                         known_branches=repo_branches))

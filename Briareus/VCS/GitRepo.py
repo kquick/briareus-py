@@ -108,10 +108,11 @@ class GitRepoInfo(ActorTypeDispatcher):
                                   getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'HasBranch - ' + str(err)))
         else:
-            blist = [ b['name'] for b in rsp ]
-            chk = branch in blist
-            self.send(msg.orig_sender, BranchPresent(msg.reponame, branch, chk,
-                                                     known_branches=blist))
+            blist = { b['name']: b['ref'] for b in rsp }
+            chk = blist.get(branch, False)
+            self.send(msg.orig_sender,
+                      BranchPresent(msg.reponame, branch, chk,
+                                    known_branches=list(blist.items())))
 
 
     def receiveMsg_GitmodulesData(self, msg, sender):

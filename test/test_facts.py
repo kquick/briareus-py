@@ -59,6 +59,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
+:- discontiguous branch_ref/3.
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
@@ -92,6 +93,21 @@ branch("R4", "master").
 branch("R4", "feat1").
 branch("R7", "master").
 branch("R5", "bugfix9").
+branch_ref("R1", "master", "R1-master-ref").
+branch_ref("R1", "feat1", "r1-feat1-ref").
+branch_ref("R2", "bugfix9", "r2-bugfix9-ref").
+branch_ref("R2", "master", "R2-master-ref").
+branch_ref("R3", "master", "R3-master-ref").
+branch_ref("R5", "master", "R5-master-ref").
+branch_ref("R5", "dev", "r5-dev-ref").
+branch_ref("R6", "master", "R6-master-ref").
+branch_ref("R6", "feat1", "r6-feat1-ref").
+branch_ref("R3", "blah", "r3-blah-ref").
+branch_ref("R5", "blah", "r5-blah-ref").
+branch_ref("R4", "master", "R4-master-ref").
+branch_ref("R4", "feat1", "r4-feat1-ref").
+branch_ref("R7", "master", "R7-master-ref").
+branch_ref("R5", "bugfix9", "r5-bugfix9-ref").
 pullreq("R1", "1", "blah", prsts_active, "nick", "nick@bad.seeds").
 pullreq("R4", "8192", "bugfix9", prsts_new, "ozzie", "ozzie@crazy.train").
 pullreq("R2", "23", "bugfix9", prsts_active, "banana", "").
