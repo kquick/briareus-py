@@ -39,23 +39,32 @@
 %         If any PR's exist on that repo on the main branch, they are
 %         pr_solo.
 pr_type(pr_solo, Repo, PRNum) :-
-    pullreq(Repo, PRNum, Branch, _, _),
-    is_main_branch(Repo, Branch),
-    findall(R, (pullreq(R, PRNum, Branch, _U, _E), is_main_branch(R, Branch)), RS),
-    length(RS, RLen),
-    RLen < 2.
+    pullreq(Repo, PRNum, Branch, _, _)
+    , is_main_branch(Repo, Branch)
+    , findall(R, (pullreq(R, PRNum, Branch, _U, _E)
+                  , is_main_branch(R, Branch)
+                 )
+              , RS)
+    , length(RS, RLen)
+    , RLen < 2.
 
 pr_type(pr_repogroup, PRNum, RepoList) :-
-    setof(R, (pullreq(R, PRNum, Branch, _, _), is_main_branch(R, Branch)), RepoList),
-    length(RepoList, RLen),
-    RLen > 1.
+    setof(R, (pullreq(R, PRNum, Branch, _, _)
+             , is_main_branch(R, Branch)
+             )
+          , RepoList)
+    , length(RepoList, RLen)
+    , RLen > 1.
 
 pr_type(pr_grouped, BranchName) :-
-    setof(B, R^I^U^E^pullreq(R, I, B, U, E), BS),
-    member(BranchName, BS),
-    findall((R,I), (pullreq(R,I,BranchName,_Uu,_Ee), \+ is_main_branch(R,BranchName)), PRList),
-    length(PRList, NumPRs),
-    NumPRs > 0.
+    setof(B, R^I^U^E^pullreq(R, I, B, U, E), BS)
+    , member(BranchName, BS)
+    , findall((R,I), (pullreq(R,I,BranchName,_Uu,_Ee)
+                      , \+ is_main_branch(R,BranchName)
+                     )
+              , PRList)
+    , length(PRList, NumPRs)
+    , NumPRs > 0.
 
 % ----------------------------------------------------------------------
 % PR Configurations
