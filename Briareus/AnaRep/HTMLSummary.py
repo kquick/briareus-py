@@ -220,10 +220,32 @@ def html_summary(repdata, base_builder_url=None):
         '</ul>',
     ])
 
+    if False:
+        summary_render = summary.render(as_format='html', sort_vals=True)
+    else:
+        summary_render = '\n'.join([
+            '<div class="row">',
+        ] + [ '\n'.join([ '<div class="column">',
+                          '<div class="card">',
+                          '<p><i class="fa ' + cls + '"></i></p>',
+                          '<h3>' + str(summary.get(('Element',element))) + '</h3>',
+                          '<p>' + element + '</p>',
+                          '</div>',
+                          '</div>',
+                        ])
+              for (element,cls) in [ ('Projects','fa-briefcase'),
+                                     ('Pull Requests','fas fa-edit'),
+                                     ('Builds', 'fa-wrench'),
+                                     ('Notifications', 'fas fa-paper-plane'),
+              ]
+        ] + [
+            '</div>',
+        ])
+
     return '\n\n'.join([
         nav,
         section_hdrfun('Statistics', 'stats'),
-        summary.render(as_format='html', sort_vals=True),
+        summary_render,
         section_hdrfun('Per-project Build Status Summary', 'project_summary'),
         projtable.render(row_group=['Project'],
                          row_repeat=False,
