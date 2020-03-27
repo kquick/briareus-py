@@ -51,6 +51,7 @@ enable(forge_status, "Project #1", _).
 
 
 expected_facts = sorted(filter(None, '''
+:- discontiguous project/1.
 :- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
@@ -61,6 +62,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
+project("Project #1").
 project("Project #1", "R1").
 repo("Project #1", "R1").
 default_main_branch("master").

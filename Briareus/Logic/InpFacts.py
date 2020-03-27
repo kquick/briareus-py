@@ -23,6 +23,12 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         # repositories.)
         DeclareFact('repo/2'),
 
+        # Declares a Project Name.  No other parameters so that this
+        # Project declaration can be used to delineate between
+        # different projects without multiple repo substitutions (see
+        # project/2 below).
+        DeclareFact('project/1'),
+
         # Specifies the Project Name and identifies the repo that is
         # the "Project" repo.  The "Project" repo is the only one
         # where submodules are looked up, and the "Project" also
@@ -98,8 +104,9 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
                      [ Fact('repo("%s", "%s")'    % (project_name, r.repo_name))   for r in RL ] +
                      [ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch))
                        for r in RL if r.main_branch != "master" ])
-    project_facts = [ Fact('project("%s", "%s")' % (project_name, r.repo_name))
-                      for r in projects ]
+    project_facts = ([ Fact('project("%s", "%s")' % (project_name, r.repo_name))
+                       for r in projects ] +
+                     [ Fact('project("%s")' % project_name) for r in projects ])
     branch_facts  = [ Fact('branchreq("%s", "%s")'  % (project_name, b.branch_name))
                       for r in projects for b in BL ]
     subrepo_facts = [ Fact('subrepo("%s", "%s")'

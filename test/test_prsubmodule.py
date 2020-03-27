@@ -12,6 +12,7 @@ input_spec = '''
 '''
 
 expected_facts = sorted(filter(None, '''
+:- discontiguous project/1.
 :- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
@@ -22,6 +23,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
+project("prsubtest").
 project("prsubtest", "TopRepo").
 default_main_branch("master").
 branch("TopRepo", "master").

@@ -116,6 +116,7 @@ def test_example_facts(generated_inp_config_facts):
     assert expected_facts == sorted(list(map(str, generated_inp_config_facts)))
 
 expected_facts = sorted(filter(None, '''
+:- discontiguous project/1.
 :- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
@@ -126,6 +127,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
+project("alt-proj").
 project("alt-proj", "Repo1").
 repo("alt-proj", "Repo1").
 repo("alt-proj", "RAdd1").

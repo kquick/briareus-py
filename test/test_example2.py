@@ -163,6 +163,7 @@ def test_example_facts(generated_facts):
     assert expected_facts == list(map(str, generated_facts))
 
 expected_facts = sorted(filter(None, '''
+:- discontiguous project/1.
 :- discontiguous project/2.
 :- discontiguous repo/2.
 :- discontiguous subrepo/2.
@@ -173,6 +174,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
+project("Repo1").
 project("Repo1", "Repo1").
 repo("Repo1", "Repo1").
 repo("Repo1", "Repo2").
