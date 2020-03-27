@@ -123,7 +123,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/5.
+:- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("alt-proj", "Repo1").

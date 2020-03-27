@@ -205,7 +205,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         # handled by the pullreqs retrievals, so just check for
         # branches.
 
-        for p in msg.pullreqs:
+        for p in msg.pullreqs:  # isinstance(p, PullReqInfo)
 
             # First, determine the source repo URL for the pullreq.
             # Sometimes this is known, but sometimes the reference
@@ -269,31 +269,38 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # If this PR is for the project repo, check the gitmodules
             # in the source because the PR might be changing the
             # gitmodule list/references.
-            for repo in self.RL:
-                if repo.project_repo and repo.repo_name == msg.reponame:
-                    # Get submodules information because the pr is
-                    # on the project repo and might have changed
-                    # the submodules configuration.  Note that the
-                    # gitmodules file should be retrieved with the
-                    # pullreq_ref (the commit sha) if possible
-                    # because Gitlab only supports file reading
-                    # via ref, not via branchname.
-                    if p.pullreq_srcurl and p.pullreq_srcurl != repo.repo_url:
-                        # Source for pull request is in a different repo
-                        self.get_git_info(
-                            Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
-                                               GitmodulesData(repo.repo_name,
-                                                              p.pullreq_branch,
-                                                              p.pullreq_number,
-                                                              p.pullreq_ref or
-                                                              p.pullreq_branch)))
-                    else:
-                        # Source for pull request is in this repo
-                        self.get_git_info(GitmodulesData(repo.repo_name,
-                                                         p.pullreq_branch,
-                                                         p.pullreq_number,
-                                                         p.pullreq_ref or
-                                                         p.pullreq_branch))
+            #
+            # Optimization: don't do this if the PR is closed/merged.
+            # Technically this decision should be deferred to the
+            # logic section, but adding this optimization here saves a
+            # considerable amount of forge queries.
+            if not isinstance(p.pullreq_status, (PRSts_Closed,
+                                                 PRSts_Merged)):
+                for repo in self.RL:
+                    if repo.project_repo and repo.repo_name == msg.reponame:
+                        # Get submodules information because the pr is
+                        # on the project repo and might have changed
+                        # the submodules configuration.  Note that the
+                        # gitmodules file should be retrieved with the
+                        # pullreq_ref (the commit sha) if possible
+                        # because Gitlab only supports file reading
+                        # via ref, not via branchname.
+                        if p.pullreq_srcurl and p.pullreq_srcurl != repo.repo_url:
+                            # Source for pull request is in a different repo
+                            self.get_git_info(
+                                Repo_AltLoc_ReqMsg(to_http_url(p.pullreq_srcurl, self.RX),
+                                                   GitmodulesData(repo.repo_name,
+                                                                  p.pullreq_branch,
+                                                                  p.pullreq_number,
+                                                                  p.pullreq_ref or
+                                                                  p.pullreq_branch)))
+                        else:
+                            # Source for pull request is in this repo
+                            self.get_git_info(GitmodulesData(repo.repo_name,
+                                                             p.pullreq_branch,
+                                                             p.pullreq_number,
+                                                             p.pullreq_ref or
+                                                             p.pullreq_branch))
 
         self.pullreqs.update(set([
             PRInfo(pr_target_repo=msg.reponame,
@@ -305,6 +312,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                    pr_branch=p.pullreq_branch,
                    pr_revision=p.pullreq_ref,
                    pr_ident=str(p.pullreq_number),  # PR idents must be strings
+                   pr_status=p.pullreq_status,
                    pr_title=p.pullreq_title,
                    pr_user=p.pullreq_user,
                    pr_email=p.pullreq_email)

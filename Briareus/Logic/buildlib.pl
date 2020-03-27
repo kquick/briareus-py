@@ -33,7 +33,7 @@ proj_repo_branch(PName, B) :- project(PName, R), is_main_branch(R, B), \+ branch
 % Branch Type
 
 branch_type(pullreq, B, PR_ID) :-
-    setof((PI,PB), R^pullreq(R, PI, PB, _, _), XS)
+    setof((PI,PB), R^pullreq(R, PI, PB, _, _, _), XS)
     , member((PR_ID,B), XS)
 .
 branch_type(regular, B, project_primary) :-
@@ -76,7 +76,7 @@ useable_submodules(PName, R, B) :-
 has_gitmodules(PName, R, B) :-
     project(PName, R)
     , is_project_repo(R)
-    , bagof(S, V^P^((proj_repo_branch(PName, B) ; pullreq(R,_,B,_,_))
+    , bagof(S, V^P^((proj_repo_branch(PName, B) ; pullreq(R,_,B,_,_,_))
                     , submodule(R, P, B, S, V))
             , SBG)
     , \+ length(SBG, 0)

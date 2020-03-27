@@ -19,7 +19,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/5.
+:- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("prsubtest", "TopRepo").
@@ -29,7 +29,7 @@ repo("prsubtest", "TopRepo").
 subrepo("TopRepo", "SubRepo1").
 branch("SubRepo1", "master").
 submodule("TopRepo", project_primary, "master", "SubRepo1", "subrepo_master_head").
-pullreq("SubRepo1", "pr312", "subfix", "dev", "dev@soft.ware").
+pullreq("SubRepo1", "pr312", "subfix", prsts_active, "dev", "dev@soft.ware").
 '''.split('\n')))
 
 

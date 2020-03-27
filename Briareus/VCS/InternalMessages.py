@@ -107,11 +107,14 @@ class PullReqInfo(object):
     pullreq_email  = attr.ib() # string user email (may be blank if not public)
     pullreq_mergeref = attr.ib(default=None) # if available
 
-class PullReqStatus__Base(object): pass
-class PullReqStatus_New(PullReqStatus__Base): "Marked WIP"
-class PullReqStatus_Active(PullReqStatus__Base): pass
-class PullReqStatus_Closed(PullReqStatus__Base): pass
-class PullReqStatus_Merged(PullReqStatus__Base): pass
+@attr.s(frozen=True)
+class PullReqStatus__Base(object):
+    def as_fact(self):
+        return self.__class__.__name__.lower()
+class PRSts_New(PullReqStatus__Base): "Marked WIP"
+class PRSts_Active(PullReqStatus__Base): pass
+class PRSts_Closed(PullReqStatus__Base): pass
+class PRSts_Merged(PullReqStatus__Base): pass
 
 @attr.s
 class HasBranch(Repo__ReqMsg):          #           --> BranchPresent
@@ -156,6 +159,7 @@ class PRInfo(object):
     pr_branch      = attr.ib()
     pr_revision    = attr.ib()
     pr_ident       = attr.ib()  # unique identifier string, required
+    pr_status      = attr.ib()  # PullReqStatus__Base derivation
     pr_title       = attr.ib()  # user-assistance, optional
     pr_user        = attr.ib()  # name of user creating pull request
     pr_email       = attr.ib()  # email of user (if known, else blank)

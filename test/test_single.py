@@ -31,7 +31,7 @@ class GitTestSingle(ActorTypeDispatcher):
         self.send(sender,
                   PullReqsData(msg.reponame,
                                [PullReqInfo(134,
-                                            pullreq_status=PullReqStatus_Active(),
+                                            pullreq_status=PRSts_Active(),
                                             pullreq_title='Hoppy toads',
                                             pullreq_srcurl='toad_repo_url',
                                             pullreq_branch='toad',
@@ -39,7 +39,7 @@ class GitTestSingle(ActorTypeDispatcher):
                                             pullreq_user='hoppy',
                                             pullreq_email=''),
                                 PullReqInfo(91,
-                                            pullreq_status=PullReqStatus_Active(),
+                                            pullreq_status=PRSts_Active(),
                                             pullreq_title='Croaking frogs',
                                             pullreq_srcurl='frog_repo_url',
                                             pullreq_branch='frog',
@@ -75,7 +75,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/5.
+:- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("TheRepo", "TheRepo").
@@ -85,8 +85,8 @@ branchreq("TheRepo", "feat1").
 branchreq("TheRepo", "dev").
 branch("TheRepo", "master").
 branch("TheRepo", "feat1").
-pullreq("TheRepo", "134", "toad", "hoppy", "").
-pullreq("TheRepo", "91", "frog", "frog", "frog@lilypond.pad").
+pullreq("TheRepo", "134", "toad", prsts_active, "hoppy", "").
+pullreq("TheRepo", "91", "frog", prsts_active, "frog", "frog@lilypond.pad").
 '''.split('\n')))
 
 

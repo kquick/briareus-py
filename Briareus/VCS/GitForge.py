@@ -276,7 +276,7 @@ class GitLabInfo(RemoteGit__Info):
                                     reponame, pr['iid'], pr['title'])
                 else:
                     prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
-                                         pullreq_status = PullReqStatus_Active(),
+                                         pullreq_status = PRSts_Active(),
                                          pullreq_title=pr["title"],    # for user reference
                                          pullreq_srcurl=src_repo_url,
                                          pullreq_branch=pr["source_branch"],          # source repo branch
@@ -394,7 +394,7 @@ class GitHubInfo(RemoteGit__Info):
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(str(pr["number"]),   # for user reference
-                              pullreq_status=PullReqStatus_Active(),
+                              pullreq_status=PRSts_Active(),
                               pullreq_title=pr["title"],    # for user reference
                               pullreq_srcurl=pr["head"]["repo"]["html_url"],  # source repo URL
                               pullreq_branch=pr["head"]["ref"],          # source repo branch

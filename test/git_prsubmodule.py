@@ -12,7 +12,7 @@ class GitPRSub(ActorTypeDispatcher):
         self.pullreqs = {
             "SubRepo1": [
                 PullReqInfo("pr312",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='better',
                             pullreq_srcurl='subrepo1_pr312_loc',
                             pullreq_branch='subfix',

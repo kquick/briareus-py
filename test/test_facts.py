@@ -58,7 +58,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous submodule/5.
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
-:- discontiguous pullreq/5.
+:- discontiguous pullreq/6.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("Project #1", "R1").
@@ -90,12 +90,14 @@ branch("R4", "master").
 branch("R4", "feat1").
 branch("R7", "master").
 branch("R5", "bugfix9").
-pullreq("R1", "1", "blah", "nick", "nick@bad.seeds").
-pullreq("R4", "8192", "bugfix9", "ozzie", "ozzie@crazy.train").
-pullreq("R2", "23", "bugfix9", "banana", "").
-pullreq("R3", "11", "blah", "nick", "nick@bad.seeds").
-pullreq("R6", "111", "blah", "nick", "nick@bad.seeds").
-pullreq("R2", "1111", "blah", "not_nick", "not_nick@bad.seeds").
+pullreq("R1", "1", "blah", prsts_active, "nick", "nick@bad.seeds").
+pullreq("R4", "8192", "bugfix9", prsts_new, "ozzie", "ozzie@crazy.train").
+pullreq("R2", "23", "bugfix9", prsts_active, "banana", "").
+pullreq("R3", "11", "blah", prsts_active, "nick", "nick@bad.seeds").
+pullreq("R3", "22", "closed_pr", prsts_closed, "done", "done@already.yo").
+pullreq("R3", "33", "merged_pr", prsts_merged, "done", "done@already.yo").
+pullreq("R6", "111", "blah", prsts_active, "nick", "nick@bad.seeds").
+pullreq("R2", "1111", "blah", prsts_active, "not_nick", "not_nick@bad.seeds").
 submodule("R1", project_primary, "master", "R2", "r2_master_head").
 submodule("R1", project_primary, "master", "R3", "r3_master_head^3").
 submodule("R1", project_primary, "master", "R4", "r4_master_head^1").

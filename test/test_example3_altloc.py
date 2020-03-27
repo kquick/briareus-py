@@ -1,5 +1,5 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS.InternalMessages import PullReqInfo, PullReqStatus_Active
+from Briareus.VCS.InternalMessages import PullReqInfo, PRSts_Active
 from git_example1 import GitExample1
 from datetime import timedelta
 import json
@@ -37,7 +37,7 @@ gitactor = GitExample1
 gitactor_updates = [
     ( ("pullreq", "R10",
        PullReqInfo("321",
-                   pullreq_status=PullReqStatus_Active(),
+                   pullreq_status=PRSts_Active(),
                    pullreq_title='test R10 PR',
                    pullreq_srcurl='https://r10_xlated_url/pullpath/part',
                    pullreq_branch='devtest',

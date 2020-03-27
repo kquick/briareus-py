@@ -16,7 +16,7 @@ class GitExample(ActorTypeDispatcher):
                 # as the main branch.  This should co-exist with the
                 # master build.
                 PullReqInfo("1",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr#mastermask',
                             pullreq_srcurl='remote_Repo1',
                             pullreq_branch='master',
@@ -25,7 +25,7 @@ class GitExample(ActorTypeDispatcher):
                             pullreq_email='jdoe@nocompany.com'),
                 # This PR should be built with the corresponding dog PR in Repo3
                 PullReqInfo("Req8",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr8 is great',
                             pullreq_srcurl='Repo1_Remote8',
                             pullreq_branch='dog',
@@ -38,7 +38,7 @@ class GitExample(ActorTypeDispatcher):
                 # also matches a PR in Repo3, but this also should not
                 # cause confusion.
                 PullReqInfo("2",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr numero dos',
                             pullreq_srcurl='remote_Repo1_pr2',
                             pullreq_branch='master',
@@ -51,7 +51,7 @@ class GitExample(ActorTypeDispatcher):
                 # the develop branch in R3; R1 and R2 develop should
                 # be built against the R3 develop branch and this PR.
                 PullReqInfo("2",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr#develop',
                             pullreq_srcurl='remote_Repo3',
                             pullreq_branch='develop',
@@ -63,7 +63,7 @@ class GitExample(ActorTypeDispatcher):
                 # ID from the Repo1 PR; verify that these don't get
                 # confused/combined.
                 PullReqInfo("1",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr#foo',
                             pullreq_srcurl='remote_Repo3_2',
                             pullreq_branch='foo',
@@ -75,7 +75,7 @@ class GitExample(ActorTypeDispatcher):
                 # built with other PR's on similar branches (notably
                 # Repo1, PR1).
                 PullReqInfo("9",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='pr#master3',
                             pullreq_srcurl='remote_repo3_other',
                             pullreq_branch='master',
@@ -84,7 +84,7 @@ class GitExample(ActorTypeDispatcher):
                             pullreq_email='frank@stein.co'),
                 # This PR should be built with the corresponding dog PR in Repo1
                 PullReqInfo("101",
-                            pullreq_status=PullReqStatus_Active(),
+                            pullreq_status=PRSts_Active(),
                             pullreq_title='start changes',
                             pullreq_srcurl='Repo3_r3',
                             pullreq_branch='dog',

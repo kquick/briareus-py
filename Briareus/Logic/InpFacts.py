@@ -60,7 +60,7 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         # active pullreq for that branch).  The PR_Ident serves only
         # to identify this PR (relative to the Repo) and is otherwise
         # "free-form".
-        DeclareFact('pullreq/5'),
+        DeclareFact('pullreq/6'),
 
         # Specifies the existence of a branch in a repository by
         # probing the VCS.  The format is: branch(Repo, BranchName).
@@ -111,8 +111,11 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     # duck-typed.
     pullreqs = repo_info['pullreqs']
     pullreq_facts = [
-        Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%(pr_user)s", "%(pr_email)s")' %
-             p.__dict__)
+        Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", %%(pr_status)s, "%(pr_user)s", "%(pr_email)s")'
+             % p.__dict__
+             % { 'pr_status' : p.pr_status.as_fact(),
+             }
+        )
         for p in pullreqs ]
 
     # n.b. See note in InternalOps: a pullreq for a repo
