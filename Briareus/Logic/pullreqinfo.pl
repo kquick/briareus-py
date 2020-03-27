@@ -38,6 +38,10 @@
 % Case 2: pr_grouped for all repos except non-standard main branch.
 %         If any PR's exist on that repo on the main branch, they are
 %         pr_solo.
+
+:- table pr_type/3.
+:- table pr_type/2.
+
 pr_type(pr_solo, Repo, PRNum) :-
     pullreq(Repo, PRNum, Branch, _, Sts, _, _)
     , active_prsts(Sts)
@@ -79,6 +83,9 @@ pr_type(pr_grouped, BranchName) :-
 %     prcfg(Repo, PRNum, Branch, BranchRef, User, Email)
 %     branchcfg(Repo, BranchName)
 % items.
+
+:- table pr_config/3.
+
 pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
     active_prsts(Sts)
     , pullreq(Repo, PRNum, Branch, BranchRef, Sts, User, Email)

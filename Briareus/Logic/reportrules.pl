@@ -134,7 +134,7 @@ no_bldres(_, _, _, _, _, _).
 cmpBldDesc(D1, D1, D1) :- ! .  % red cut to avoid duplicates on below
 cmpBldDesc(D1, D2, D3) :- cmpPrType(D1, D2, D3).
 
-
+% :- table report/2.
 
 report(status_report_succeeded,
        status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-

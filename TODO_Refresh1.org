@@ -80,6 +80,21 @@ Priority C means this is extended functionality to be added later
    If there are -src inputs that aren't in the hydra jobset output, warn the user.
 
 ** TODO [#B] update github interface to GraphQL
+** DONE [#B] optimize prolog execution
+   DEADLINE: <2020-03-24 Tue>
+
+  Add ~table~ specifications for memoizing.
+
+  ?- time((findall(D, do(D), DS), length(DS, DSLen))).
+
+
+  | table                                  | Inferences  |    CPU |   Real |    Lips |
+  |----------------------------------------+-------------+--------+--------+---------|
+  | -                                      | 338,558,909 | 88.663 | 88.662 | 3818503 |
+  | report                                 | 148,511,384 | 31.319 | 31.331 | 4741902 |
+  | build_config2 report                   | 60,633,284  | 11.831 | 11.833 | 5124860 |
+  | build_config2 pr_type pr_config report | 10,380,992  |  4.372 |  4.372 | 2374628 |
+
 ** TODO [#C] system attributes
    What about marking specific jobs with attributes so that they are
    build on specific builders with a matching attribute?

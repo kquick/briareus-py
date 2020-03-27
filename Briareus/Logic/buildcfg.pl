@@ -1,6 +1,8 @@
 :- consult(buildlib).
 :- consult(pullreqinfo).
 
+:- table build_config2/1.
+
 build_config2(bldcfg(PName, pullreq, Branch, Strategy, PRType, BLDS, VARS)) :-
     project(PName)
     , pr_config(PRType, PName, CFG)
