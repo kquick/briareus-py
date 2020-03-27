@@ -88,15 +88,18 @@ pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
 .
 
 pr_config(pr_type(pr_repogroup, PRNum, RepoList), ProjName, PRCfg) :-
-    pr_type(pr_repogroup, PRNum, RepoList),
+    pr_type(pr_repogroup, PRNum, RepoList)
     % the Branch should be the same main_branch for all prcfgs since
     % they refer to the same actual repo
-    setof(R, Repo^(is_main_branch(Repo, Branch)
-                   , pullreq(Repo, PRNum, Branch, Sts, User, Email)
-                   , active_prsts(Sts)
-                   , repo_in_project(ProjName, Repo)
-                   , R = prcfg(Repo, PRNum, Branch, User, Email))
-          , PRCfg).
+    , setof(R, Repo^(is_main_branch(Repo, Branch)
+                     , pullreq(Repo, PRNum, Branch, Sts, User, Email)
+                     , active_prsts(Sts)
+                     , repo_in_project(ProjName, Repo)
+                     , R = prcfg(Repo, PRNum, Branch, User, Email))
+            , PRCfg)
+    , length(PRCfg, N)
+    , N > 0
+.
 
 pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
     pr_type(pr_grouped, BranchName)
@@ -113,6 +116,8 @@ pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
               , PRCfg_BR)
     , append(PRCfg_PR, PRCfg_BR, PRCfg_All)
     , list_to_set(PRCfg_All, PRCfg)
+    , length(PRCfg, N)
+    , N > 0
 .
 
 % ----------------------------------------------------------------------
