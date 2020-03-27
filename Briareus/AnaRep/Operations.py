@@ -229,7 +229,6 @@ def prior_fact_SendEmail(prior):
                  ).format(prior=prior,
                           send_to = ', '.join(targets),
                           sent_to = ', '.join(sent),
-                          params_logic=params_logic,
                  ))
 
 
