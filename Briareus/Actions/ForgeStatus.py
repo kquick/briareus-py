@@ -44,6 +44,10 @@ def do_set_forge_status(action, full_report, runctxt):
 
 def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
     can_post = os.getenv('BRIAREUS_FORGE_STATUS', None)
+    try:
+        can_post=int(can_post)
+    except Exception:
+        pass
     if not can_post:
         print('Warning: post to %s suppressed: %s (for %s)'
               % (forge_list, desc, notify_params.prtype),
