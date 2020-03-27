@@ -103,10 +103,11 @@ def htbl_branch_upd(tblbranch, branchtype, branch, blddesc, repdata):
             if isinstance(sr2, PR_Status) and \
                sr2.branch == branch and \
                sr2.prtype == blddesc:
-                bref = ', '.join([ '%s&nbsp;PR&nbsp;#%s' % (c.reponame, c.pr_id)
-                                   if isinstance(c, PRCfg) else # BranchCfg
-                                   '%s&nbsp;branch&nbsp;%s' % (c.reponame, c.branch)
-                                   for c in sr2.prcfg
+                bref = ', '.join([
+                    '&nbsp;'.join( [c.reponame, 'PR', '#' + c.pr_id]  # PRCfg
+                                   if isinstance(c, PRCfg) else
+                                   [c.reponame, 'branch'] ) # BranchCfg
+                    for c in sr2.prcfg
                 ])
                 tblbranch = ''.join([
                     '<div class="tooltip">',
