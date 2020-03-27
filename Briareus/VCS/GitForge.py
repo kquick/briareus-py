@@ -254,37 +254,40 @@ class GitLabInfo(RemoteGit__Info):
 
         preqs = []
         for pr in rsp:
-            if pr["state"] == "opened" and not pr["merged_at"]:
-                src_repo_url = self._src_repo_url(pr)
-                if src_repo_url == self.NotFound:
-                    # Gitlab has a dubious feature where if a user
-                    # forks a private repository, the user's fork is
-                    # NOT accessible to other members of the private
-                    # repository.  When a merge request is generated
-                    # from that private repository, the merge request
-                    # information is visible as part of the merge
-                    # request, but the source repository is *not*
-                    # visible.  For Briareus and the buildsys, this
-                    # means that the .gitmodules of the source
-                    # repository cannot be examined (if it was a
-                    # project repository) and that the buildsys cannot
-                    # check out the source repo to build against.  At
-                    # this point, the only real option available at
-                    # this time is to just ignore this merge request.
-                    # Sorry!
-                    logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
-                                    reponame, pr['iid'], pr['title'])
-                else:
-                    prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
-                                         pullreq_status = PRSts_Active(),
-                                         pullreq_title=pr["title"],    # for user reference
-                                         pullreq_srcurl=src_repo_url,
-                                         pullreq_branch=pr["source_branch"],          # source repo branch
-                                         pullreq_ref=pr["sha"],
-                                         pullreq_user=pr['author']['username'],
-                                         pullreq_email=self.get_user_email(pr['author']['id']),
-                                         pullreq_mergeref=None)
-                    preqs.append(prinfo)
+            src_repo_url = self._src_repo_url(pr)
+            if src_repo_url == self.NotFound:
+                # Gitlab has a dubious feature where if a user
+                # forks a private repository, the user's fork is
+                # NOT accessible to other members of the private
+                # repository.  When a merge request is generated
+                # from that private repository, the merge request
+                # information is visible as part of the merge
+                # request, but the source repository is *not*
+                # visible.  For Briareus and the buildsys, this
+                # means that the .gitmodules of the source
+                # repository cannot be examined (if it was a
+                # project repository) and that the buildsys cannot
+                # check out the source repo to build against.  At
+                # this point, the only real option available at
+                # this time is to just ignore this merge request.
+                # Sorry!
+                logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
+                                reponame, pr['iid'], pr['title'])
+            else:
+                prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
+                                     pullreq_status = { "closed": PRSts_Closed,
+                                                        "merged": PRSts_Merged,
+                                                        "opened": PRSts_Active,
+                                                        "locked": PRSts_Active,  # short-lived transitional
+                                     }.get(pr["state"], PRSts_Closed)(),
+                                     pullreq_title=pr["title"],    # for user reference
+                                     pullreq_srcurl=src_repo_url,
+                                     pullreq_branch=pr["source_branch"],          # source repo branch
+                                     pullreq_ref=pr["sha"],
+                                     pullreq_user=pr['author']['username'],
+                                     pullreq_email=self.get_user_email(pr['author']['id']),
+                                     pullreq_mergeref=None)
+                preqs.append(prinfo)
 
         return PullReqsData(reponame, preqs)
 
@@ -388,13 +391,14 @@ class GitHubInfo(RemoteGit__Info):
 
     def get_pullreqs(self, reponame):
         rsp = self.api_req('/pulls')
-        # May want to filter on ["state"] == "open"
         # May want to echo either ["number"] or ["title"]
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(str(pr["number"]),   # for user reference
-                              pullreq_status=PRSts_Active(),
+                              pullreq_status=(PRSts_Closed() if pr["state"] == "closed"
+                                              else (PRSts_Merged() if pr["merged_at"]
+                                                    else PRSts_Active())),
                               pullreq_title=pr["title"],    # for user reference
                               pullreq_srcurl=pr["head"]["repo"]["html_url"],  # source repo URL
                               pullreq_branch=pr["head"]["ref"],          # source repo branch
@@ -402,7 +406,7 @@ class GitHubInfo(RemoteGit__Info):
                               pullreq_user=pr["user"]["login"],
                               pullreq_email=self.get_user_email(pr["user"]["login"]),
                               pullreq_mergeref=pr["merge_commit_sha"])
-                  for pr in rsp if pr["state"] == "open" and not pr["merged_at"] ]
+                  for pr in rsp ]
         return PullReqsData(reponame, preqs)
 
     def get_user_email(self, username):
