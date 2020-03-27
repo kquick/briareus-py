@@ -8,6 +8,9 @@ import json
 import os
 from collections import Counter
 
+# For general admin processing of nix expressions
+recent_nixpkgs = "https://github.com/NixOS/nixpkgs-channels nixos-19.09"
+
 
 class HydraBuilder(BuilderBase.Builder):
     """Generates Hydra jobset output for each build configuration.  The
@@ -128,8 +131,7 @@ class HydraBuilder(BuilderBase.Builder):
                                    "inpupd_cfg") \
                                    .add_input("inpupd_cfg", gen_files_path, 'path') \
                                    .add_input("inpupd_jobset_def", mkpath(inpupd_jobset_fname), 'path') \
-                                   .add_input('nixpkgs',
-                                              "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+                                   .add_input('nixpkgs', recent_nixpkgs)
 
             projcfg_fname = "gen_proj_jobsets.nix"
             projcfg_body = '\n'.join([
@@ -153,8 +155,7 @@ class HydraBuilder(BuilderBase.Builder):
                                                # matterhorn-hydra-inputs-config.json:input_updates:matterhorn-cfg BAD
                                                # matterhorn-inputs:update_inputs:matterhorn-cfg WANTED
                                                "build") \
-                                    .add_input('nixpkgs',
-                                               "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+                                    .add_input('nixpkgs', recent_nixpkgs)
 
             otherfiles = [
                 ( proj_cfgfname, json.dumps(proj_cfgjobset.spec()) ),
@@ -190,8 +191,7 @@ class HydraBuilder(BuilderBase.Builder):
                                        "copy_hh_src") \
                                        .add_input('hh_output', mkpath(bldcfg_fname), 'path') \
                                        .add_input('copy_hh_src', gen_files_path, 'path') \
-                                       .add_input('nixpkgs',
-                                                  "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+                                       .add_input('nixpkgs', recent_nixpkgs)
 
             if 'jobset' in input_cfg:
                 for each in input_cfg['jobset'].get('inputs', dict()):
@@ -441,8 +441,7 @@ class VCSInputs(object):
         fname = self._project_name + '-' + "updinputs" + '.nix'
         jobset = Jobset('Check for actual input updates', fname, 'realize_inputs') \
             .add_input('realize_inputs', gen_files_path, 'path') \
-            .add_input('nixpkgs',
-                       "https://github.com/NixOS/nixpkgs-channels nixos-unstable")
+            .add_input('nixpkgs', recent_nixpkgs)
         for eachkey in self._inputs:
             jobset.add_input(self._collated_input_name(eachkey) + "-src",
                              ' '.join(list(self._inputs[eachkey])))
