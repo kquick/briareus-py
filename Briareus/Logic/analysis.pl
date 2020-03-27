@@ -8,7 +8,7 @@
 %% analyses if the variable has completely failed and there are other
 %% values for the variable that have not completely failed.
 analysis(var_handled_separately(Project, VarName, VarValue)) :-
-    report(var_failure(Project, VarName, VarValue)),
+    report(var_failure, var_failure(Project, VarName, VarValue)),
     findall(V, (varvalue(Project, VarName, V)), VS),
     delete(VS, VarValue, VVS),
     length(VVS, L),
@@ -19,12 +19,12 @@ analysis(var_handled_separately(Project, VarName, VarValue)) :-
 
 other_var_failures(_Project, _VarName, [], []).
 other_var_failures(Project, VarName, [V|VS], Res) :-
-    report(var_failure(Project, VarName, V)),
+    report(var_failure, var_failure(Project, VarName, V)),
     other_var_failures(Project, VarName, VS, RSub),
     cons(V, RSub, Res).
 other_var_failures(Project, VarName, [V|VS], Res) :-
     other_var_failures(Project, VarName, VS, Res),
-    \+ report(var_failure(Project, VarName, V)).
+    \+ report(var_failure, var_failure(Project, VarName, V)).
 
 cons(H, T, [H|T]).
 % identity(V,V).
@@ -62,7 +62,7 @@ no_branch_badconfig(_PName, _Branch).
 
 not_a_var_failure(Project, Vars) :-
     member(varvalue(Project, N, V), Vars)
-    , report(var_failure(Project, N, V))
+    , report(var_failure, var_failure(Project, N, V))
     , !
     , fail
 .
@@ -93,7 +93,7 @@ at_least_one_success(PName, Branch) :-
 
 
 action(notify(completely_broken, Project, NBldCfgs)) :-
-    report(complete_failure(Project))
+    report(complete_failure, complete_failure(Project))
     , findall(C, bldres(Project, _, _, _, _, C, _, _, _, _, _, _), Cfgs)
     , length(Cfgs, NBldCfgs)
     , NBldCfgs > 0
@@ -101,7 +101,7 @@ action(notify(completely_broken, Project, NBldCfgs)) :-
 
 action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) :-
     project(Project, _)
-    , report(var_failure(Project, VarName, VarValue))
+    , report(var_failure, var_failure(Project, VarName, VarValue))
     , analysis(var_handled_separately(Project, VarName, VarValue)).
 
 %% generate a notification if the master_submodules is broken (the
@@ -112,7 +112,7 @@ action(notify(main_submodules_broken, Project, Configs)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
     , useable_submodules(Project, R, MainBr)
-    , \+ report(complete_failure(Project))
+    , \+ report(complete_failure, complete_failure(Project))
     , no_pending_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
     , findall(C
@@ -129,7 +129,7 @@ action(notify(main_submodules_good, Project, MainBr)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
     , useable_submodules(Project, R, MainBr)
-    , \+ report(complete_failure(Project))
+    , \+ report(complete_failure, complete_failure(Project))
     , no_pending_branch(Project, MainBr)
     , no_failing_non_varfailure_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
@@ -139,7 +139,7 @@ action(notify(main_submodules_good, Project, MainBr)) :-
 action(notify(main_good, Project, MainBr)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
-    , \+ report(complete_failure(Project))
+    , \+ report(complete_failure, complete_failure(Project))
     % No submodules builds; if there were, this would be a main_submodules_good
     , \+ useable_submodules(Project, R, MainBr)
     , no_pending_branch(Project, MainBr)
@@ -151,7 +151,7 @@ action(notify(main_good, Project, MainBr)) :-
 action(notify(main_broken, Project, Configs)) :-
     project(Project, R)
     , is_main_branch(R, MainBr)
-    , \+ report(complete_failure(Project))
+    , \+ report(complete_failure, complete_failure(Project))
     , \+ useable_submodules(Project, R, MainBr)
     , no_pending_branch(Project, MainBr)
     , no_branch_badconfig(Project, MainBr)
@@ -182,19 +182,19 @@ action(notify(main_broken, Project, Configs)) :-
 %
 % The PR location(s) are obtained from the PRCfg.
 action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))
     , length(Pends, NPend)
     , (NPend > 0 ; NumToStart > 0)
 .
 
 action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status(PRType, _Branch, Project, PRCfg, Goods, [], [], 0))
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, Goods, [], [], 0))
     , length(Goods, NGood)
     , NGood > 0
 .
 
 action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
-    report(pr_status(PRType, _Branch, Project, PRCfg, Goods, Fails, [], 0))
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, Goods, Fails, [], 0))
     , length(Fails, NFail)
     , NFail > 0
 .

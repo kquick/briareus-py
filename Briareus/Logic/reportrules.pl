@@ -136,44 +136,51 @@ cmpBldDesc(D1, D2, D3) :- cmpPrType(D1, D2, D3).
 
 
 
-report(status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_report_succeeded,
+       status_report(succeeded, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
     prior_status(Status, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     good_status(Status),
     cmpBldDesc(BldDesc1, BldDesc2, BldDesc),
     listcmp(Vars, PriorVars).
 
-report(status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_report_fixed,
+       status_report(fixed, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc1),
     prior_status(PrevSts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
     bad_status(PrevSts),
     cmpBldDesc(BldDesc1, BldDesc2, BldDesc),
     listcmp(Vars, PriorVars).
 
-report(status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_report_firstgood,
+       status_report(initial_success, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, N, N, 0, 0, configValid, BldDesc),
     findall(S, (prior_status(S, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2),
                 cmpBldDesc(BldDesc, BldDesc2, _),
                 listcmp(Vars, PriorVars)), PS),
     length(PS, 0).
 
-report(status_report(N, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_report_fail,
+       status_report(N, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, N, 0, configValid, BldDesc),
     N > 0.
 
-report(status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_report_badconfig,
+       status_report(badconfig, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, _, configError, BldDesc).
 
 % Note, pending_status is different than status_report because
 % status_report wants to track transitions (fixed v.s. initial vis
 % still good) and with only one layer of history, introducing a
 % status_report(pending, ...) would obscure the previous results.
-report(pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(pending_status,
+       pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
     N > 0.
 
 
-report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))) :-
+report(new_pending,
+       new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Vars1))) :-
     % configs for which there is no bldres yet (e.g. the .jobsets
     % hasn't run) There is no Bldname assigned, but Briareus can
     % synthesize one from the bldcfg.
@@ -183,7 +190,8 @@ report(new_pending(bldcfg(PName, BranchType, Branch, Strategy, BldDesc, Blds, Va
 
 
 % This preserves the previous status for a pending build
-report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+report(status_prev,
+       status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
     bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
     , N > 0
     , prior_status(Sts, project(PName), Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2)
@@ -191,18 +199,18 @@ report(status_report(Sts, project(PName), Strategy, BranchType, Branch, Bldname,
     , listcmp(Vars, PriorVars)
     .
 
-report(complete_failure(PName)) :-
+report(complete_failure, complete_failure(PName)) :-
     project(PName, _)
     , no_good_status(PName)
     , no_pending_status(PName)
     , no_badconfig(PName)
 .
 
-report(var_failure(PName, N, V)) :-
+report(var_failure, var_failure(PName, N, V)) :-
     project(PName, _)
     , varvalue(PName, N, V)
     , no_good_varvalue_status(PName, N, V)
-    , \+ report(complete_failure(PName))
+    , \+ report(complete_failure, complete_failure(PName))
     , no_pending_varvalue_status(PName, N, V)
     , no_varvalue_badconfig(PName, N, V)
 .
@@ -211,7 +219,8 @@ report(var_failure(PName, N, V)) :-
 %% ------------------------------------------------------------
 %% PR assessments
 
-report(pr_status(PRType, Branch, Project, PRCfg, GoodBlds, BadBlds, PendingBlds, NumNotStarted)) :-
+report(pr_status,
+       pr_status(PRType, Branch, Project, PRCfg, GoodBlds, BadBlds, PendingBlds, NumNotStarted)) :-
     % Return once for each PRType + ProjRepo, providing status of all Blds for that PRType + ProjRepo
     pr_config(PRType, Project, PRCfg)
     , branch_for_prtype(PRType, Branch)
