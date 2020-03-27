@@ -1,0 +1,171 @@
+Priority A means do this soon for the initial prototype
+Priority B means this should be done for better support but not needed for initial prototyping
+Priority C means this is extended functionality to be added later
+
+** TODO [#A] fryingpan home page is hand-maintained.  BAD!
+    Out of sync (e.g. Lanston discovered a reference to the "saw"
+    project and not "saw-script" project.
+
+** TODO [#C] fryingpan evaluations are slow
+   Occurring at intervals larger than the desired evaluation period of
+   600s.  Best current case (with ~25 PR's) seems to be just under
+   1000s, with averages around 1800s, and peaks (new nixpkgs) of of
+   7300-8100 s (~ 2hrs).  Implementation of separate input collection
+   job has helped this considerably (the current peak used to be the
+   average) but it still seems that evaluations are slow, and this
+   contributes to longer build times overall.  More investigation into
+   what might be making these slow and how to speed them up.
+** TODO [#C] references may be out-of-sync
+   Builds are now a 3-stage process:
+    1. briareus runs and determines the build configs
+    2. hydra-evaluator pulls and runs new config
+    3. hydra-queue-runner performs build
+   However, the output of 1 for submodules identifies specific
+   revisions for the submodules but not the project repo (still a
+   branch-name, like "master"), so it's possible that a delay between
+   1 and 2 could allow updating of the project repo to change the
+   submodule configurations but then mis-leadingly build the wrong
+   submodule configurations when step 2 eventually runs (see slowdown
+   described above).
+
+   This seems like it would get un-stuck when #1 runs again, so it
+   should resolve itself, but it would result in misleading
+   intervening builds, especially due due the slow hydra-eval
+   described above.
+
+** TODO [#A] Generate sysconfig/briareus systemd jobs via `inputs` instead of inline?
+    Cleaner specification in /etc/nixos/configuration.nix if these can
+    just be included.  Also don't need \\ merge of systemd jobs.
+
+
+** TODO [#B] PR back-rev on submodules
+   * If a PR submodules are prior to the master and have been changed
+     on the PR, should be flagged to not recommend a merge.
+   * How to identify that a PR's submodules are *behind* master and
+     that a merge will cause a retro-grade movement in submodule
+     support?
+** TODO [#C] fail back to default branch
+  * master may not be the default branch if the target branch doesn't
+    exist in a repo
+  * a pull request specifies the fork point, which may not be master
+** TODO [#B] add filterSource to devnixlib
+   Use filterSource to exclude all sorts of dynamically-generated output automatically.
+   * overrides?
+   * disable?
+   * language-specific?
+** TODO [#B] add a check for a project repo branch that is only identified by a pull request on a subrepo
+   ... but that branch has different gitmodules, that may have a new
+   repo that itself has a pull request on (to really check testing to
+   the fixpoint)
+   
+** TODO [#B] haskell devnix support different warning/optimization via VARS
+** TODO [#C] reporules.pl support for other repo types other than git
+** TODO [#B] phased builds for variables (and branches?)
+  * Ordering important for variable values.  Build the first one
+    initially and only subsequent ones if the first has succeeded.
+
+** TODO [#B] submit automatic PR
+  * could submit a PR for standard operations (e.g. git submodules can
+    be updated)
+  * submits a PR on a valid build where the gitmodules is not HEAD?
+  * note that PR will cause another build... probably OK, added
+    confirmation, but be careful to avoid infinite recursion on this.
+
+** TODO [#B] other input/source types
+  * Hackage.  Build cabal constraints versions v.s. latest hackage version (HEADs)
+** TODO [#B] other version constraints
+  * cabal freeze file
+  * cabal file
+** TODO [#B] verify hydra output against -src inputs to configs.nix
+   If there are -src inputs that aren't in the hydra jobset output, warn the user.
+
+** TODO [#B] update github interface to GraphQL
+** TODO [#C] system attributes
+   What about marking specific jobs with attributes so that they are
+   build on specific builders with a matching attribute?
+
+** TODO [#C] other ecosystems
+  * Rust + crate
+  * C++ + cmake + boost
+
+** TODO [#A] GitRepo handle parallel invocations
+   If hh runs overlap, the globals set in the GitRepo actor cause both
+   to hang (and mis-routing, see Matterhorn pickup of saw PR's on
+   fryingpan).
+
+** TODO [#A] Handle submodules added by PR
+   When a PR modifies the set of repos by adding a submodule, there is
+   a problem: the hydra input evaluation will require that input to be
+   present for all configurations, but the input does not exist yet
+   for some of the configurations.  This causes errors during evaluation
+
+   The devnix support was modified to create a dummy derivation
+   (yielding nothing, so the output should never be needed) for the
+   configurations where the source does not exist yet, but this seems
+   to only work for direct inputs and not correlated inputs.
+** TODO [#C] support alternate Git forge (see ffmpeg)
+
+** TODO alternative git submodules references
+    The GHC git repository uses old git server, not github or gitlab.
+    The submodule urls are of the form "../hadrian.git".  This works
+    with a ~git clone --recursive git://git.haskell.org/ghc.git~, but
+    the following fails:
+
+    #+BEGIN_EXAMPLE
+    $ git clone git://git.haskell.org/ghc.git
+    $ cd ghc
+    $ git submodules init
+    $ git submodules update
+    ...
+    fatal: repository '/home/kquick/work/AFRL-ADIDRUS-COSMAN/packages/hpc.git' does not exist
+    fatal: clone of '/home/kquick/work/AFRL-ADIDRUS-COSMAN/packages/hpc.git' into submodule path '/home/kquick/work/AFRL-ADIDRUS-COSMAN/ghc8.8/libraries/hpc' failed
+    Failed to clone 'libraries/hpc'. Retry scheduled
+    ...
+    #+END_EXAMPLE
+
+    Check to see that Briareus can handle a repo of this type.
+
+** TODO Merge testing
+   Github offers also a merged version of the code.  This is
+   potentially useful.  Consider the what4 expression tests along with
+   dropping the conjunctive form: these two might be incompatible but
+   this wouldn't be detected until merge time.  Should briareus try
+   to build a merged version OR should it detect out-of-date and
+   generate warnings?
+
+** TODO PR marking synchronization
+   At present, the git commit associated with a PR is not tracked
+   through the pr_projstatus or pr_fullstatus information, so it's
+   possible that if there are multiple commits to a PR that the status
+   reporting can get out of sync.
+
+   Forge status reporting should eventually resolve correctly, since
+   two rapid commits could cause status from the first commit to be
+   reported on the second, but these should be overwritten by status
+   from that second commit.
+
+   Email reporting may be incorrect.
+
+   It would be better to be able to confirm the build result correctly
+   matches the commit (and latest status), but this will require much
+   more tracking of github refs, and is made more difficult by the
+   pre-project input staging.  It should be possible though to get a
+   build result and walk the Hydra information to determine the proper
+   input reference used in that build and tag that reference.
+
+** TODO [#B] gitlab private repo access
+    According to gitlab folks, the personal fork of a private repo
+    that has a merge request can be obtained from a
+    refs/merge-requests/:iid ref in the target repository, or just the
+    sha from the target repo
+
+** TODO [#A] ability to mark some combos as necessary and some as optional
+    ForgeStatus should be based only on necessary
+** TODO [#A] prioritize builds
+    Master builds and PR in order of most recent would be nice to
+    prioritize over others.
+** TODO [#B] recommend PR updates from master
+    If a PR is failing and master is doing better, and master has new
+    commits from the PR branch point, then the notification to the PR
+    owner should probably indicate that a merge from master to the PR,
+    and/or a rebase of the PR is recommended.
