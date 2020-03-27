@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify)
+from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify, PR_Status, PRCfg, BranchCfg)
 from Briareus.BuildSys import buildcfg_name
 from Briareus.AnaRep.TextSummary import tbl_branch, tbl_branch_
 import datetime
@@ -85,6 +85,41 @@ def tcell_entshow(base_builder_url):
         return str(ent)
     return _t_es
 
+def htbl_branch(sr, repdata):
+    tblbranch = tbl_branch(sr)
+    return htbl_branch_upd(tblbranch, sr.branchtype, sr.branch, sr.blddesc, repdata)
+
+def htbl_branch_(bldname, branch, newpending, repdata):
+    tblbranch = tbl_branch_(bldname, branch)
+    return htbl_branch_upd(tblbranch,
+                           newpending.bldcfg.branchtype,
+                           newpending.bldcfg.branchname,
+                           newpending.bldcfg.description,
+                           repdata)
+
+def htbl_branch_upd(tblbranch, branchtype, branch, blddesc, repdata):
+    if branchtype == 'pullreq':
+        for sr2 in repdata:
+            if isinstance(sr2, PR_Status) and \
+               sr2.branch == branch and \
+               sr2.prtype == blddesc:
+                bref = ', '.join([ '%s&nbsp;PR&nbsp;#%s' % (c.reponame, c.pr_id)
+                                   if isinstance(c, PRCfg) else # BranchCfg
+                                   '%s&nbsp;branch&nbsp;%s' % (c.reponame, c.branch)
+                                   for c in sr2.prcfg
+                ])
+                tblbranch = ''.join([
+                    '<div class="tooltip">',
+                    tblbranch,
+                    '<span class="tooltiptext">',
+                    bref,
+                    '</span>',
+                    '</div>',
+                ])
+                break;
+    return tblbranch
+
+
 def html_summary(repdata, base_builder_url=None):
     entshow_fun = tcell_entshow(base_builder_url)
 
@@ -148,22 +183,23 @@ def html_summary(repdata, base_builder_url=None):
                 projtable.add(_dec, Project=sr.project, Status=projtable_sts(prev[0].status))
             projtable.add(_inc, Project=sr.project, Status="pending")
             vars = tuple([ (v.varname, v.varvalue) for v in sr.bldvars ])
+            tblbrname = htbl_branch(sr, repdata)
 
             fulltable.add(TCell_PendingBld(sr.project, sr.buildname),
                           *vars,
                           Project=sr.project,
-                          Branch=tbl_branch(sr),
+                          Branch=tblbrname,
                           Strategy=sr.strategy)
             detailtables[sr.project].add(TCell_PendingBld(sr.project, sr.buildname),
                                          *vars,
-                                         Branch=tbl_branch(sr),
+                                         Branch=tblbrname,
                                          Strategy=sr.strategy)
 
         elif isinstance(sr, NewPending):
             summary.add(_inc, Element='Builds')
             projectname = sr.bldcfg.projectname
             buildname = buildcfg_name(sr.bldcfg)
-            tbl_brname = tbl_branch_(buildname, sr.bldcfg.branchname)
+            tbl_brname = htbl_branch_(buildname, sr.bldcfg.branchname, sr, repdata)
             projtable.add(_inc, Project=projectname, Status="TOTAL")
             projtable.add(_inc, Project=projectname, Status="pending")
             vars = tuple([ (v.varname, v.varvalue) for v in sr.bldcfg.bldvars ])
@@ -193,15 +229,17 @@ def html_summary(repdata, base_builder_url=None):
                   lambda proj, name: TCell_FailBld(proj, name, sr.status)
             )(sr.project, sr.buildname)
 
+            tblbrname = htbl_branch(sr, repdata)
+
             fulltable.add(bldres,
                           *tuple([ (v.varname, v.varvalue) for v in sr.bldvars ]),
                           Project=sr.project,
-                          Branch=tbl_branch(sr),
+                          Branch=tblbrname,
                           Strategy=sr.strategy)
 
             detailtables[sr.project].add(bldres,
                                          *tuple([ (v.varname, v.varvalue) for v in sr.bldvars ]),
-                                         Branch=tbl_branch(sr),
+                                         Branch=tblbrname,
                                          Strategy=sr.strategy)
 
     section_hdrfun = lambda msg, idref: '<h2 class="section_hdr" id="' + idref + '">' + msg + '</h2><div class="tdata">'
