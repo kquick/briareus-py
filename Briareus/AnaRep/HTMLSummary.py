@@ -5,6 +5,8 @@ from Briareus.KVITable import KVITable
 from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify)
 from Briareus.BuildSys import buildcfg_name
 from Briareus.AnaRep.TextSummary import tbl_branch, tbl_branch_
+import datetime
+
 
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
@@ -202,16 +204,27 @@ def html_summary(repdata, base_builder_url=None):
                                          Branch=tbl_branch(sr),
                                          Strategy=sr.strategy)
 
-    # section_hdrfun = lambda msg: '<br/><hr class="section_line"/><br/><h2>' + msg + '</h2><br/>'
-    # subsection_hdrfun = lambda msg: '<br/><h3>' + msg + '</h3>'
-
-    section_hdrfun = lambda msg: '<button class="accordion">' + msg + '</button><div class="panel">'
+    section_hdrfun = lambda msg, idref: '<h2 class="section_hdr" id="' + idref + '">' + msg + '</h2><div class="tdata">'
     subsection_hdrfun = section_hdrfun
     section_endfun = lambda: '</div>'
 
+    nav = '\n'.join([
+        '<ul class="nav">',
+        '<li><a href="#stats">Top</a></li>',
+        '<li><a href="#project_summary">Summary</a></li>',
+        '<li><a href="#combined">Combined</a></li>',
+    ] + [ '<li><a href="#' + p + '">' + p + '</a></li>'
+          for p in sorted(projects)
+    ] + [
+        '<li id=\"navdate\">Updated: ' + str(datetime.datetime.now()) + '</li>',
+        '</ul>',
+    ])
+
     return '\n\n'.join([
+        nav,
+        section_hdrfun('Statistics', 'stats'),
         summary.render(as_format='html', sort_vals=True),
-        section_hdrfun('Per-project Build Status Summary'),
+        section_hdrfun('Per-project Build Status Summary', 'project_summary'),
         projtable.render(row_group=['Project'],
                          row_repeat=False,
                          sort_vals=False,
@@ -219,7 +232,7 @@ def html_summary(repdata, base_builder_url=None):
                          caption='Per-project Build Status Summary',
                          colstack_at='Status'),
         section_endfun(),
-        section_hdrfun('Combined Details'),
+        section_hdrfun('Combined Details', 'combined'),
         fulltable.render(row_group=['system', 'Branch', 'Strategy'],
                          row_repeat=False,
                          sort_vals=True,
@@ -229,7 +242,7 @@ def html_summary(repdata, base_builder_url=None):
                          colstack_at=(list(fulltable.keyvals().keys()) + [None])[4],),
         section_endfun(),
         # section_hdrfun('Individual Project Summaries ::'),
-        ] + [ '\n\n'.join([ subsection_hdrfun('Project %s' % p),
+        ] + [ '\n\n'.join([ subsection_hdrfun('Project %s' % p, p),
                             detailtables[p].render(row_repeat=False,
                                                    as_format='html',
                                                    caption='Project %s' % p,

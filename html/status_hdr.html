@@ -21,6 +21,7 @@
         font-family: sans-serif;
         box-sizing: border-box;
         color: rgb(20, 44, 59);
+        scroll-behavior: smooth;
       }
 
       table {
@@ -101,8 +102,13 @@
         top: 64px;
       }
 
+      .active {
+          background-color: rgba(0, 184, 230, 1.0);
+      }
+
       caption,
       #gendate,
+      #navdate,
       .bldsts.pending:after {
         font-size: 85%;
         font-weight: 100;
@@ -118,6 +124,40 @@
         z-index: 1;
       }
 
+      .nav {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: rgba(0, 153, 255);
+          position: fixed;
+          top: 0;
+          width: 100%;
+          z-index: 3;
+      }
+
+      .nav li {
+          float: left;
+          border-right: 2px solid white;
+          font-weight: bold;
+          font-size: 120%;
+      }
+
+      .nav a {
+          display: block;
+          padding: 14px 18px;
+          text-align: center;
+          text-decoration: none;
+      }
+
+      .nav li a:hover {
+          background-color: rgba(240,180,0);
+      }
+
+      #navdate {
+          float: right;
+      }
+
       #gendate {
         position: fixed;
         bottom: 0;
@@ -128,41 +168,6 @@
         padding: calc(var(--padding) / 2) var(--padding);
       }
 
-      .accordion {
-          background-color: rgba(54, 99, 188, 0.4);
-          cursor: pointer;
-          padding: 18px;
-          width: 100%;
-          text-align: left;
-          font-weight: bold;
-          font-size: 120%;
-          border: none;
-          outline: none;
-          transition: 0.4s;
-      }
-      .accordion.active {
-          position: sticky;
-          top: 0;
-      }
-      .active, .accordion:hover {
-          background-color: rgba(0, 184, 230, 1.0);
-      }
-      button.accordion:after {
-          content: "\002B";
-          font-weight: bold;
-          font-size: 120%;
-          float: right;
-          margin-left: 5px;
-      }
-      button.accordion.active:after {
-          content: "\2212";
-      }
-      .panel {
-          padding: 0 18px;
-          max-height: 0;
-          transition: max-height 0.57s ease-out;
-          overflow: hidden;
-      }
     </style>
   </head>
   <body>

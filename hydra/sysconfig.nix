@@ -75,7 +75,6 @@ let
              htmlout="${briareus_rundir}/html/${name}_sts.html";
              cat ${briareus}/html/status_hdr.html \
                  <(${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr) \
-                 <(echo "<div id=\"gendate\">Updated: $(date)</div>") \
                  ${briareus}/html/status_footer.html > $htmlout
              set +x
       '';

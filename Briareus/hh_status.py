@@ -13,7 +13,7 @@ def text_formatter(repdata, _builder_url):
 
 def html_formatter(repdata, builder_url):
     lines = len(repdata)
-    print('HTML status from a', lines, ' line report')
+    # print('HTML status from a', lines, ' line report')
     print(html_summary(repdata, builder_url))
 
 def main():
