@@ -80,29 +80,37 @@ pr_type(pr_grouped, BranchName) :-
 %     branchcfg(Repo, BranchName)
 % items.
 pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
-    pr_type(pr_solo, Repo, PRNum)
+    active_prsts(Sts)
     , pullreq(Repo, PRNum, Branch, Sts, User, Email)
-    , active_prsts(Sts)
     , repo_in_project(ProjName, Repo)
+    , PRType = pr_type(pr_solo, Repo, PRNum)
+    , PRType
     , PRCfg = [ prcfg(Repo, PRNum, Branch, User, Email) ]
 .
 
-pr_config(pr_type(pr_repogroup, PRNum, RepoList), ProjName, PRCfg) :-
-    pr_type(pr_repogroup, PRNum, RepoList)
+pr_config(PRType, ProjName, PRCfg) :-
+    PRType = pr_type(pr_repogroup, PRNum, _RepoList)
+    , PRType
+    % ensure at least one cfg for this pr, as well as establishing the
+    % ProjName output
+    , pullreq_active_in_project(PRType, ProjName)
     % the Branch should be the same main_branch for all prcfgs since
     % they refer to the same actual repo
-    , setof(R, Repo^(is_main_branch(Repo, Branch)
-                     , pullreq(Repo, PRNum, Branch, Sts, User, Email)
-                     , active_prsts(Sts)
-                     , repo_in_project(ProjName, Repo)
-                     , R = prcfg(Repo, PRNum, Branch, User, Email))
+    , setof(Res, R^(is_main_branch(R, Br)
+                    , pullreq(R, PRNum, Br, Sts, Usr, EmailAddr)
+                    , active_prsts(Sts)
+                    , repo_in_project(ProjName, R)
+                    , Res = prcfg(R, PRNum, Br, Usr, EmailAddr))
             , PRCfg)
-    , length(PRCfg, N)
-    , N > 0
 .
 
-pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
-    pr_type(pr_grouped, BranchName)
+pr_config(PRType, ProjName, PRCfg) :-
+    PRType = pr_type(pr_grouped, BranchName)
+    , PRType
+    % establish ProjName output and ensure at least one PRCfg
+    , project(ProjName)
+    , pullreq_active_in_project(PRType, ProjName)
+    % Collect all PRCfg
     , findall(R, (pullreq(Repo, I, BranchName, S, User, Email)
                   , active_prsts(S)
                   , repo_in_project(ProjName, Repo)
@@ -116,15 +124,46 @@ pr_config(pr_type(pr_grouped, BranchName), ProjName, PRCfg) :-
               , PRCfg_BR)
     , append(PRCfg_PR, PRCfg_BR, PRCfg_All)
     , list_to_set(PRCfg_All, PRCfg)
-    , length(PRCfg, N)
-    , N > 0
 .
+
 
 % ----------------------------------------------------------------------
 % Misc support
 
 active_prsts(prsts_new).
 active_prsts(prsts_active).
+
+
+% pullreq_active_in_project is true if the PRType is valid and in
+% active status for the specified Project.
+pullreq_active_in_project(PRType, Project) :-
+    PRType = pr_type(pr_grouped, Branch)
+    , PRType
+    , project(Project)
+    , repo_in_project(Project, ProjRepo)
+    , active_prsts(Status)
+    , pullreq(ProjRepo, _, Branch, Status, _, _)
+    , !  % just one is necessary
+.
+pullreq_active_in_project(PRType, Project) :-
+    PRType = pr_type(pr_repogroup, PRNum, _)
+    , PRType
+    , project(Project)
+    , repo_in_project(Project, Repo)
+    , is_main_branch(Repo, Branch)
+    , active_prsts(Status)
+    , pullreq(Repo, PRNum, Branch, Status, _, _)
+    , !  % just one is necessary
+.
+pullreq_active_in_project(PRType, Project) :-
+    PRType = pr_type(pr_solo, Repo, PRNum)
+    , PRType
+    , project(Project)
+    , repo_in_project(Project, Repo)
+    , active_prsts(Status)
+    , pullreq(Repo, PRNum, _, Status, _, _)
+    , !  % just one is necessary
+.
 
 
 % Normally the PRType can be compared directly, but as a special case,
