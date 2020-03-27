@@ -169,3 +169,27 @@ Priority C means this is extended functionality to be added later
     commits from the PR branch point, then the notification to the PR
     owner should probably indicate that a merge from master to the PR,
     and/or a rebase of the PR is recommended.
+** TODO [#B] VCS name/URL fork mismatch
+
+   Somehow the GitInfo reference for a repository got a reference to a
+   forked repo rather than the primary repo:
+
+   #+BEGIN_EXAMPLE
+   thespian> ask 78 status
+   Response <class 'str'>: {'get_info_reqs': 5320,
+     'remote_refreshes': 2658,
+     'remote_reqs': 2660,
+     'rsp_cache_keys': ['https://api.github.com/repos/pnwamk/what4-serialize/branches',
+                        'https://api.github.com/repos/pnwamk/what4-serialize/pulls'],
+     'url': 'https://api.github.com/repos/pnwamk/what4-serialize'}
+   thespian>
+   #+END_EXAMPLE
+
+   The main repo should have been https://github.com/GaloisInc/what4-serialize.
+
+   The effect is that PR's and such on the main repo were ignored.
+
+   The current fix: restart the core briareus service.
+
+   The cause of this should be found and fixed.
+
