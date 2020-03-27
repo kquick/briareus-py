@@ -208,3 +208,39 @@ Priority C means this is extended functionality to be added later
        sha revision it has set the commit on, either in the
        Notification match or as part of the targetrepos/updated
        settings.
+** TODO [#A] correlate PR ref with build
+   Current problem:
+      1. Create PR
+      2. Builds fail
+      3. Push update to PR (ref1)
+      4. Briareus immediately tags ref1 with the failure from step 2.
+      5. proj-inputs.jobsets, then proj-inputs.update_inputs, then
+         proj.jobsets, then eval of proj.pr is needed to mark PR.ref1
+         as in-progress, and this sequence can take an hour.
+   Need to just mark PR ref as in-progress when PR updated.
+
+   Solution: Capture inputs for a BuildSys result, compare inputs to
+     PRCfg refs and mark as InProgress/Pending if no match?
+
+   Note: could support actual difference between Pending and
+   InProgress for Gitlab.
+** TODO [#A] job and builder assignment
+    The bike, sike, s2n, and kyber tests are long running, and if
+    there are multiple PR's, then a single change can end up making
+    all of the builders busy, which prevents other work from being
+    attended to.
+
+    This is particularly acute when a PR is updated (see "correlate PR
+    ref with build") because it delays the builds for the .jobsets and
+    update_inputs that would allow the new PR update to even be
+    recognized and scheduled so that the PR is marked InProgress by
+    SetForgeStatus.
+
+    Would be nice to mark these jobs with a "long-job" attribute that
+    could also be attached to a subset of workers.  This would slow
+    down the throughput for these, but prevent them from blocking the
+    main set.
+
+    However, this would prevent other workers from being used when
+    they are available and the only remaining builds left are these
+    long-jobs.
