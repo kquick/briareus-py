@@ -91,11 +91,7 @@ def get_repo_loc_and_PR_rev(r, proj_results, notify_params):
     tgtloc = to_http_url(r.repo_url, proj_results.inp_desc.RX)
     for p in notify_params.prcfg:  # p is Types.PRCfg
         if isinstance(p, PRCfg) and p.reponame == r.repo_name:
-            for pr in proj_results.repo_info['pullreqs']: # pr is VCS.InternalMessages.PRInfo
-                if pr.pr_target_repo == r.repo_name \
-                   and pr.pr_branch == p.branch \
-                   and pr.pr_ident == p.pr_id:
-                    return r.repo_name, tgtloc, pr.pr_revision
+            return r.repo_name, tgtloc, p.revision
     return None, None, None
 
 

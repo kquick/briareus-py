@@ -71,7 +71,7 @@ is_branch_reachable(ProjRepo, submodules, Branch) :-
 
 
 pr_builds([], []).
-pr_builds([prcfg(R,I,B,_U,_E)|PRCFGS], [bld(R,B,I,brr(31))|BLDS]) :-
+pr_builds([prcfg(R,I,B,_H,_U,_E)|PRCFGS], [bld(R,B,I,brr(31))|BLDS]) :-
     pr_builds(PRCFGS, BLDS).
 pr_builds([branchcfg(R,B)|PRCFGS], [bld(R,B,project_primary,brr(30))|BLDS]) :-
     pr_builds(PRCFGS, BLDS).
@@ -85,7 +85,7 @@ pr_builds_proj([], PName, _Branch, project_primary, ProjBranch) :-
     project(PName, ProjRepo)
     , is_main_branch(ProjRepo, ProjBranch)
 .
-pr_builds_proj([prcfg(ProjRepo,I,ProjBranch,_,_)|_PRCFGS], PName, _Branch, I, ProjBranch) :-
+pr_builds_proj([prcfg(ProjRepo,I,ProjBranch,_,_,_)|_PRCFGS], PName, _Branch, I, ProjBranch) :-
     project(PName, ProjRepo)
     , !
 .

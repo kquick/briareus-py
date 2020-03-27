@@ -26,7 +26,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
 :- discontiguous branch_ref/3.
-:- discontiguous pullreq/6.
+:- discontiguous pullreq/7.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("R10").
@@ -45,10 +45,10 @@ branch_ref("R3", "master", "R3-master-ref").
 branch_ref("R3", "blah", "r3-blah-ref").
 branch_ref("R4", "master", "R4-master-ref").
 branch_ref("R4", "feat1", "r4-feat1-ref").
-pullreq("R3", "11", "blah", prsts_active, "nick", "nick@bad.seeds").
-pullreq("R3", "22", "closed_pr", prsts_closed, "done", "done@already.yo").
-pullreq("R3", "33", "merged_pr", prsts_merged, "done", "done@already.yo").
-pullreq("R4", "8192", "bugfix9", prsts_new, "ozzie", "ozzie@crazy.train").
+pullreq("R3", "11", "blah", "r3_blah_mergeref", prsts_active, "nick", "nick@bad.seeds").
+pullreq("R3", "22", "closed_pr", "r3_CLOSED_mergeref", prsts_closed, "done", "done@already.yo").
+pullreq("R3", "33", "merged_pr", "r3_MERGED_mergeref", prsts_merged, "done", "done@already.yo").
+pullreq("R4", "8192", "bugfix9", "r1_bf9_mergeref", prsts_new, "ozzie", "ozzie@crazy.train").
 branchreq("R10", "master").
 branchreq("R10", "dev").
 branchreq("R10", "feat1").

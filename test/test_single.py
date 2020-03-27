@@ -78,7 +78,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
 :- discontiguous branch_ref/3.
-:- discontiguous pullreq/6.
+:- discontiguous pullreq/7.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("TheRepo").
@@ -91,8 +91,8 @@ branch("TheRepo", "master").
 branch("TheRepo", "feat1").
 branch_ref("TheRepo", "master", "master-ref").
 branch_ref("TheRepo", "feat1", "feat1-ref").
-pullreq("TheRepo", "134", "toad", prsts_active, "hoppy", "").
-pullreq("TheRepo", "91", "frog", prsts_active, "frog", "frog@lilypond.pad").
+pullreq("TheRepo", "134", "toad", "toad_mergeref", prsts_active, "hoppy", "").
+pullreq("TheRepo", "91", "frog", "frog_mergeref", prsts_active, "frog", "frog@lilypond.pad").
 '''.split('\n')))
 
 

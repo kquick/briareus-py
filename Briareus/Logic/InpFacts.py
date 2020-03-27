@@ -60,13 +60,16 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         DeclareFact('subrepo/2'),
 
         # Identifies a pull request that was found by probing the VCS.
-        # The format is: pullreq(Repo, PR_Ident, PR_Branch, PR_User,
-        # PR_Email).  The PR_Branch may be used to correlate against
-        # branches in other repositories (whether or not they have an
-        # active pullreq for that branch).  The PR_Ident serves only
-        # to identify this PR (relative to the Repo) and is otherwise
+        # The format is:
+        #
+        # pullreq(Repo, PR_Ident, PR_Branch, PR_Ref, PR_Status, PR_User, PR_Email)
+        #
+        # The PR_Branch may be used to correlate against branches in
+        # other repositories (whether or not they have an active
+        # pullreq for that branch).  The PR_Ident serves only to
+        # identify this PR (relative to the Repo) and is otherwise
         # "free-form".
-        DeclareFact('pullreq/6'),
+        DeclareFact('pullreq/7'),
 
         # Specifies the existence of a branch in a repository by
         # probing the VCS.  The format is: branch(Repo, BranchName).
@@ -123,7 +126,8 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     # duck-typed.
     pullreqs = repo_info['pullreqs']
     pullreq_facts = [
-        Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", %%(pr_status)s, "%(pr_user)s", "%(pr_email)s")'
+        Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s",'
+             ' "%(pr_revision)s", %%(pr_status)s, "%(pr_user)s", "%(pr_email)s")'
              % p.__dict__
              % { 'pr_status' : p.pr_status.as_fact(),
              }

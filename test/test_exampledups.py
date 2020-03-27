@@ -236,7 +236,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branchreq/2.
 :- discontiguous branch/2.
 :- discontiguous branch_ref/3.
-:- discontiguous pullreq/6.
+:- discontiguous pullreq/7.
 :- discontiguous varname/2.
 :- discontiguous varvalue/3.
 project("Repo1").
@@ -247,13 +247,13 @@ repo("Repo1", "Repo2").
 repo("Repo1", "Repo3").
 branchreq("Repo1", "master").
 branchreq("Repo1", "develop").
-pullreq("Repo1", "1", "master", prsts_active, "jdoe", "jdoe@nocompany.com").
-pullreq("Repo1", "2", "master", prsts_active, "jdoe", "jdoe@nocompany.com").
-pullreq("Repo3", "2", "develop", prsts_active, "frank", "frank@stein.co").
-pullreq("Repo3", "1", "foo", prsts_active, "earl", "earl@king.wild").
-pullreq("Repo3", "9", "master", prsts_active, "frank", "frank@stein.co").
-pullreq("Repo1", "Req8", "dog", prsts_active, "r.user", "").
-pullreq("Repo3", "101", "dog", prsts_active, "fido", "fido@woof.grr").
+pullreq("Repo1", "1", "master", "r1_master_maskref", prsts_active, "jdoe", "jdoe@nocompany.com").
+pullreq("Repo1", "2", "master", "r1_master_p2^head", prsts_active, "jdoe", "jdoe@nocompany.com").
+pullreq("Repo3", "2", "develop", "r3_develop_pr2", prsts_active, "frank", "frank@stein.co").
+pullreq("Repo3", "1", "foo", "r3_foo_pr3", prsts_active, "earl", "earl@king.wild").
+pullreq("Repo3", "9", "master", "r3_master_2", prsts_active, "frank", "frank@stein.co").
+pullreq("Repo1", "Req8", "dog", "r1_r8_f32", prsts_active, "r.user", "").
+pullreq("Repo3", "101", "dog", "r3_r3^7", prsts_active, "fido", "fido@woof.grr").
 branch("Repo3", "develop").
 branch("Repo1", "develop").
 branch("Repo2", "master").

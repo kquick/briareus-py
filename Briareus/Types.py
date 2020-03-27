@@ -159,6 +159,7 @@ class PRCfg(object):
     reponame = attr.ib() # string
     pr_id    = attr.ib() # string
     branch   = attr.ib() # string
+    revision = attr.ib() # string head revision (e.g. SHA hash) or blank if not known
     user     = attr.ib() # string
     email    = attr.ib() # string
 
@@ -168,6 +169,7 @@ class PRCfg(object):
                             fact_str(self.reponame),
                             fact_str(self.pr_id),
                             fact_str(self.branch),
+                            fact_str(self.revision),
                             fact_str(self.user),
                             fact_str(self.email),
                             ]),
