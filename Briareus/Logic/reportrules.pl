@@ -200,14 +200,14 @@ report(status_prev,
     .
 
 report(complete_failure, complete_failure(PName)) :-
-    project(PName, _)
+    project(PName)
     , no_good_status(PName)
     , no_pending_status(PName)
     , no_badconfig(PName)
 .
 
 report(var_failure, var_failure(PName, N, V)) :-
-    project(PName, _)
+    project(PName)
     , varvalue(PName, N, V)
     , no_good_varvalue_status(PName, N, V)
     , \+ report(complete_failure, complete_failure(PName))
@@ -224,7 +224,7 @@ report(pr_status,
     % Return once for each PRType + ProjRepo, providing status of all Blds for that PRType + ProjRepo
     pr_config(PRType, Project, PRCfg)
     , branch_for_prtype(PRType, Branch)
-    , project(Project, _ProjRepo)
+    , project(Project)
     , findall(BldName
               , (bldres(Project, pullreq, Branch, _, _, BldName, _, _, _, N, configValid, BldDesc)
                  , cmpBldDesc(PRType, BldDesc, _)

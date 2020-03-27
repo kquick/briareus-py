@@ -2,7 +2,7 @@
 :- consult(pullreqinfo).
 
 build_config2(bldcfg(PName, pullreq, Branch, Strategy, Cfg, BLDS, VARS)) :-
-    project(PName, _)
+    project(PName)
     , pr_config(Cfg, PName, CFG)
     , length(CFG, CFGLen)
     , CFGLen > 0  % eliminate PR's that don't affect this project

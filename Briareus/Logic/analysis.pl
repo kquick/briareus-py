@@ -100,7 +100,7 @@ action(notify(completely_broken, Project, NBldCfgs)) :-
 .
 
 action(notify(variable_failing, Project, varvalue(Project, VarName, VarValue))) :-
-    project(Project, _)
+    project(Project)
     , report(var_failure, var_failure(Project, VarName, VarValue))
     , analysis(var_handled_separately(Project, VarName, VarValue)).
 
