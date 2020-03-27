@@ -71,9 +71,6 @@ class AnaRep(object):
             DeclareFact('enable/3'),
             DeclareFact('enable/4'),
             DeclareFact('project_owner/2'),
-
-            DeclareFact('bldres/11'),
-            Fact('bldres(Prj,BrTy,Br,Stgy,Vars,Bldname,Ttl,Good,Bad,Pend,CfgSts,"old") :- bldres(Prj,BrTy,Br,Stgy,Vars,Bldname,Ttl,Good,Bad,Pend,CfgSts)'),
         ]
 
         input_facts = functools.reduce(
