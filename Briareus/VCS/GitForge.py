@@ -255,6 +255,7 @@ class GitLabInfo(RemoteGit__Info):
         preqs = []
         for pr in rsp:
             src_repo_url = self._src_repo_url(pr)
+            src_branch = pr['source_branch']
             if src_repo_url == self.NotFound:
                 # Gitlab has a dubious feature where if a user
                 # forks a private repository, the user's fork is
@@ -267,27 +268,32 @@ class GitLabInfo(RemoteGit__Info):
                 # means that the .gitmodules of the source
                 # repository cannot be examined (if it was a
                 # project repository) and that the buildsys cannot
-                # check out the source repo to build against.  At
-                # this point, the only real option available at
-                # this time is to just ignore this merge request.
-                # Sorry!
-                logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
-                                reponame, pr['iid'], pr['title'])
-            else:
-                prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
-                                     pullreq_status = { "closed": PRSts_Closed,
-                                                        "merged": PRSts_Merged,
-                                                        "opened": PRSts_Active,
-                                                        "locked": PRSts_Active,  # short-lived transitional
-                                     }.get(pr["state"], PRSts_Closed)(),
-                                     pullreq_title=pr["title"],    # for user reference
-                                     pullreq_srcurl=src_repo_url,
-                                     pullreq_branch=pr["source_branch"],          # source repo branch
-                                     pullreq_ref=pr["sha"],
-                                     pullreq_user=pr['author']['username'],
-                                     pullreq_email=self.get_user_email(pr['author']['id']),
-                                     pullreq_mergeref=None)
-                preqs.append(prinfo)
+                # check out the source repo to build against.
+                #
+                # Per gitlab.com/gitlab-org/gitlab/-/issues/38216, the
+                # "refs/merge-requests/:iid/head" in the target repo
+                # represents the accessible merge source.
+
+                # logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
+                #                 reponame, pr['iid'], pr['title'])
+
+                src_repo_url = "SameProject"
+                src_branch = 'refs/merge-requests/' + str(pr["iid"]) + '/head'
+
+            prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
+                                 pullreq_status = { "closed": PRSts_Closed,
+                                                    "merged": PRSts_Merged,
+                                                    "opened": PRSts_Active,
+                                                    "locked": PRSts_Active,  # short-lived transitional
+                                 }.get(pr["state"], PRSts_Closed)(),
+                                 pullreq_title=pr["title"],    # for user reference
+                                 pullreq_srcurl=src_repo_url,
+                                 pullreq_branch=src_branch,
+                                 pullreq_ref=pr["sha"],
+                                 pullreq_user=pr['author']['username'],
+                                 pullreq_email=self.get_user_email(pr['author']['id']),
+                                 pullreq_mergeref=None)
+            preqs.append(prinfo)
 
         return PullReqsData(reponame, preqs)
 
