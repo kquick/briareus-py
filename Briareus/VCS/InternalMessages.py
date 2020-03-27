@@ -98,6 +98,7 @@ class PullReqsData(Repo__RspMsg):       # GetPullReqs -->
 @attr.s
 class PullReqInfo(object):
     pullreq_number = attr.ib()
+    pullreq_status = attr.ib() # PullReqStatus__Base derivation
     pullreq_title  = attr.ib()
     pullreq_srcurl = attr.ib()
     pullreq_branch = attr.ib()
@@ -105,6 +106,12 @@ class PullReqInfo(object):
     pullreq_user   = attr.ib() # string name of user on forge
     pullreq_email  = attr.ib() # string user email (may be blank if not public)
     pullreq_mergeref = attr.ib(default=None) # if available
+
+class PullReqStatus__Base(object): pass
+class PullReqStatus_New(PullReqStatus__Base): "Marked WIP"
+class PullReqStatus_Active(PullReqStatus__Base): pass
+class PullReqStatus_Closed(PullReqStatus__Base): pass
+class PullReqStatus_Merged(PullReqStatus__Base): pass
 
 @attr.s
 class HasBranch(Repo__ReqMsg):          #           --> BranchPresent
