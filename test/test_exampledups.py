@@ -192,7 +192,7 @@ prior = [
                  buildname='PR1-master.standard-ghc865',
                  bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                  ],
-                 blddesc=PR_Solo('master', '1'),
+                 blddesc=PR_Solo('Repo1', 'master', '1'),
     ),
     StatusReport(status='succeeded', project='Repo1',
                  strategy='standard', branchtype="regular", branch="master",
@@ -311,7 +311,7 @@ def test_example_internal_pr1_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description=PR_Solo("Repo1", "1"),
+                            description=PR_Solo("Repo1", "Repo1", "1"),
                             blds=[BldRepoRev("Repo1", "master", "1"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "project_primary"),
@@ -325,7 +325,7 @@ def test_example_internal_pr2r1_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description=PR_Solo("Repo1", "2"),
+                            description=PR_Solo("Repo1", "Repo1", "2"),
                             blds=[BldRepoRev("Repo1", "master", "2"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "project_primary"),
@@ -370,7 +370,7 @@ def test_example_internal_pr9r3_standard(generated_bldconfigs):
                             branchtype="pullreq",
                             branchname="master",
                             strategy="standard",
-                            description=PR_Solo("Repo3", "9"),
+                            description=PR_Solo("Repo1", "Repo3", "9"),
                             blds=[BldRepoRev("Repo1", "master", "project_primary"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "master", "9"),
@@ -822,7 +822,7 @@ def test_example_report_status4(example_hydra_results):
                         buildname='PR1-master.standard-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ],
-                        blddesc=PR_Solo('Repo1', '1')) in reps
+                        blddesc=PR_Solo("Repo1", 'Repo1', '1')) in reps
 
 def test_example_report_status4_2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -831,7 +831,7 @@ def test_example_report_status4_2(example_hydra_results):
                         buildname='PR2-master.standard-ghc881',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc881')
                         ],
-                        blddesc=PR_Solo('Repo1', '2')) in reps
+                        blddesc=PR_Solo("Repo1", 'Repo1', '2')) in reps
 
 def test_example_report_status5(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -858,7 +858,7 @@ def test_example_report_status7(example_hydra_results):
                         buildname='PR9-master.standard-ghc865',
                         bldvars=[BldVariable(project='Repo1', varname='ghcver', varvalue='ghc865')
                         ],
-                        blddesc=PR_Solo('Repo3', '9')) in reps
+                        blddesc=PR_Solo("Repo1", 'Repo3', '9')) in reps
 
 def test_example_report_status8(example_hydra_results):
     bldcfgs, reps = example_hydra_results

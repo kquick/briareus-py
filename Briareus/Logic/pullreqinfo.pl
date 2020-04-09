@@ -39,29 +39,36 @@
 %         If any PR's exist on that repo on the main branch, they are
 %         pr_solo.
 
-:- table pr_type/3.
+:- table pr_type/4.
 :- table pr_type/2.
 
-pr_type(pr_solo, Repo, PRNum) :-
-    pullreq(Repo, PRNum, Branch, _, Sts, _, _)
+pr_type(pr_solo, Project, Repo, PRNum) :-
+    repo_in_project(Project, Repo)
+    , pullreq(Repo, PRNum, Branch, _, Sts, _, _)
     , active_prsts(Sts)
     , is_main_branch(Repo, Branch)
+    % If this should be a repogroup PR instead, there will be multiple
+    % pullreq facts with the same PRNum.
     , findall(R, (pullreq(R, PRNum, Branch, _, S, _U, _E)
-                 , active_prsts(S)
-                 , is_main_branch(R, Branch)
+                  , active_prsts(S)
+                  , repo_in_project(Project, R)
+                  , is_main_branch(R, Branch)
                  )
               , RS)
-    , length(RS, RLen)
-    , RLen < 2.
+    , length(RS, 1)
+.
 
-pr_type(pr_repogroup, PRNum, RepoList) :-
-    setof(R, (pullreq(R, PRNum, Branch, _, Sts, _, _)
-             , active_prsts(Sts)
-             , is_main_branch(R, Branch)
-             )
+pr_type(pr_repogroup, Project, PRNum, RepoList) :-
+    % The same PRNum binds the pullreqs to the same repo
+    setof(R, Ref^User^Email^(pullreq(R, PRNum, Branch, Ref, Sts, User, Email)
+                             , active_prsts(Sts)
+                             , repo_in_project(Project, R)
+                             , is_main_branch(R, Branch)
+                            )
           , RepoList)
     , length(RepoList, RLen)
-    , RLen > 1.
+    , RLen > 1
+.
 
 pr_type(pr_grouped, BranchName) :-
     setof(B, R^I^U^E^F^S^(pullreq(R, I, B, F, S, U, E), active_prsts(S)), BS)
@@ -86,17 +93,17 @@ pr_type(pr_grouped, BranchName) :-
 
 :- table pr_config/3.
 
-pr_config(pr_type(pr_solo, Repo, PRNum), ProjName, PRCfg) :-
+pr_config(pr_type(pr_solo, ProjName, Repo, PRNum), ProjName, PRCfg) :-
     active_prsts(Sts)
     , pullreq(Repo, PRNum, Branch, BranchRef, Sts, User, Email)
     , repo_in_project(ProjName, Repo)
-    , PRType = pr_type(pr_solo, Repo, PRNum)
+    , PRType = pr_type(pr_solo, ProjName, Repo, PRNum)
     , PRType
     , PRCfg = [ prcfg(Repo, PRNum, Branch, BranchRef, User, Email) ]
 .
 
 pr_config(PRType, ProjName, PRCfg) :-
-    PRType = pr_type(pr_repogroup, PRNum, _RepoList)
+    PRType = pr_type(pr_repogroup, ProjName, PRNum, _RepoList)
     , PRType
     % ensure at least one cfg for this pr, as well as establishing the
     % ProjName output
@@ -153,7 +160,7 @@ pullreq_active_in_project(PRType, Project) :-
     , !  % just one is necessary
 .
 pullreq_active_in_project(PRType, Project) :-
-    PRType = pr_type(pr_repogroup, PRNum, _)
+    PRType = pr_type(pr_repogroup, Project, PRNum, _)
     , PRType
     , project(Project)
     , repo_in_project(Project, Repo)
@@ -163,7 +170,7 @@ pullreq_active_in_project(PRType, Project) :-
     , !  % just one is necessary
 .
 pullreq_active_in_project(PRType, Project) :-
-    PRType = pr_type(pr_solo, Repo, PRNum)
+    PRType = pr_type(pr_solo, Project, Repo, PRNum)
     , PRType
     , project(Project)
     , repo_in_project(Project, Repo)
@@ -179,17 +186,17 @@ pullreq_active_in_project(PRType, Project) :-
 % therefore be a PR_Repogrouped, so allow those two to equate to each
 % other.  This function is successful if two PRTypes are equivalent
 % under the above rules and returns the pre-eminent PRType to use.
-cmpPrType(pr_type(pr_solo,R,I), PT1, PT1) :-
-    PT1 = pr_type(pr_repogroup,I,RL)
+cmpPrType(pr_type(pr_solo,_P,R,I), PT1, PT1) :-
+    PT1 = pr_type(pr_repogroup,_P2,I,RL)
     , PT1
     % , pr_type(pr_solo,R,I)
     , member(R, RL)
     , !
 .
-cmpPrType(PT1, pr_type(pr_solo,R,I), PT1) :-
-    PT1 = pr_type(pr_repogroup,I,RL)
+cmpPrType(PT1, pr_type(pr_solo,P,R,I), PT1) :-
+    PT1 = pr_type(pr_repogroup,_P2,I,RL)
     , PT1
-    , pr_type(pr_solo,R,I)
+    , pr_type(pr_solo,P,R,I)
     , member(R, RL)
     , !
 .
@@ -199,10 +206,10 @@ cmpPrType(PT1, PT1, PT1).
 cmpPRCfg(PC1, PC2) :- listcmp(PC1, PC2).
 
 
-branch_for_prtype(pr_type(pr_solo, Repo, _), Branch) :-
+branch_for_prtype(pr_type(pr_solo, _, Repo, _), Branch) :-
     is_main_branch(Repo, Branch)
 .
-branch_for_prtype(pr_type(pr_repogroup, _, RepoList), Branch) :-
+branch_for_prtype(pr_type(pr_repogroup, _, _, RepoList), Branch) :-
     nth0(0, RepoList, R0)
     , is_main_branch(R0, Branch)
 .

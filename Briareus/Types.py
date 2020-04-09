@@ -40,19 +40,25 @@ def pr_type(typespec, *args):
 
 @attr.s(frozen=True)
 class PR_Solo(object):
-    reponame   = attr.ib() # string
-    pullreq_id = attr.ib() # string, never project_primary
+    projectname = attr.ib() # string
+    reponame    = attr.ib() # string
+    pullreq_id  = attr.ib() # string, never project_primary
 
     def as_fact(self):
-        return 'pr_type(pr_solo, "' + self.reponame + '", "' + self.pullreq_id + '")'
+        return ('pr_type(pr_solo, "' + self.projectname +
+                '", "' + self.reponame +
+                '", "' + self.pullreq_id + '")')
 
 @attr.s(frozen=True)
 class PR_Repogroup(object):
-    pullreq_id = attr.ib() # string, never project_primary
-    reponames  = attr.ib() # [string]
+    projectname = attr.ib() # string
+    pullreq_id  = attr.ib() # string, never project_primary
+    reponames   = attr.ib() # [string]
 
     def as_fact(self):
-        return ('pr_type(pr_repogroup, "' + self.pullreq_id + '", ['
+        return ('pr_type(pr_repogroup, "' + self.projectname +
+                '", "' + self.pullreq_id +
+                '", ['
                 + ', '.join(['"%s"'%n for n in self.reponames]) + '])')
 
 @attr.s(frozen=True)
