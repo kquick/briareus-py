@@ -69,7 +69,7 @@ let
              cd ${briareus_rundir};
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -C ${inpcfg} -r ${briareus_rundir}/${name}.hhr
+             ${briareus}/bin/hh -T -C ${inpcfg} -r ${briareus_rundir}/${name}.hhr
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
@@ -167,7 +167,7 @@ let
              fi
 
              # Run Briareus to generate build configs for Hydra
-             ${briareus}/bin/hh -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${builder_spec} ${project.hhd} ${briareus_outfile name}
+             ${briareus}/bin/hh -T -b hydra -B ${project.hhb} -I ${inp_upd} -r ${briareus_rundir}/${name}.hhr ${builder_spec} ${project.hhd} ${briareus_outfile name}
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
