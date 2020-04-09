@@ -179,13 +179,21 @@ pullreq_active_in_project(PRType, Project) :-
 % therefore be a PR_Repogrouped, so allow those two to equate to each
 % other.  This function is successful if two PRTypes are equivalent
 % under the above rules and returns the pre-eminent PRType to use.
+cmpPrType(pr_type(pr_solo,R,I), PT1, PT1) :-
+    PT1 = pr_type(pr_repogroup,I,RL)
+    , PT1
+    % , pr_type(pr_solo,R,I)
+    , member(R, RL)
+    , !
+.
+cmpPrType(PT1, pr_type(pr_solo,R,I), PT1) :-
+    PT1 = pr_type(pr_repogroup,I,RL)
+    , PT1
+    , pr_type(pr_solo,R,I)
+    , member(R, RL)
+    , !
+.
 cmpPrType(PT1, PT1, PT1).
-cmpPrType(pr_type(pr_solo,R,I),
-          pr_type(pr_repogroup,I,RL), pr_type(pr_repogroup,I,RL)) :-
-    member(R, RL).
-cmpPrType(pr_type(pr_repogroup,I,RL),
-          pr_type(pr_solo,R,I), pr_type(pr_repogroup,I,RL)) :-
-    member(R, RL).
 
 
 cmpPRCfg(PC1, PC2) :- listcmp(PC1, PC2).
