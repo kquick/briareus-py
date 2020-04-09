@@ -9,6 +9,7 @@ import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
 from Briareus.Types import SendEmail, RunContext
+from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
 import datetime
 import os
@@ -146,18 +147,20 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
         return r
 
     verbosely(params, 'hh <',inp_fname,'>',outfname)
+    writings = FileWriterSession(os.path.dirname(outfname))
     for fname in r[1]:
         if fname:
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
             target = fname if fname.startswith(indir) else os.path.join(indir, fname)
             os.makedirs(os.path.dirname(target), exist_ok=True)
-            atomic_write_to(
+            writings.add_file(
                 target,
                 lambda of: of.write(r[1][fname]))
         else:
-            atomic_write_to(
+            writings.add_file(
                 outfname,
                 lambda of: of.write(r[1][fname]))
+    writings.end_session()
 
     return r[0]
 
