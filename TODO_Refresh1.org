@@ -282,4 +282,34 @@ Priority C means this is extended functionality to be added later
 ** TODO [#A] comparison to master in reports
 *** TODO ForgeStatus
 *** TODO fullproj status emails
+** TODO [#A] pullreq mergeability
+    If "HEADs" for a PR is green and submodules is red, that means
+    that the submodules should be updated in the PR before merging.
 
+    How to easily determine what these are, now that there's a
+    separate input level?  Pass-thru?
+** TODO [#A] pullreq missing gitmodules update
+    See test_scenario32.py:test_issue1_proj1_pr_master_repoA If a PR
+    in a subrepo has been merged, there should be a warning generated
+    if the master or a PR build in the primary repo still refers to a
+    PR revision in that subrepo.
+
+* Hydra notes
+** The "pull" method is slow and degrades as builds are added.
+   This is exacerbated by the separate inputs pass being utilized, and
+   the fact that no dependencies can be created between jobsets.  This
+   means that the foo:input_update may run after briareus but before
+   foo:.jobsets and therefore have an evaluation failure on an input,
+   which (a) gets reported, and (b) doesn't get resolved until the
+   next cycle.
+
+   The current scenario is ~1700+ seconds between evaluations, loadavg
+   (between briareus and hydra-evaluator) of ~5 at all times, with
+   100% cpu utilization on both cpus.
+
+   Creating a new PR took +40 minutes before the first builds actually
+   started for that PR.
+
+   The better approach might involve:
+    * push-driven evaluations
+    * job dependencies (could this be handled by the previous item?)
