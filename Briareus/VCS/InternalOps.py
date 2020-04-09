@@ -406,10 +406,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     if each.repo_url == main_r.repo_url and each.repo_name != main_r.repo_name:
                         self.known_branches[each.repo_name].add(bref)
 
+        # Initial response is usually for the master branch.  The
+        # BL_queried keeps track of whether the other requested
+        # Branches (from the input) have been checked for this repo,
+        # and check those here.
         if msg.reponame not in self.BL_queried:
             self.BL_queried.append(msg.reponame)
             for branch in self.BL:
-                self.get_git_info(HasBranch(msg.reponame, branch.branch_name))
+                if branch.branch_name != main_r.main_branch:
+                    self.get_git_info(HasBranch(msg.reponame, branch.branch_name))
 
         self.got_response(response_name='branch_present')
 
