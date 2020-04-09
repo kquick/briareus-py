@@ -8,7 +8,26 @@ class InputDesc(object):
     BL  = attr.ib(factory=list)   # BranchDesc branch list
     VAR = attr.ib(factory=list)   # VariableDesc variables list
     RX  = attr.ib(factory=list)   # RepoLoc repo location translations
-    REP = attr.ib(factory=dict)   # dictionary of reporting items (currently "logic")
+
+    # Dictionary of reporting items.  Supported entries:
+    #
+    #   * "logic": value is added to the reporting phase logic input.
+    #     These are assumed to be facts controlling the enabling of
+    #     actions.  For example,
+    #
+    #        '''email_domain_whitelist("company.com").
+    #           enable(forge_status, _, _).
+    #        '''
+    #
+    #   * "status_url": When generating reports or actions that
+    #     reference a specific reported build status, the default URL
+    #     is the builder's project page.  This value can be used to
+    #     override that default; the value is passed to the
+    #     str.format() function with named keyword arguments of:
+    #     "project".
+    #
+    REP = attr.ib(factory=dict)
+
     PNAME = attr.ib(factory=str)  # string "Project Name" (if blank, use project repo name)
 
 @attr.s(frozen=True)

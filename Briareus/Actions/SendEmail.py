@@ -23,7 +23,7 @@ from Briareus.Types import SendEmail
 SEND_EMAIL_TIMEOUT = timedelta(seconds=20)
 
 
-def do_send_email_action(email_action, inpcfg, run_context):
+def do_send_email_action(email_action, inpcfg, run_context, report_supplement):
     "Sends email, where email_action is Briareus.Types.SendEmail"
     rec = email_action.recipients
     done = email_action.sent_to

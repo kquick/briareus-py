@@ -106,8 +106,9 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     return ret[1]
 
 
-def perform_hh_actions(inpcfg, inp_report, run_context):
-    run_context.report = [ Actions.do_action(each, inp_report, run_context)
+def perform_hh_actions(inpcfg, inp_report, run_context, report_supplement):
+    run_context.report = [ Actions.do_action(each, inp_report, run_context,
+                                             report_supplement)
                            for each in run_context.report ]
     return run_context
 
@@ -246,10 +247,10 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
         gen_result = None
         for inpcfg in inpcfgs['InpConfigs']:
             gen_result = run_hh_on_inpcfg(inpcfg, params, prev_gen_result=gen_result)
-        reporting_logic_defs = inpcfgs.get('Reporting', dict()).get('logic', '')
+        report_supplement = inpcfgs.get('Reporting', dict())
     else:
         gen_result = run_hh_on_inpcfg(inpcfg, params)
-        reporting_logic_defs = ''
+        report_supplement = dict()
 
     # Generator cycle done, now do any reporting
 
@@ -259,12 +260,14 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
     if reportf or (params.up_to and params.up_to.enough('built_facts')):
 
         upd_result = run_hh_report(params, gen_result, prior_report,
-                                   reporting_logic_defs=reporting_logic_defs)
+                                   reporting_logic_defs=(report_supplement
+                                                         .get('logic', '')))
 
         if params.up_to and not params.up_to.enough('actions'):
             return
 
-        act_result = perform_hh_actions(inpcfg, upd_result.report, upd_result)
+        act_result = perform_hh_actions(inpcfg, upd_result.report, upd_result,
+                                        report_supplement)
 
         if reportf and (not params.up_to or params.up_to.enough('report')):
             write_report_output(reportf, act_result.report)

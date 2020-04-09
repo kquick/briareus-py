@@ -416,7 +416,8 @@ def test_example_report_take_actions(send_email, inp_configs, example_report):
 
     send_email.side_effect = lambda r, s, m, c: r.copy()
 
-    rctxt = hh.perform_hh_actions(inp_configs, example_report.report, example_report)
+    rctxt = hh.perform_hh_actions(inp_configs, example_report.report, example_report,
+                                  dict())
     rep = rctxt.report
 
     for each in rep:

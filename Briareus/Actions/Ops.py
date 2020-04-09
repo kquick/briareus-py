@@ -11,8 +11,8 @@ actions = {
     'SetForgeStatus': do_set_forge_status,
 }
 
-def do_action(possible_action, inpcfg, run_context):
+def do_action(possible_action, inpcfg, run_context, report_supplement):
     act = actions.get(possible_action.__class__.__name__, None)
     if not act:
         return possible_action
-    return act(possible_action, inpcfg, run_context)
+    return act(possible_action, inpcfg, run_context, report_supplement)

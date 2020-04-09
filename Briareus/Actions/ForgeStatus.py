@@ -18,7 +18,7 @@ from Briareus.Types import SetForgeStatus, PRCfg
 from Briareus.VCS.GitForge import to_http_url, RepoAPI_Location, GitHubInfo, GitLabInfo
 
 
-def do_set_forge_status(action, full_report, runctxt):
+def do_set_forge_status(action, full_report, runctxt, report_supplement):
     "Posts a status update to the VCS Forge (github, gitlab, etc.)"
     project = action.notification.subject
     rec = action.targetrepos
@@ -31,6 +31,7 @@ def do_set_forge_status(action, full_report, runctxt):
                                          action.notification.what,
                                          desc,
                                          runctxt,
+                                         report_supplement,
                                          project,
                                          action.notification.params)
         else:
@@ -42,7 +43,7 @@ def do_set_forge_status(action, full_report, runctxt):
     return action
 
 
-def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
+def set_forge_status(forge_list, status, desc, runctxt, report_supplement, project, notify_params):
     can_post = os.getenv('BRIAREUS_FORGE_STATUS', None)
     try:
         can_post=int(can_post)
@@ -71,7 +72,13 @@ def set_forge_status(forge_list, status, desc, runctxt, project, notify_params):
             "pr_projstatus_fail": "failure"
     }[status]
 
-    stsurl = proj_results.builder.get_project_url(project)
+    user_url_spec = proj_results.inp_desc.REP.get(
+        'status_url',
+        report_supplement.get('status_url', None))
+    stsurl = \
+        user_url_spec.format(project=project) \
+        if user_url_spec else \
+        proj_results.builder.get_project_url(project)
 
     print('Forge post "', desc, '" [',sts,'] about ',
           notify_params.prtype,'to', url_and_rev,'and url',stsurl)
