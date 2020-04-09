@@ -181,7 +181,7 @@ class BranchCfg(object):
     branch   = attr.ib() # string
 
     def as_fact(self):
-        return ''.join(['prcfg(',
+        return ''.join(['branchcfg(',
                         fact_str(self.reponame), ',',
                         fact_str(self.branch),
                         ')'])
