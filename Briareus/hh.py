@@ -41,6 +41,7 @@ class Params(object):
     verbose = attr.ib(default=False)
     up_to = attr.ib(default=None)  # class UpTo
     report_file = attr.ib(default=None)
+    tempdir = attr.ib(default=None)
 
 
 def verbosely(params, *msgargs):
@@ -147,7 +148,7 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
         return r
 
     verbosely(params, 'hh <',inp_fname,'>',outfname)
-    writings = FileWriterSession(os.path.dirname(outfname))
+    writings = FileWriterSession(params.tempdir or os.path.dirname(outfname))
     for fname in r[1]:
         if fname:
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
@@ -396,6 +397,15 @@ def main():
                 results of all projects instead of just a single
                 project.''')
     parser.add_argument(
+        '--tempdir',
+        help='''Specify a temporary directory to use when generating new files.
+                Output files will initially be created in this
+                location and then moved to the actual destination if
+                the file is newer.  The default is to use the output
+                directory for the temporary files.  Note that if
+                specified, the tempdir should be on the same
+                filesystem''')
+    parser.add_argument(
         '--input-url-and-path', '-I',
         help='''Specify an input URL from which the INPUT files (and
                 builder-config, if specified) should be updated
@@ -421,7 +431,8 @@ def main():
     args = parser.parse_args()
     params = Params(verbose=args.verbose,
                     up_to=args.up_to,
-                    report_file=args.report)
+                    report_file=args.report,
+                    tempdir=args.tempdir)
     if args.cfginput:
         if args.builder_url or args.builder_conf or \
            args.input_url_and_path or args.OUTPUT:
