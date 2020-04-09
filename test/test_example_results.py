@@ -5,9 +5,12 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             PRFailData,
                             Notify,
                             SendEmail, SetForgeStatus)
+import Briareus.hh as hh
+from Briareus.VCS.GitForge import RepoAPI_Location
 from git_example1 import GitExample1
 import json
 import pytest
+from unittest.mock import (patch, ANY, call)
 from test_example import input_spec
 from datetime import timedelta
 
@@ -262,6 +265,9 @@ def test_example_report_length(example_hydra_results):
     print(len(CS),len(GS),len(SS),len(BS))  # 2 3 2 4
     assert expected == len(reps)
 
+
+# ----------------------------------------------------------------------
+
 def test_example_report_varfail_do_email(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     print('')
@@ -395,3 +401,203 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
                               ],
             )),
         sent_to=[]) in reps
+
+
+# ----------------------------------------------------------------------
+
+bugfix9_prfaildata=PRFailData(PR_Grouped('bugfix9'),
+                              [PRCfg('R2', '23', 'bugfix9', 'r2_b9_mergeref', 'banana', ''),
+                               PRCfg('R4', '8192', 'bugfix9', 'r1_bf9_mergeref', 'ozzie', 'ozzie@crazy.train'),
+                               BranchCfg('R5', 'bugfix9'),
+                              ],
+                              goods=['PR-bugfix9.HEADs-gnucc-ghc844',
+                                     'PR-bugfix9.HEADs-gnucc-ghc865',
+                                     'PR-bugfix9.HEADs-gnucc-ghc881',
+                                     'PR-bugfix9.submodules-gnucc-ghc844',
+                                     'PR-bugfix9.submodules-gnucc-ghc865',
+                                     'PR-bugfix9.submodules-gnucc-ghc881',
+                              ],
+                              fails=['PR-bugfix9.HEADs-clang-ghc844',
+                                     'PR-bugfix9.HEADs-clang-ghc865',
+                                     'PR-bugfix9.HEADs-clang-ghc881',
+                                     'PR-bugfix9.submodules-clang-ghc844',
+                                     'PR-bugfix9.submodules-clang-ghc865',
+                                     'PR-bugfix9.submodules-clang-ghc881',
+                              ],
+)
+
+@patch('Briareus.Actions.ForgeStatus.GitForge')
+@patch('Briareus.Actions.ForgeStatus.os.getenv')
+def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydra_results):
+    getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
+
+    bldcfgs, ctxt = generate_hydra_results(
+        build_results=build_results,
+        prior=prior)
+    rctxt = hh.perform_hh_actions([input_spec], ctxt.report, ctxt, dict())
+    reps = rctxt.report
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_fail',
+                              subject='Project #1',
+                              params=bugfix9_prfaildata),
+                          updated=["R2", "R4"]) in reps
+
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge().set_commit_status.assert_has_calls(
+        [
+            call('failure',
+                 'Failing 6 of 12 Project #1 builds.', ref,
+                 'http://hydra.builder/path/project/Project #1',
+                 'Project #1')
+            for ref in [
+                    'r2_b9_mergeref',
+                    'r1_bf9_mergeref',
+            ]
+        ],
+        any_order=True)
+
+@patch('Briareus.Actions.ForgeStatus.GitForge')
+@patch('Briareus.Actions.ForgeStatus.os.getenv')
+def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydra_results):
+    getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
+
+    bldcfgs, ctxt = generate_hydra_results(
+        build_results=build_results,
+        prior=prior + [
+            SetForgeStatus(targetrepos=["R2", "R4"],
+                           notification=Notify(what='pr_projstatus_fail',
+                                               subject='Project #1',
+                                               params=bugfix9_prfaildata),
+                           updated=['R2'])],
+        )
+    rctxt = hh.perform_hh_actions([input_spec], ctxt.report, ctxt, dict())
+    reps = rctxt.report
+    print('')
+    print(len(reps))
+    for each in reps:
+        if isinstance(each, SetForgeStatus):
+            print(str(each))
+            print('')
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_fail',
+                              subject='Project #1',
+                              params=bugfix9_prfaildata),
+                          updated=["R2", "R4"]) in reps
+
+    # print(gitforge.call_args_list)
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    # print(gitforge().set_commit_status.call_args_list)
+    gitforge().set_commit_status.assert_has_calls(
+        [
+            call('failure',
+                 'Failing 6 of 12 Project #1 builds.', ref,
+                 'http://hydra.builder/path/project/Project #1',
+                 'Project #1')
+            for ref in [
+                    # 'r2_b9_mergeref',  # This is in a prior, so no notification this time
+                    'r1_bf9_mergeref',   # OK
+            ]
+        ],
+        any_order=True)
+
+@patch('Briareus.Actions.ForgeStatus.GitForge')
+@patch('Briareus.Actions.ForgeStatus.os.getenv')
+def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hydra_results):
+    getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
+
+    bldcfgs, ctxt = generate_hydra_results(
+        build_results=build_results,
+        prior=prior + [
+            SetForgeStatus(targetrepos=["R2", "R4"],
+                           notification=Notify(what='pr_projstatus_fail',
+                                               subject='Project #1',
+                                               params=bugfix9_prfaildata),
+                           updated=['R2', 'R4'])],
+        )
+    rctxt = hh.perform_hh_actions([input_spec], ctxt.report, ctxt, dict())
+    reps = rctxt.report
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_fail',
+                              subject='Project #1',
+                              params=bugfix9_prfaildata),
+                          updated=["R2", "R4"]) in reps
+
+    for each in gitforge().set_commit_status.call_args_list:
+        assert each.ref not in ['r2_b9_mergeref', 'r1_bf9_mergeref' ]
+
+
+@patch('Briareus.Actions.ForgeStatus.GitForge')
+@patch('Briareus.Actions.ForgeStatus.os.getenv')
+def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hydra_results):
+    getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
+
+    bldcfgs, ctxt = generate_hydra_results(
+        build_results=build_results,
+        prior=prior)
+    rctxt = hh.perform_hh_actions([input_spec], ctxt.report, ctxt,
+                                  { 'status_url': 'https://company.com/base/{project}/status',
+                                  })
+    reps = rctxt.report
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_fail',
+                              subject='Project #1',
+                              params=bugfix9_prfaildata),
+                          updated=["R2", "R4"]) in reps
+
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge().set_commit_status.assert_has_calls(
+        [
+            call('failure',
+                 'Failing 6 of 12 Project #1 builds.', ref,
+                 'https://company.com/base/Project #1/status',
+                 'Project #1')
+            for ref in [
+                    'r2_b9_mergeref',
+                    'r1_bf9_mergeref',
+            ]
+        ],
+        any_order=True)
+
+def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
+    bldcfgs, reps = example_hydra_results
+    print('')
+    print(len(reps))
+    for each in reps:
+        if isinstance(each, SetForgeStatus):
+            print(str(each))
+            print('')
+    assert SetForgeStatus(
+        targetrepos=["R1", "R2", "R3", "R6"],
+        notification=Notify(
+            what='pr_projstatus_fail',
+            subject='Project #1',
+            params=PRFailData(PR_Grouped('blah'),
+                              [PRCfg('R1', '1', 'blah', 'r1_blah_mergeref', 'nick', 'nick@bad.seeds'),
+                               PRCfg('R2', '1111', 'blah', 'r2_blah_mergeref', 'not_nick', 'not_nick@bad.seeds'),
+                               PRCfg('R3', '11', 'blah', 'r3_blah_mergeref', 'nick', 'nick@bad.seeds'),
+                               PRCfg('R6', '111', 'blah', 'r6_blah_mergeref', 'nick', 'nick@bad.seeds'),
+                               BranchCfg('R5', 'blah'),
+                              ],
+                              goods=['PR-blah.HEADs-gnucc-ghc844',
+                                     'PR-blah.HEADs-gnucc-ghc865',
+                                     'PR-blah.HEADs-gnucc-ghc881',
+                                     'PR-blah.submodules-gnucc-ghc844',
+                                     'PR-blah.submodules-gnucc-ghc865',
+                                     'PR-blah.submodules-gnucc-ghc881',
+                              ],
+                              fails=['PR-blah.HEADs-clang-ghc844',
+                                     'PR-blah.HEADs-clang-ghc865',
+                                     'PR-blah.HEADs-clang-ghc881',
+                                     'PR-blah.submodules-clang-ghc844',
+                                     'PR-blah.submodules-clang-ghc865',
+                                     'PR-blah.submodules-clang-ghc881',
+                              ],
+            )),
+        updated=[]) in reps
