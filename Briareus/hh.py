@@ -114,7 +114,7 @@ def perform_hh_actions(inpcfg, inp_report, run_context, report_supplement):
 
 # ----------------------------------------------------------------------
 
-def run_hh_gen_with_files(inp, inpcfg, outputf, outputfname, params, prev_gen_result=None):
+def run_hh_gen_with_files(inp, inpcfg, outputfname, params, prev_gen_result=None):
     r = run_hh_gen(params, inpcfg, inp,
                    bldcfg_fname=outputfname,
                    prev_gen_result=prev_gen_result)
@@ -123,11 +123,6 @@ def run_hh_gen_with_files(inp, inpcfg, outputf, outputfname, params, prev_gen_re
         return None
     if params.up_to and not params.up_to.enough('builder_configs'):
         return None
-    if params.up_to == 'builder_configs':
-        return r
-    gen_result, builder_cfgs = r
-    if outputf and (not params.up_to or params.up_to.enough('builder_configs')):
-        outputf.write(builder_cfgs[None])
     return r
 
 
@@ -137,25 +132,20 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
                 os.path.join(os.getcwd(),
                              os.path.splitext(inp_parts[-1])[0] + '.hhc'))
     with open(inp_fname) as inpf:
-        if not params.up_to or params.up_to.enough('builder_configs'):
-            verbosely(params, 'hh <',inp_fname,'>',outfname)
-            r = atomic_write_to(
-                outfname,
-                lambda outf: run_hh_gen_with_files(inpf.read(), inpcfg, outf, outfname,
-                                                   params=params,
-                                                   prev_gen_result=prev_gen_result))
-        else:
-            verbosely(params, 'hh partial run, no output')
-            r = run_hh_gen_with_files(inpf.read(), inpcfg, None, outfname,
-                                      params=params,
-                                      prev_gen_result=prev_gen_result)
+        r = run_hh_gen_with_files(inpf.read(), inpcfg, outfname,
+                                  params=params,
+                                  prev_gen_result=prev_gen_result)
+
     if r is None:
         # If r is None, then an --up-to probably halted production
+        verbosely(params, 'hh partial run, no output')
         return None
 
     if params.up_to and not params.up_to.enough('write_bldcfgs'):
+        verbosely(params, 'hh partial run, no output')
         return r
 
+    verbosely(params, 'hh <',inp_fname,'>',outfname)
     for fname in r[1]:
         if fname:
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
@@ -163,6 +153,10 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
             os.makedirs(os.path.dirname(target), exist_ok=True)
             atomic_write_to(
                 target,
+                lambda of: of.write(r[1][fname]))
+        else:
+            atomic_write_to(
+                outfname,
                 lambda of: of.write(r[1][fname]))
 
     return r[0]
