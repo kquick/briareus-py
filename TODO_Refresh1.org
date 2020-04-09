@@ -302,6 +302,33 @@ Priority C means this is extended functionality to be added later
    the outputs, reports, and temps into three different sub-areas
    (thespian is a fourth?).
 ** TODO [#A] coverage reporting
+** TODO [#B] pre-stage nixos packages to await upstream or local pre-build
+   Instead of using another machine, this could be done locally by
+   having a particular build be the pre-stage and only when it
+   succeeds would the output be available for other builds.  The
+   pre-stage could be marked so that it can only build on specific
+   workers, which keeps it from being prioritized over other builds.
+** TODO [#B] scalability for evaluations
+   The current method of the hydra-evaluator performing a sweep and
+   re-check over all evaluations is not scaling well.  There are too
+   many inputs and too many builds.
+
+   The separation of the actual github scanning into a separate
+   project was an attempt to resolve this, and it seems to have
+   helped, but the continued scaling issues are still unsatisfying: it
+   can take over 2 hrs for a new Pull Request to even be noticed.
+   This timing is exacerbated to a degree by the new separated inputs:
+   if briareus runs and then the update_inputs runs before the
+   .jobsets, this creates a failed run, and similarly if the .jobsets
+   in the main project then runs early, there can be a number of
+   failures there as well.
+
+   It may be a good alternative to reduce the sweep frequency
+   significantly and instead use an external service to perform a
+   notification-based evaluation process.  An added benefit of this is
+   that the "dependencies" between notifications (e.g. update_inputs
+   *after* jobsets *after* briareus) can be managed by this external
+   driver.
 
 * Hydra notes
 ** The "pull" method is slow and degrades as builds are added.
