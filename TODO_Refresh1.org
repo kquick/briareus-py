@@ -259,3 +259,15 @@ Priority C means this is extended functionality to be added later
     However, this would prevent other workers from being used when
     they are available and the only remaining builds left are these
     long-jobs.
+** TODO [#A] efficient PR branch assessment
+   Currently *ALL* PR's are being returned, which is a LOT of data and
+   facts.
+
+   The reason closed and merged PR's are being returned is to ensure
+   that the branch associated with a closed or merged PR is not used
+   for building against the same branch PR in other repos.
+
+   A better efficiency would be to only query for open PR's, and then
+   on a branch check if there is also a closed/merged PR for that
+   branch, ignore the branch.  This moves logic back into the probe,
+   but is *much* more efficient.
