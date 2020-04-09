@@ -271,3 +271,15 @@ Priority C means this is extended functionality to be added later
    on a branch check if there is also a closed/merged PR for that
    branch, ignore the branch.  This moves logic back into the probe,
    but is *much* more efficient.
+** DONE [#B] add tests for report_supplement
+   In test_ex1_and_ex3_and_dups.py, test_example_report_take_actions
+   currently just uses dict().
+** TODO [#A] generated files only updated if changed
+   In the new mechanism where separate input jobs are created, those
+   files are just updated every time instead of only when changed,
+   which causes each inputs .jobset to be evaluated roughly hourly
+   even though there are no actual changes.
+** TODO [#A] comparison to master in reports
+*** TODO ForgeStatus
+*** TODO fullproj status emails
+
