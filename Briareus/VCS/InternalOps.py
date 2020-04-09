@@ -257,14 +257,21 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # to see if the branch exists (and if it is confirmed to
             # exist and it's the project repo, also get any submodule
             # data on that branch).
-            for pr in self.pullreqs:
-                if p.pullreq_branch == pr.pr_branch:
-                    break
-            else:
-                # Have not previously queried for this branch, so
-                # check various repos for this branch now.
-                for repo in self._all_repos():
-                    self.check_for_branch(repo.repo_name, p.pullreq_branch)
+            #
+            # Optimization: don't do this if the PR is closed/merged.
+            # Technically this decision should be deferred to the
+            # logic section, but adding this optimization here saves a
+            # considerable amount of forge queries.
+            if not isinstance(p.pullreq_status, (PRSts_Closed,
+                                                 PRSts_Merged)):
+                for pr in self.pullreqs:
+                    if p.pullreq_branch == pr.pr_branch:
+                        break
+                else:
+                    # Have not previously queried for this branch, so
+                    # check various repos for this branch now.
+                    for repo in self._all_repos():
+                        self.check_for_branch(repo.repo_name, p.pullreq_branch)
 
             # If this PR is for the project repo, check the gitmodules
             # in the source because the PR might be changing the

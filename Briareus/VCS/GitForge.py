@@ -250,7 +250,7 @@ class GitLabInfo(RemoteGit__Info):
         return ("DifferentProject", rsp.name)
 
     def get_pullreqs(self, reponame):
-        rsp = self.api_req('/merge_requests')
+        rsp = self.api_req('/merge_requests?scope=all&state=all')
         # Gather {"upvotes": 0, "downvotes": 0, "approvals_before_merge": 0} for analysis phase
         # Use {"work_in_progress": true} to ignore the PR
         # Use {"merge_status": "can_be_merged"} for analysis phase?
@@ -406,7 +406,10 @@ class GitHubInfo(RemoteGit__Info):
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
 
     def get_pullreqs(self, reponame):
-        rsp = self.api_req('/pulls')
+        # Need closed PR's as well as open: when a PR is closed or
+        # merged, master should be used instead of that branch in
+        # conjunction with identical branch open PR's in other repos.
+        rsp = self.api_req('/pulls?state=all')
         # May want to echo either ["number"] or ["title"]
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
@@ -416,7 +419,8 @@ class GitHubInfo(RemoteGit__Info):
                                               else (PRSts_Merged() if pr["merged_at"]
                                                     else PRSts_Active())),
                               pullreq_title=pr["title"],    # for user reference
-                              pullreq_srcurl=pr["head"]["repo"]["html_url"],  # source repo URL
+                              pullreq_srcurl=(lambda r: r["html_url"] if r else '')(
+                                  pr["head"]["repo"]),  # source repo URL might be gone if old
                               pullreq_branch=pr["head"]["ref"],          # source repo branch
                               pullreq_ref=pr["head"]["sha"],         # for github, can also use branch ^
                               pullreq_user=pr["user"]["login"],
