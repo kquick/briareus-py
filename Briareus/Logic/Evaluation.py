@@ -5,6 +5,7 @@ from datetime import timedelta
 import tempfile
 import os
 import sys
+import subprocess
 
 local_path = os.path.dirname(os.path.abspath(sys.modules['Briareus.Logic'].__file__))
 
@@ -54,40 +55,49 @@ def run_logic_analysis(analysis_fname, facts, raw_logic='', actor_system=None, v
         writefact(raw_logic)
         os.close(ffd)
 
-        # Run prolog via an actor and return the stdout results as a
-        # raw string.  Use the multiprocTCPBase (if not already
-        # established) to take advantage of the ThespianWatch
-        # capability.
-        asys = actor_system or ActorSystem('multiprocTCPBase')
-        try:
-            runner = asys.createActor(RunCommand)
-            cmd = Command(exe='swipl',
-                          args = ["-f", factfile, "-l", os.path.join(local_path, analysis_fname)],
-                          logger=None if verbose else False,  # disable logging unless verbose
-                          logtag="{swipl}",
-                          max_bufsize=5*1024*1024,
-                          timeout=PROLOG_TIMEOUT,
-            )
-            cmdrslt = asys.ask(runner, cmd, PROLOG_TIMEOUT)
-            asys.tell(runner, ActorExitRequest())
-            if isinstance(cmdrslt, CommandResult):
-                if cmdrslt:
-                    warn = cmdrslt.stderr.strip()
-                    if warn:
-                        print(warn, file=sys.stderr)
-                    try:
-                        return cmdrslt.stdout.strip()
-                    except AttributeError as ex:
-                        print("If cmdrslt.stdout is a tuple, that means the middle of the"
-                              " output was elided by thespian runcommand; fix this by"
-                              " increasing the max_bufsize argument to Command in the code above!",
-                              file=sys.stderr)
-                        raise
-            raise RuntimeError('FAIL: ' + str(cmdrslt))
+        if False:
+            # Run prolog via an actor and return the stdout results as a
+            # raw string.  Use the multiprocTCPBase (if not already
+            # established) to take advantage of the ThespianWatch
+            # capability.
+            asys = actor_system or ActorSystem('multiprocTCPBase')
+            try:
+                runner = asys.createActor(RunCommand)
+                cmd = Command(exe='swipl',
+                              args = ["-f", factfile, "-l", os.path.join(local_path, analysis_fname)],
+                              logger=None if verbose else False,  # disable logging unless verbose
+                              logtag="{swipl}",
+                              max_bufsize=5*1024*1024,
+                              timeout=PROLOG_TIMEOUT,
+                )
+                cmdrslt = asys.ask(runner, cmd, PROLOG_TIMEOUT)
+                asys.tell(runner, ActorExitRequest())
+                if isinstance(cmdrslt, CommandResult):
+                    if cmdrslt:
+                        warn = cmdrslt.stderr.strip()
+                        if warn:
+                            print(warn, file=sys.stderr)
+                        try:
+                            return cmdrslt.stdout.strip()
+                        except AttributeError as ex:
+                            print("If cmdrslt.stdout is a tuple, that means the middle of the"
+                                  " output was elided by thespian runcommand; fix this by"
+                                  " increasing the max_bufsize argument to Command in the code above!",
+                                  file=sys.stderr)
+                            raise
+                raise RuntimeError('FAIL: ' + str(cmdrslt))
 
-        finally:
-            if not actor_system:
-                asys.shutdown()
+            finally:
+                if not actor_system:
+                    print('shutdown in Logic Evaluation')
+                    asys.shutdown()
+        else:
+            r = subprocess.run(['swipl', '-f', factfile, '-l', os.path.join(local_path, analysis_fname)],
+                               capture_output=True,
+                               timeout=PROLOG_TIMEOUT.total_seconds(),
+                               text=True,
+                               check=True)
+            return r.stdout.strip()
 
     finally:
         os.unlink(factfile)
