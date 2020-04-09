@@ -293,6 +293,15 @@ Priority C means this is extended functionality to be added later
     in a subrepo has been merged, there should be a warning generated
     if the master or a PR build in the primary repo still refers to a
     PR revision in that subrepo.
+** TODO [#A] update hydra
+    Merge latest master changes into galois branch.
+** TODO [#A] install prometheus on fryingpan to monitor performance
+** TODO [#B] use tempdir and move targets
+   On fryingpan, everything is currently dumped in /var/run/briareus,
+   but with the new AtomicFileUpdWriter, it would be good to separate
+   the outputs, reports, and temps into three different sub-areas
+   (thespian is a fourth?).
+** TODO [#A] coverage reporting
 
 * Hydra notes
 ** The "pull" method is slow and degrades as builds are added.
