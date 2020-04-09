@@ -2,7 +2,7 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             ProjectSummary, StatusReport, VarFailure,
                             PR_Grouped, BranchReq, MainBranch,
                             PRCfg, BranchCfg,
-                            PRFailData,
+                            PRData, PRFailData,
                             Notify,
                             SendEmail, SetForgeStatus)
 import Briareus.hh as hh
@@ -17,6 +17,69 @@ from datetime import timedelta
 
 gitactor = GitExample1
 
+build_names = [
+    "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111
+    "PR-blah.HEADs-gnucc-ghc844",
+    "PR-blah.HEADs-clang-ghc865",
+    "PR-blah.HEADs-gnucc-ghc865",
+    "PR-blah.HEADs-clang-ghc881",
+    "PR-blah.HEADs-gnucc-ghc881",
+    "PR-blah.submodules-clang-ghc844", # 1 111
+    "PR-blah.submodules-gnucc-ghc844",
+    "PR-blah.submodules-clang-ghc865",
+    "PR-blah.submodules-gnucc-ghc865",
+    "PR-blah.submodules-clang-ghc881",
+    "PR-blah.submodules-gnucc-ghc881",
+    "PR-bugfix9.HEADs-clang-ghc844",  # 23 8192
+    "PR-bugfix9.HEADs-gnucc-ghc844",
+    "PR-bugfix9.HEADs-clang-ghc865",
+    "PR-bugfix9.HEADs-gnucc-ghc865",
+    "PR-bugfix9.HEADs-clang-ghc881",
+    "PR-bugfix9.HEADs-gnucc-ghc881",
+    "PR-bugfix9.submodules-clang-ghc844",
+    "PR-bugfix9.submodules-gnucc-ghc844",
+    "PR-bugfix9.submodules-clang-ghc865",
+    "PR-bugfix9.submodules-gnucc-ghc865",
+    "PR-bugfix9.submodules-clang-ghc881",
+    "PR-bugfix9.submodules-gnucc-ghc881",
+    "dev.HEADs-clang-ghc844",
+    "dev.HEADs-gnucc-ghc844",
+    "dev.HEADs-clang-ghc865",
+    "dev.HEADs-gnucc-ghc865",
+    "dev.HEADs-clang-ghc881",
+    "dev.HEADs-gnucc-ghc881",
+    "dev.submodules-clang-ghc844",
+    "dev.submodules-gnucc-ghc844",
+    "dev.submodules-clang-ghc865",
+    "dev.submodules-gnucc-ghc865",
+    "dev.submodules-clang-ghc881",
+    "dev.submodules-gnucc-ghc881",
+    "feat1.HEADs-clang-ghc844",
+    "feat1.HEADs-gnucc-ghc844",
+    "feat1.HEADs-clang-ghc865",
+    "feat1.HEADs-gnucc-ghc865",
+    "feat1.HEADs-clang-ghc881",
+    "feat1.HEADs-gnucc-ghc881",
+    "feat1.submodules-clang-ghc844",
+    "feat1.submodules-gnucc-ghc844",
+    "feat1.submodules-clang-ghc865",
+    "feat1.submodules-gnucc-ghc865",
+    "feat1.submodules-clang-ghc881",
+    "feat1.submodules-gnucc-ghc881",
+    "master.HEADs-clang-ghc844",
+    "master.HEADs-gnucc-ghc844",
+    "master.HEADs-clang-ghc865",
+    "master.HEADs-gnucc-ghc865",
+    "master.HEADs-clang-ghc881",
+    "master.HEADs-gnucc-ghc881",
+    "master.submodules-clang-ghc844",
+    "master.submodules-gnucc-ghc844",
+    "master.submodules-clang-ghc865",
+    "master.submodules-gnucc-ghc865",
+    "master.submodules-clang-ghc881",
+    "master.submodules-gnucc-ghc881",
+]
+
 build_results = [
     { "name": n,
       "nrtotal" : 10,
@@ -26,68 +89,7 @@ build_results = [
       "haserrormsg": False,
       "fetcherrormsg": '',
     }
-    for n in [
-            "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111
-            "PR-blah.HEADs-gnucc-ghc844",
-            "PR-blah.HEADs-clang-ghc865",
-            "PR-blah.HEADs-gnucc-ghc865",
-            "PR-blah.HEADs-clang-ghc881",
-            "PR-blah.HEADs-gnucc-ghc881",
-            "PR-blah.submodules-clang-ghc844", # 1 111
-            "PR-blah.submodules-gnucc-ghc844",
-            "PR-blah.submodules-clang-ghc865",
-            "PR-blah.submodules-gnucc-ghc865",
-            "PR-blah.submodules-clang-ghc881",
-            "PR-blah.submodules-gnucc-ghc881",
-            "PR-bugfix9.HEADs-clang-ghc844",  # 23 8192
-            "PR-bugfix9.HEADs-gnucc-ghc844",
-            "PR-bugfix9.HEADs-clang-ghc865",
-            "PR-bugfix9.HEADs-gnucc-ghc865",
-            "PR-bugfix9.HEADs-clang-ghc881",
-            "PR-bugfix9.HEADs-gnucc-ghc881",
-            "PR-bugfix9.submodules-clang-ghc844",
-            "PR-bugfix9.submodules-gnucc-ghc844",
-            "PR-bugfix9.submodules-clang-ghc865",
-            "PR-bugfix9.submodules-gnucc-ghc865",
-            "PR-bugfix9.submodules-clang-ghc881",
-            "PR-bugfix9.submodules-gnucc-ghc881",
-            "dev.HEADs-clang-ghc844",
-            "dev.HEADs-gnucc-ghc844",
-            "dev.HEADs-clang-ghc865",
-            "dev.HEADs-gnucc-ghc865",
-            "dev.HEADs-clang-ghc881",
-            "dev.HEADs-gnucc-ghc881",
-            "dev.submodules-clang-ghc844",
-            "dev.submodules-gnucc-ghc844",
-            "dev.submodules-clang-ghc865",
-            "dev.submodules-gnucc-ghc865",
-            "dev.submodules-clang-ghc881",
-            "dev.submodules-gnucc-ghc881",
-            "feat1.HEADs-clang-ghc844",
-            "feat1.HEADs-gnucc-ghc844",
-            "feat1.HEADs-clang-ghc865",
-            "feat1.HEADs-gnucc-ghc865",
-            "feat1.HEADs-clang-ghc881",
-            "feat1.HEADs-gnucc-ghc881",
-            "feat1.submodules-clang-ghc844",
-            "feat1.submodules-gnucc-ghc844",
-            "feat1.submodules-clang-ghc865",
-            "feat1.submodules-gnucc-ghc865",
-            "feat1.submodules-clang-ghc881",
-            "feat1.submodules-gnucc-ghc881",
-            "master.HEADs-clang-ghc844",
-            "master.HEADs-gnucc-ghc844",
-            "master.HEADs-clang-ghc865",
-            "master.HEADs-gnucc-ghc865",
-            "master.HEADs-clang-ghc881",
-            "master.HEADs-gnucc-ghc881",
-            "master.submodules-clang-ghc844",
-            "master.submodules-gnucc-ghc844",
-            "master.submodules-clang-ghc865",
-            "master.submodules-gnucc-ghc865",
-            "master.submodules-clang-ghc881",
-            "master.submodules-gnucc-ghc881",
-    ]
+    for n in build_names
 ]
 
 prior = [
@@ -405,11 +407,14 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
 
 # ----------------------------------------------------------------------
 
-bugfix9_prfaildata=PRFailData(PR_Grouped('bugfix9'),
-                              [PRCfg('R2', '23', 'bugfix9', 'r2_b9_mergeref', 'banana', ''),
-                               PRCfg('R4', '8192', 'bugfix9', 'r1_bf9_mergeref', 'ozzie', 'ozzie@crazy.train'),
-                               BranchCfg('R5', 'bugfix9'),
-                              ],
+bugfix9_prtype = PR_Grouped('bugfix9')
+bugfix9_prcfg = [ PRCfg('R2', '23', 'bugfix9', 'r2_b9_mergeref', 'banana', ''),
+                  PRCfg('R4', '8192', 'bugfix9', 'r1_bf9_mergeref', 'ozzie', 'ozzie@crazy.train'),
+                  BranchCfg('R5', 'bugfix9'),
+]
+
+bugfix9_prfaildata=PRFailData(bugfix9_prtype,
+                              bugfix9_prcfg,
                               goods=['PR-bugfix9.HEADs-gnucc-ghc844',
                                      'PR-bugfix9.HEADs-gnucc-ghc865',
                                      'PR-bugfix9.HEADs-gnucc-ghc881',
@@ -564,6 +569,77 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
             ]
         ],
         any_order=True)
+
+@patch('Briareus.Actions.ForgeStatus.GitForge')
+@patch('Briareus.Actions.ForgeStatus.os.getenv')
+def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate_hydra_results):
+    getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
+
+    bldcfgs, ctxt = generate_hydra_results(
+        build_results=[
+            { "name": n,
+              "nrtotal" : 10,
+              "nrsucceeded": 5,
+              "nrfailed": 0,
+              "nrscheduled": 5,
+              "haserrormsg": False,
+              "fetcherrormsg": "",
+            }
+            for n in build_names],
+        prior=[])
+    rctxt = hh.perform_hh_actions([input_spec], ctxt.report, ctxt, dict())
+    reps = rctxt.report
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_pending',
+                              subject='Project #1',
+                              params=PRData(bugfix9_prtype, bugfix9_prcfg)),
+                          updated=["R2", "R4"]) in reps
+
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    # print(gitforge().set_commit_status.call_args_list)
+    gitforge().set_commit_status.assert_has_calls(
+        [
+            call('pending',
+                 'Build of Project #1 is pending...\n', ref,
+                 'http://hydra.builder/path/project/Project #1',
+                 'Project #1')
+            for ref in [
+                    'r2_b9_mergeref',
+                    'r1_bf9_mergeref',
+            ]
+        ],
+        any_order=True)
+
+    gitforge().reset_mock()
+
+    bldcfgs2, ctxt2 = generate_hydra_results(
+        build_results=[
+            { "name": n,
+              "nrtotal" : 10,
+              "nrsucceeded": 8,
+              "nrfailed": 0,
+              "nrscheduled": 2,
+              "haserrormsg": False,
+              "fetcherrormsg": "",
+            }
+            for n in build_names],
+        prior=[x for x in reps if isinstance(x, SetForgeStatus)])
+    rctxt2 = hh.perform_hh_actions([input_spec], ctxt2.report, ctxt2, dict())
+    reps = rctxt2.report
+    assert SetForgeStatus(targetrepos=["R2", "R4"],
+                          notification=Notify(
+                              what='pr_projstatus_pending',
+                              subject='Project #1',
+                              params=PRData(bugfix9_prtype, bugfix9_prcfg)),
+                          updated=["R2", "R4"]) in reps
+
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    # Ensure the pending status is not re-asserted, even if the number pending changes
+    assert gitforge().set_commit_status.call_args_list == []
+
 
 def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
     bldcfgs, reps = example_hydra_results
