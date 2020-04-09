@@ -1,4 +1,5 @@
 from functools import reduce
+import string
 
 def as_string(v):
     return v if isinstance(v, str) else str(v)
@@ -277,8 +278,20 @@ class KVITable__Render_(object):
         self._colstack_at = colstack_at
         self._row_repeat = row_repeat
         self._row_group = row_group
-        self._valsort = sorted if sort_vals else list
+        self._valsort = sort_with_nums if sort_vals else list
 
+# If the key starts or ends with a digit, then this should do a rough
+# numeric sort on the expectation that the digits represent a version
+# or some other numeric value.  As an approximation of a numeric sort,
+# sort by word size and then string value.  This will result in [ "1",
+# "2", "10", "50", "400" ], but would fail with [ "v1.0", "v2.0",
+# "v3.0", "v2.0.5", "v1.0.0.3" ], but it's a reasonably fast heuristic
+# and probably better than a straight ascii sort.
+def sort_with_nums(l):
+    return sorted(l, key=lambda v: (len(v),v)
+                  if v and isinstance(v, str) and
+                  (v[0] in string.digits or v[-1] in string.digits)
+                  else (0,v))
 
 # ######################################################################
 

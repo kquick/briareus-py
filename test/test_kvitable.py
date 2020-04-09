@@ -141,7 +141,7 @@ def test_kvitable_initial_kv_dict():
 
 @pytest.fixture()
 def medium_kvitable():
-    kvit = KVITable({'compiler': [ 'gcc7', 'gcc8', 'clang6', 'clang7' ],
+    kvit = KVITable({'compiler': [ 'gcc7', 'gcc8', 'clang6', 'clang10', 'clang7' ],
                      'debug': ['yes', 'no'],
                      'optimization': [0, 1, 3],
                      },
@@ -154,6 +154,8 @@ def medium_kvitable():
     kvit.add('good', compiler='clang7', debug='no', optimization=1)
     kvit.add('good', compiler='clang7', debug='no', optimization=3)
     kvit.add('good', compiler='clang7', debug='yes', optimization=3)
+    kvit.add('good', compiler='clang10', debug='no', optimization=3)
+    kvit.add('good', compiler='clang10', debug='yes', optimization=3)
     kvit.add(True, compiler='gcc8', debug='yes', optimization=3)
     kvit.add('bad', compiler='gcc8', debug='yes', optimization=1)
     kvit.add('good', compiler='clang7', debug='no', optimization=0)
@@ -163,6 +165,8 @@ def medium_kvitable():
 def test_medium_kvitable_get_rows(medium_kvitable):
     rows = medium_kvitable.get_rows()
     assert [
+        [ 'clang10', 'no', 3, 'good' ],
+        [ 'clang10', 'yes', 3, 'good' ],
         [ 'clang6', 'yes', 0, 'ok' ],
         [ 'clang7', 'no', 0, 'good' ],
         [ 'clang7', 'no', 1, 'good' ],
@@ -189,6 +193,7 @@ def test_medium_kvitable_get_path_mid(medium_kvitable):
     r = medium_kvitable.get_entries_matching(debug='no')
     assert [ ([('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 0)], 'bad'),
              ([('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 1)], 'good'),
+             ([('compiler', 'clang10'), ('debug', 'no'), ('optimization', 3)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 0)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 1)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 3)], 'good'),
@@ -220,6 +225,8 @@ def test_medium_kvitable_get_path_badkey(medium_kvitable):
              ([('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 1)], 'bad'),
              ([('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 3)], True),
              ([('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 0)], 'ok'),
+             ([('compiler', 'clang10'), ('debug', 'yes'), ('optimization', 3)], 'good'),
+             ([('compiler', 'clang10'), ('debug', 'no'), ('optimization', 3)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 3)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 0)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 1)], 'good'),
@@ -236,6 +243,8 @@ def test_medium_kvitable_get_no_path(medium_kvitable):
              ([('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 1)], 'bad'),
              ([('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 3)], True),
              ([('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 0)], 'ok'),
+             ([('compiler', 'clang10'), ('debug', 'yes'), ('optimization', 3)], 'good'),
+             ([('compiler', 'clang10'), ('debug', 'no'), ('optimization', 3)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 3)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 0)], 'good'),
              ([('compiler', 'clang7'), ('debug', 'no'), ('optimization', 1)], 'good'),
@@ -247,11 +256,6 @@ def test_medium_kvitable_render_skip_blank_rows(medium_kvitable):
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '|   clang7 |    no |            0 |  good |',
-        '|   clang7 |    no |            1 |  good |',
-        '|   clang7 |    no |            3 |  good |',
-        '|   clang7 |   yes |            3 |  good |',
         '|     gcc7 |    no |            0 |   bad |',
         '|     gcc7 |    no |            1 |  good |',
         '|     gcc7 |   yes |            0 |  good |',
@@ -259,6 +263,13 @@ def test_medium_kvitable_render_skip_blank_rows(medium_kvitable):
         '|     gcc8 |   yes |            0 |  good |',
         '|     gcc8 |   yes |            1 |   bad |',
         '|     gcc8 |   yes |            3 |  True |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang7 |    no |            0 |  good |',
+        '|   clang7 |    no |            1 |  good |',
+        '|   clang7 |    no |            3 |  good |',
+        '|   clang7 |   yes |            3 |  good |',
+        '|  clang10 |    no |            3 |  good |',
+        '|  clang10 |   yes |            3 |  good |',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_unsorted(medium_kvitable):
@@ -274,6 +285,8 @@ def test_medium_kvitable_render_skip_blank_rows_unsorted(medium_kvitable):
         '|     gcc8 |   yes |            1 |   bad |',
         '|     gcc8 |   yes |            3 |  True |',
         '|   clang6 |   yes |            0 |    ok |',
+        '|  clang10 |   yes |            3 |  good |',
+        '|  clang10 |    no |            3 |  good |',
         '|   clang7 |   yes |            3 |  good |',
         '|   clang7 |    no |            0 |  good |',
         '|   clang7 |    no |            1 |  good |',
@@ -287,11 +300,6 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep(medium_kvitable):
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '|   clang7 |    no |            0 |  good |',
-        '|          |       |            1 |  good |',
-        '|          |       |            3 |  good |',
-        '|          |   yes |            3 |  good |',
         '|     gcc7 |    no |            0 |   bad |',
         '|          |       |            1 |  good |',
         '|          |   yes |            0 |  good |',
@@ -299,6 +307,13 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep(medium_kvitable):
         '|     gcc8 |   yes |            0 |  good |',
         '|          |       |            1 |   bad |',
         '|          |       |            3 |  True |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang7 |    no |            0 |  good |',
+        '|          |       |            1 |  good |',
+        '|          |       |            3 |  good |',
+        '|          |   yes |            3 |  good |',
+        '|  clang10 |    no |            3 |  good |',
+        '|          |   yes |            3 |  good |',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_no_rep_group_unknown(medium_kvitable):
@@ -308,11 +323,6 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_unknown(medium_kvit
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '|   clang7 |    no |            0 |  good |',
-        '|          |       |            1 |  good |',
-        '|          |       |            3 |  good |',
-        '|          |   yes |            3 |  good |',
         '|     gcc7 |    no |            0 |   bad |',
         '|          |       |            1 |  good |',
         '|          |   yes |            0 |  good |',
@@ -320,6 +330,13 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_unknown(medium_kvit
         '|     gcc8 |   yes |            0 |  good |',
         '|          |       |            1 |   bad |',
         '|          |       |            3 |  True |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang7 |    no |            0 |  good |',
+        '|          |       |            1 |  good |',
+        '|          |       |            3 |  good |',
+        '|          |   yes |            3 |  good |',
+        '|  clang10 |    no |            3 |  good |',
+        '|          |   yes |            3 |  good |',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_no_rep_group_first(medium_kvitable):
@@ -329,13 +346,6 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_first(medium_kvitab
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '+----------+-------+--------------+-------+',
-        '|   clang7 |    no |            0 |  good |',
-        '|          |       |            1 |  good |',
-        '|          |       |            3 |  good |',
-        '|          |   yes |            3 |  good |',
-        '+----------+-------+--------------+-------+',
         '|     gcc7 |    no |            0 |   bad |',
         '|          |       |            1 |  good |',
         '|          |   yes |            0 |  good |',
@@ -345,6 +355,16 @@ def test_medium_kvitable_render_skip_blank_rows_no_rep_group_first(medium_kvitab
         '|          |       |            1 |   bad |',
         '|          |       |            3 |  True |',
         '+----------+-------+--------------+-------+',
+        '|   clang6 |   yes |            0 |    ok |',
+        '+----------+-------+--------------+-------+',
+        '|   clang7 |    no |            0 |  good |',
+        '|          |       |            1 |  good |',
+        '|          |       |            3 |  good |',
+        '|          |   yes |            3 |  good |',
+        '+----------+-------+--------------+-------+',
+        '|  clang10 |    no |            3 |  good |',
+        '|          |   yes |            3 |  good |',
+        '+----------+-------+--------------+-------+',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_group_first_second_unknown(medium_kvitable):
@@ -353,14 +373,6 @@ def test_medium_kvitable_render_skip_blank_rows_group_first_second_unknown(mediu
     )
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
-        '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '+----------+-------+--------------+-------+',
-        '|   clang7 |    no |            0 |  good |',
-        '|   clang7 |    no |            1 |  good |',
-        '|   clang7 |    no |            3 |  good |',
-        '|          +-------+--------------+-------+',
-        '|   clang7 |   yes |            3 |  good |',
         '+----------+-------+--------------+-------+',
         '|     gcc7 |    no |            0 |   bad |',
         '|     gcc7 |    no |            1 |  good |',
@@ -372,6 +384,18 @@ def test_medium_kvitable_render_skip_blank_rows_group_first_second_unknown(mediu
         '|     gcc8 |   yes |            1 |   bad |',
         '|     gcc8 |   yes |            3 |  True |',
         '+----------+-------+--------------+-------+',
+        '|   clang6 |   yes |            0 |    ok |',
+        '+----------+-------+--------------+-------+',
+        '|   clang7 |    no |            0 |  good |',
+        '|   clang7 |    no |            1 |  good |',
+        '|   clang7 |    no |            3 |  good |',
+        '|          +-------+--------------+-------+',
+        '|   clang7 |   yes |            3 |  good |',
+        '+----------+-------+--------------+-------+',
+        '|  clang10 |    no |            3 |  good |',
+        '|          +-------+--------------+-------+',
+        '|  clang10 |   yes |            3 |  good |',
+        '+----------+-------+--------------+-------+',
         ]) == show
 
 def test_medium_kvitable_render_show_blank_rows(medium_kvitable):
@@ -379,18 +403,6 @@ def test_medium_kvitable_render_show_blank_rows(medium_kvitable):
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |    no |            0 |       |',
-        '|   clang6 |    no |            1 |       |',
-        '|   clang6 |    no |            3 |       |',
-        '|   clang6 |   yes |            0 |    ok |',
-        '|   clang6 |   yes |            1 |       |',
-        '|   clang6 |   yes |            3 |       |',
-        '|   clang7 |    no |            0 |  good |',
-        '|   clang7 |    no |            1 |  good |',
-        '|   clang7 |    no |            3 |  good |',
-        '|   clang7 |   yes |            0 |       |',
-        '|   clang7 |   yes |            1 |       |',
-        '|   clang7 |   yes |            3 |  good |',
         '|     gcc7 |    no |            0 |   bad |',
         '|     gcc7 |    no |            1 |  good |',
         '|     gcc7 |    no |            3 |       |',
@@ -403,6 +415,24 @@ def test_medium_kvitable_render_show_blank_rows(medium_kvitable):
         '|     gcc8 |   yes |            0 |  good |',
         '|     gcc8 |   yes |            1 |   bad |',
         '|     gcc8 |   yes |            3 |  True |',
+        '|   clang6 |    no |            0 |       |',
+        '|   clang6 |    no |            1 |       |',
+        '|   clang6 |    no |            3 |       |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang6 |   yes |            1 |       |',
+        '|   clang6 |   yes |            3 |       |',
+        '|   clang7 |    no |            0 |  good |',
+        '|   clang7 |    no |            1 |  good |',
+        '|   clang7 |    no |            3 |  good |',
+        '|   clang7 |   yes |            0 |       |',
+        '|   clang7 |   yes |            1 |       |',
+        '|   clang7 |   yes |            3 |  good |',
+        '|  clang10 |    no |            0 |       |',
+        '|  clang10 |    no |            1 |       |',
+        '|  clang10 |    no |            3 |  good |',
+        '|  clang10 |   yes |            0 |       |',
+        '|  clang10 |   yes |            1 |       |',
+        '|  clang10 |   yes |            3 |  good |',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_unknown(medium_kvitable):
@@ -410,11 +440,6 @@ def test_medium_kvitable_render_skip_blank_rows_stack_unknown(medium_kvitable):
     assert '\n'.join([
         '| compiler | debug | optimization | Value |',
         '+----------+-------+--------------+-------+',
-        '|   clang6 |   yes |            0 |    ok |',
-        '|   clang7 |    no |            0 |  good |',
-        '|   clang7 |    no |            1 |  good |',
-        '|   clang7 |    no |            3 |  good |',
-        '|   clang7 |   yes |            3 |  good |',
         '|     gcc7 |    no |            0 |   bad |',
         '|     gcc7 |    no |            1 |  good |',
         '|     gcc7 |   yes |            0 |  good |',
@@ -422,6 +447,13 @@ def test_medium_kvitable_render_skip_blank_rows_stack_unknown(medium_kvitable):
         '|     gcc8 |   yes |            0 |  good |',
         '|     gcc8 |   yes |            1 |   bad |',
         '|     gcc8 |   yes |            3 |  True |',
+        '|   clang6 |   yes |            0 |    ok |',
+        '|   clang7 |    no |            0 |  good |',
+        '|   clang7 |    no |            1 |  good |',
+        '|   clang7 |    no |            3 |  good |',
+        '|   clang7 |   yes |            3 |  good |',
+        '|  clang10 |    no |            3 |  good |',
+        '|  clang10 |   yes |            3 |  good |',
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
@@ -446,15 +478,18 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last(medium_kvitable):
     assert '\n'.join([
         '| compiler | debug |    0 |    1 |    3 | <- optimization',
         '+----------+-------+------+------+------+',
+        '|     gcc7 |    no |  bad | good |      |',
+        '|          |   yes | good |      | ugly |',
+        '+----------+-------+------+------+------+',
+        '|     gcc8 |   yes | good |  bad | True |',
+        '+----------+-------+------+------+------+',
         '|   clang6 |   yes |   ok |      |      |',
         '+----------+-------+------+------+------+',
         '|   clang7 |    no | good | good | good |',
         '|          |   yes |      |      | good |',
         '+----------+-------+------+------+------+',
-        '|     gcc7 |    no |  bad | good |      |',
-        '|          |   yes | good |      | ugly |',
-        '+----------+-------+------+------+------+',
-        '|     gcc8 |   yes | good |  bad | True |',
+        '|  clang10 |    no |      |      | good |',
+        '|          |   yes |      |      | good |',
         '+----------+-------+------+------+------+',
         ]) == show
 
@@ -469,15 +504,18 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj(medium_
     assert '\n'.join([
         '| [compiler] | [debug] |    [0] |    [1] |    [3] | <- optimization',
         '+------------+---------+--------+--------+--------+',
+        '|     [gcc7] |    [no] |  <bad> | <good> |     <> |',
+        '|         [] |   [yes] | <good> |     <> | <ugly> |',
+        '+------------+---------+--------+--------+--------+',
+        '|     [gcc8] |   [yes] | <good> |  <bad> | <True> |',
+        '+------------+---------+--------+--------+--------+',
         '|   [clang6] |   [yes] |   <ok> |     <> |     <> |',
         '+------------+---------+--------+--------+--------+',
         '|   [clang7] |    [no] | <good> | <good> | <good> |',
         '|         [] |   [yes] |     <> |     <> | <good> |',
         '+------------+---------+--------+--------+--------+',
-        '|     [gcc7] |    [no] |  <bad> | <good> |     <> |',
-        '|         [] |   [yes] | <good> |     <> | <ugly> |',
-        '+------------+---------+--------+--------+--------+',
-        '|     [gcc8] |   [yes] | <good> |  <bad> | <True> |',
+        '|  [clang10] |    [no] |     <> |     <> | <good> |',
+        '|         [] |   [yes] |     <> |     <> | <good> |',
         '+------------+---------+--------+--------+--------+',
         ]) == show
 
@@ -491,18 +529,21 @@ def test_medium_kvitable_render_skip_blank_rows_stack_last_val_entry_adj_show_pa
     )
     print(show)
     assert '\n'.join([
-        "| [compiler] | [debug] |                                                                  [0] |                                                                  [1] |                                                                   [3] | <- optimization",
-        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------+",
-        "|   [clang6] |   [yes] |  [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 0)]<ok> |    [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 1)]<> |     [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 3)]<> |",
-        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------+",
-        "|   [clang7] |    [no] | [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 0)]<good> | [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 1)]<good> |  [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 3)]<good> |",
-        "|         [] |   [yes] |    [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 0)]<> |    [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 1)]<> | [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 3)]<good> |",
-        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------+",
-        "|     [gcc7] |    [no] |    [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 0)]<bad> |   [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 1)]<good> |        [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 3)]<> |",
-        "|         [] |   [yes] |  [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 0)]<good> |      [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 1)]<> |   [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 3)]<ugly> |",
-        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------+",
-        "|     [gcc8] |   [yes] |  [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 0)]<good> |   [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 1)]<bad> |   [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 3)]<True> |",
-        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------+",
+        "| [compiler] | [debug] |                                                                  [0] |                                                                  [1] |                                                                    [3] | <- optimization",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
+        "|     [gcc7] |    [no] |    [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 0)]<bad> |   [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 1)]<good> |         [('compiler', 'gcc7'), ('debug', 'no'), ('optimization', 3)]<> |",
+        "|         [] |   [yes] |  [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 0)]<good> |      [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 1)]<> |    [('compiler', 'gcc7'), ('debug', 'yes'), ('optimization', 3)]<ugly> |",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
+        "|     [gcc8] |   [yes] |  [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 0)]<good> |   [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 1)]<bad> |    [('compiler', 'gcc8'), ('debug', 'yes'), ('optimization', 3)]<True> |",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
+        "|   [clang6] |   [yes] |  [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 0)]<ok> |    [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 1)]<> |      [('compiler', 'clang6'), ('debug', 'yes'), ('optimization', 3)]<> |",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
+        "|   [clang7] |    [no] | [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 0)]<good> | [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 1)]<good> |   [('compiler', 'clang7'), ('debug', 'no'), ('optimization', 3)]<good> |",
+        "|         [] |   [yes] |    [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 0)]<> |    [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 1)]<> |  [('compiler', 'clang7'), ('debug', 'yes'), ('optimization', 3)]<good> |",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
+        "|  [clang10] |    [no] |    [('compiler', 'clang10'), ('debug', 'no'), ('optimization', 0)]<> |    [('compiler', 'clang10'), ('debug', 'no'), ('optimization', 1)]<> |  [('compiler', 'clang10'), ('debug', 'no'), ('optimization', 3)]<good> |",
+        "|         [] |   [yes] |   [('compiler', 'clang10'), ('debug', 'yes'), ('optimization', 0)]<> |   [('compiler', 'clang10'), ('debug', 'yes'), ('optimization', 1)]<> | [('compiler', 'clang10'), ('debug', 'yes'), ('optimization', 3)]<good> |",
+        "+------------+---------+----------------------------------------------------------------------+----------------------------------------------------------------------+------------------------------------------------------------------------+",
         ]) == show
 
 def test_medium_kvitable_render_skip_blank_rows_stack_two(medium_kvitable):
@@ -511,10 +552,11 @@ def test_medium_kvitable_render_skip_blank_rows_stack_two(medium_kvitable):
         '| compiler | _______ no _______ | ______ yes _______ | <- debug',
         '|          |    0 |    1 |    3 |    0 |    1 |    3 | <- optimization',
         '+----------+------+------+------+------+------+------+',
-        '|   clang6 |      |      |      |   ok |      |      |',
-        '|   clang7 | good | good | good |      |      | good |',
         '|     gcc7 |  bad | good |      | good |      | ugly |',
         '|     gcc8 |      |      |      | good |  bad | True |',
+        '|   clang6 |      |      |      |   ok |      |      |',
+        '|   clang7 | good | good | good |      |      | good |',
+        '|  clang10 |      |      | good |      |      | good |',
         ]) == show
 
 def test_table_printer():
