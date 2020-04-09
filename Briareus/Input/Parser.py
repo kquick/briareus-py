@@ -1,5 +1,6 @@
 # Module providing parsing of Briareus input specifications
 
+import sys
 import Briareus.Input.Description as Desc
 
 
@@ -14,7 +15,18 @@ class BISParser(object):
         # print(x)
         # print(x['Repos'])
         # print(x['Branches'])
-        repos = set([Desc.RepoDesc(*r, project_repo=(n == 0)) for n,r in enumerate(x['Repos'])])
+
+        bad_repospecs = [(n,r) for n,r in enumerate(x['Repos'])
+                         if not isinstance(r, tuple)]
+        if bad_repospecs:
+            for n,r in bad_repospecs:
+                print("Invalid specification for repo #%d: %s" % (n, r),
+                      file=sys.stderr)
+            raise TypeError("Invalid repo types, expected tuples: %s"
+                            % str(bad_repospecs))
+
+        repos = set([Desc.RepoDesc(*r, project_repo=(n == 0))
+                     for n,r in enumerate(x['Repos'])])
         pname = x.get('Name', [r.repo_name for r in repos if r.project_repo][0])
         branches = set([Desc.BranchDesc(b) for b in x.get('Branches', [])])
         repo_locs = set([Desc.RepoLoc(*r) for r in x.get('RepoLoc', list())])
