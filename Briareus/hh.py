@@ -36,9 +36,34 @@ class InpConfig(object):
         return self
 
 
+class TimeReporter(object):
+    def __init__(self, report=True, phase='startup'):
+        self.report = report
+        self.phase = phase
+        self.first_start = datetime.datetime.now()
+        self.start = self.first_start
+    def _report(self):
+        if self.report:
+            print('#T:', str(datetime.datetime.now()-self.start), '::',
+                  self.phase,
+                  file=sys.stderr)
+    def __call__(self, next_phase):
+        self._report()
+        self.phase = next_phase
+        self.start = datetime.datetime.now()
+    def finished(self):
+        self._report()
+        self.start = self.first_start
+        self.phase = 'Total runtime'
+        self._report()
+        self.start = None
+        self.phase = None
+
+
 @attr.s
 class Params(object):
     verbose = attr.ib(default=False)
+    timing_info = attr.ib(default=TimeReporter(False))
     up_to = attr.ib(default=None)  # class UpTo
     report_file = attr.ib(default=None)
     tempdir = attr.ib(default=None)
@@ -53,6 +78,8 @@ def verbosely(params, *msgargs):
 
 def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
     verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
+    if not prev_gen_result:
+        params.timing_info('Initializing Run Context and Actors')
     result = (prev_gen_result or
               RunContext(actor_system=ActorSystem('multiprocTCPBase')))
     if inpcfg.builder_type == 'hydra':
@@ -62,11 +89,13 @@ def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
         raise RuntimeError('Unknown builder (known: %s), specified: %s' %
                            (', '.join(['hydra']), inpcfg.builder_type))
 
+    params.timing_info('Reading project configuration and VCS info (%s)' % inpcfg.hhd)
     inp_desc, repo_info = \
         BInput.input_desc_and_VCS_info(inp,
                                        verbose=params.verbose,
                                        actor_system=result.actor_system)
 
+    params.timing_info('Generating build configurations (%s)' % inp_desc.PNAME)
     bcgen = BCGen.BCGen(builder,
                         verbose=params.verbose,
                         up_to=params.up_to,
@@ -91,19 +120,17 @@ def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
 
 def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     verbosely(params, 'Generating Analysis/Report')
-    t0 = datetime.datetime.now()
     anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
                            actor_system=gen_result.actor_system)
     ret = anarep.report_on(gen_result, prior_report,
                            reporting_logic_defs=reporting_logic_defs)
-    te = datetime.datetime.now()
 
     if ret[0] != 'report':
         return None
 
-    verbosely(params, 'Generated Analysis/Report: %d items in %s' %
-              (len(ret[1].report), str(te - t0)))
+    verbosely(params, 'Generated Analysis/Report: %d items' %
+              (len(ret[1].report)))
 
     return ret[1]
 
@@ -148,6 +175,7 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
         return r
 
     verbosely(params, 'hh <',inp_fname,'>',outfname)
+    params.timing_info('Writing outputs (%s)' % outfname)
     writings = FileWriterSession(params.tempdir or os.path.dirname(outfname))
     for fname in r[1]:
         if fname:
@@ -194,6 +222,7 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
 
 def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
     if inpcfg.input_url is not None:
+        params.timing_info('Updating inputs from %s' % inpcfg.input_url)
         asys = ((prev_gen_result.actor_system if prev_gen_result else None)
                 or ActorSystem('multiprocTCPBase'))
         try:
@@ -239,6 +268,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
 
     """
     if inpcfg is None:
+        params.timing_info('Reading input configurations')
         inpcfgs = read_inpcfgs_from(inputArg)
         if not inpcfgs:
             raise ValueError('No input configurations specified')
@@ -257,6 +287,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
 
     if reportf or (params.up_to and params.up_to.enough('built_facts')):
 
+        params.timing_info('Generating report')
         upd_result = run_hh_report(params, gen_result, prior_report,
                                    reporting_logic_defs=(report_supplement
                                                          .get('logic', '')))
@@ -264,10 +295,12 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
         if params.up_to and not params.up_to.enough('actions'):
             return
 
+        params.timing_info('Performing Actions')
         act_result = perform_hh_actions(inpcfg, upd_result.report, upd_result,
                                         report_supplement)
 
         if reportf and (not params.up_to or params.up_to.enough('report')):
+            params.timing_info('Writing final report')
             write_report_output(reportf, act_result.report)
 
 
@@ -288,6 +321,7 @@ def run_hh(params, inpcfg=None, inputArg=None):
         verbosely(params, 'input from:', inpcfg.hhd)
     if params.report_file and (not params.up_to or params.up_to.enough('built_facts')):
         verbosely(params, 'Reporting to', params.report_file)
+        params.timing_info('Reading prior report (%s)' % params.report_file)
         prior_rep_fd, prior_report = get_prior_report(params.report_file)
         # n.b. the rep_fd references the locked file descriptor; keep
         # this reference to keep the lock active and prevent
@@ -372,6 +406,10 @@ def main():
     parser.add_argument(
         '--verbose', '-v', action='store_true', help='Enable verbose output')
     parser.add_argument(
+        '--timing-info', '-T', action='store_true', dest="timing_info",
+        help='Display timing information to stderr from sub-segments of'
+        ' execution.')
+    parser.add_argument(
         '--up-to', '-u', default=None, dest="up_to", type=UpTo,
         help='''For debugging: run hh up to the designated point and stop, printing
                 the results to stdout (ignoring the -o argument).
@@ -430,6 +468,7 @@ def main():
               'The default is {inputfile}.hhc.'))
     args = parser.parse_args()
     params = Params(verbose=args.verbose,
+                    timing_info=TimeReporter(report=args.timing_info),
                     up_to=args.up_to,
                     report_file=args.report,
                     tempdir=args.tempdir)
@@ -450,9 +489,11 @@ def main():
                            output_file=args.OUTPUT or
                            (os.path.splitext(args.INPUT)[0] + ".hhc"))
         inputArg = None
+
     try:
         run_hh(params, inpcfg=inpcfg, inputArg=inputArg)
     finally:
+        params.timing_info.finished()
         if args.stopdaemon:
             ActorSystem().shutdown()
 
