@@ -46,7 +46,7 @@ class TimeReporter(object):
         if self.report:
             print('#T:', str(datetime.datetime.now()-self.start), '::',
                   self.phase,
-                  file=sys.stderr)
+                  file=sys.stderr, flush=True)
     def __call__(self, next_phase):
         self._report()
         self.phase = next_phase
