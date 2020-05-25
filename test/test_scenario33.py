@@ -255,46 +255,25 @@ proj3_top_level = [
 def testing_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("scenario33")
 
-@pytest.fixture(scope="session")
-def proj1_hhd(testing_dir):
-    hhd = testing_dir.join("p1.hdd")
-    hhd.write(proj1_input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
-@pytest.fixture(scope="session")
-def proj2_hhd(testing_dir):
-    hhd = testing_dir.join("p2.hdd")
-    hhd.write(proj2_input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
-@pytest.fixture(scope="session")
-def proj3_hhd(testing_dir):
-    hhd = testing_dir.join("p3.hdd")
-    hhd.write(proj3_input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
 @pytest.fixture(scope="module")
-def inp_configs(testing_dir, proj1_hhd, proj2_hhd, proj3_hhd):
+def inp_configs(testing_dir):
     outfile_p1 = testing_dir.join("p1.hhc")
     outfile_p2 = testing_dir.join("p2.hhc")
     outfile_p3 = testing_dir.join("p3.hhc")
     return [
-        (GitScenario33, outfile_p1, hh.InpConfig(hhd=proj1_hhd,
+        (GitScenario33, outfile_p1, hh.InpConfig(hhd='test/inp_scenario33_proj1',
                                                  builder_type="hydra",
                                                  # builder_conf="
                                                  output_file=outfile_p1,
         ),
         ),
-        (GitScenario33, outfile_p2, hh.InpConfig(hhd=proj2_hhd,
+        (GitScenario33, outfile_p2, hh.InpConfig(hhd='test/inp_scenario33_proj2',
                                                  builder_type="hydra",
                                                  # builder_conf="
                                                  output_file=outfile_p2,
         ),
         ),
-        (GitScenario33, outfile_p3, hh.InpConfig(hhd=proj3_hhd,
+        (GitScenario33, outfile_p3, hh.InpConfig(hhd='test/inp_scenario33_proj3',
                                                  builder_type="hydra",
                                                  # builder_conf="
                                                  output_file=outfile_p3,
