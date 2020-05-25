@@ -109,7 +109,7 @@ class EmailSender(ActorTypeDispatcher):
         send_to = self._delivered.allowed(envelope.subject, envelope.recipients)
         message = envelope.message
         if not self.can_email:
-            logging.warn('email to %s suppressed: %s', send_to, envelope.subject)
+            logging.warning('email to %s suppressed: %s', send_to, envelope.subject)
             self.send(sender, fmtReply(SendReceipt(envelope, envelope.recipients)))
             return
         if self.can_email != "1":
