@@ -776,6 +776,7 @@ def build_kvitable():
 
 def test_no_seplines_on_multirow_non_grouped_all_cols_equisized(build_kvitable):
     show = build_kvitable.render(row_repeat=False,
+                                 hide_blank_cols=False,
                                  equisized_cols=True,
                                  sort_vals=True,
                                  row_group=['Branch'], colstack_at='ghcver')
@@ -799,6 +800,7 @@ def test_no_seplines_on_multirow_non_grouped_all_cols_equisized(build_kvitable):
 
 def test_no_seplines_on_multirow_non_grouped_all_cols_fitsized(build_kvitable):
     show = build_kvitable.render(row_repeat=False,
+                                 hide_blank_cols=False,
                                  equisized_cols=False,
                                  sort_vals=True,
                                  row_group=['Branch'], colstack_at='ghcver')
@@ -821,24 +823,76 @@ def test_no_seplines_on_multirow_non_grouped_all_cols_fitsized(build_kvitable):
         # Note ^^^^ no seplines under system because it wasn't included in the row_group
     ]) == show
 
+def test_no_seplines_on_multirow_non_grouped_occupied_cols_equisized(build_kvitable):
+    show = build_kvitable.render(row_repeat=False,
+                                 hide_blank_cols=True,
+                                 equisized_cols=True,
+                                 sort_vals=True,
+                                 row_group=['Branch'], colstack_at='ghcver')
+    print(show)
+    assert '\n'.join([
+        '|        system |     Branch |   Strategy | ___ ghc844 ____ | ghc865 | ghc882 | <- ghcver',
+        '|               |            |            |      N |      Y |      N |      N | <- debug',
+        '+---------------+------------+------------+--------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |      + |        |        |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|  x86_64-linux | PR-feature |      HEADs |        |        | FAIL*2 | FAIL*1 |',
+        '|               |            | submodules |      + |      + |      + | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|               |    develop |      HEADs |      + |      + |      + |        |',
+        '|               |            | submodules |      + |        |        | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|               |     master |      HEADs |        | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|               |            | submodules |      + | FAIL*1 | FAIL*1 |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        # Note ^^^^ no seplines under system because it wasn't included in the row_group
+    ]) == show
+
+def test_no_seplines_on_multirow_non_grouped_occupied_cols_fitsized(build_kvitable):
+    show = build_kvitable.render(row_repeat=False,
+                                 hide_blank_cols=True,
+                                 equisized_cols=False,
+                                 sort_vals=True,
+                                 row_group=['Branch'], colstack_at='ghcver')
+    print(show)
+    assert '\n'.join([
+        '|        system |     Branch |   Strategy | _ ghc844 _ | ghc865 | ghc882 | <- ghcver',
+        '|               |            |            | N |      Y |      N |      N | <- debug',
+        '+---------------+------------+------------+---+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs | + |        |        |        |',
+        '|               +------------+------------+---+--------+--------+--------+',
+        '|  x86_64-linux | PR-feature |      HEADs |   |        | FAIL*2 | FAIL*1 |',
+        '|               |            | submodules | + |      + |      + | FAIL*1 |',
+        '|               +------------+------------+---+--------+--------+--------+',
+        '|               |    develop |      HEADs | + |      + |      + |        |',
+        '|               |            | submodules | + |        |        | FAIL*1 |',
+        '|               +------------+------------+---+--------+--------+--------+',
+        '|               |     master |      HEADs |   | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|               |            | submodules | + | FAIL*1 | FAIL*1 |        |',
+        '|               +------------+------------+---+--------+--------+--------+',
+        # Note ^^^^ no seplines under system because it wasn't included in the row_group
+    ]) == show
+
 def test_no_seplines_on_multirow_non_grouped_unsorted(build_kvitable):
     show = build_kvitable.render(row_repeat=False, row_group=['Branch'],
+                                 hide_blank_cols=True,
                                  sort_vals=False,
                                  colstack_at='ghcver')
     assert '\n'.join([
-        '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
-        '+---------------+------------+------------+--------+--------+--------+',
-        '|  x86_64-linux |     master | submodules | FAIL*1 | FAIL*1 |        |',
-        '|               |            |      HEADs | FAIL*1 | FAIL*1 | FAIL*1 |',
-        '|               +------------+------------+--------+--------+--------+',
-        '|               |    develop | submodules |      + |        | FAIL*1 |',
-        '|               |            |      HEADs |      + |      + |        |',
-        '|               +------------+------------+--------+--------+--------+',
-        '|               | PR-feature | submodules |      + |      + | FAIL*1 |',
-        '|               |            |      HEADs |        | FAIL*1 | FAIL*1 |',
-        '|               +------------+------------+--------+--------+--------+',
-        '| x86_64-darwin |    develop |      HEADs |      + |        |        |',
-        '|               +------------+------------+--------+--------+--------+',
+        '|        system |     Branch |   Strategy | ___ ghc844 ____ | ghc865 | ghc882 | <- ghcver',
+        '|               |            |            |      Y |      N |      N |      N | <- debug',
+        '+---------------+------------+------------+--------+--------+--------+--------+',
+        '|  x86_64-linux |     master | submodules | FAIL*1 |      + | FAIL*1 |        |',
+        '|               |            |      HEADs | FAIL*1 |        | FAIL*1 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|               |    develop | submodules |        |      + |        | FAIL*1 |',
+        '|               |            |      HEADs |      + |      + |      + |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|               | PR-feature | submodules |      + |      + |      + | FAIL*1 |',
+        '|               |            |      HEADs |        |        | FAIL*2 | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |        |      + |        |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
         # Note ^^^^ no seplines under system because it wasn't included in the row_group
     ]) == show
 
@@ -847,18 +901,474 @@ def test_no_seplines_on_repeated_non_grouped(build_kvitable):
                                  sort_vals=True,
                                  row_group=['Branch'], colstack_at='ghcver')
     assert '\n'.join([
-        '|        system |     Branch |   Strategy | ghc844 | ghc865 | ghc882 | <- ghcver',
-        '+---------------+------------+------------+--------+--------+--------+',
-        '| x86_64-darwin |    develop |      HEADs |      + |        |        |',
-        '|               +------------+------------+--------+--------+--------+',
-        '|  x86_64-linux | PR-feature |      HEADs |        | FAIL*1 | FAIL*1 |',
-        '|  x86_64-linux | PR-feature | submodules |      + |      + | FAIL*1 |',
-        '|               +------------+------------+--------+--------+--------+',
-        '|  x86_64-linux |    develop |      HEADs |      + |      + |        |',
-        '|  x86_64-linux |    develop | submodules |      + |        | FAIL*1 |',
-        '|               +------------+------------+--------+--------+--------+',
-        '|  x86_64-linux |     master |      HEADs | FAIL*1 | FAIL*1 | FAIL*1 |',
-        '|  x86_64-linux |     master | submodules | FAIL*1 | FAIL*1 |        |',
-        '|               +------------+------------+--------+--------+--------+',
+        '|        system |     Branch |   Strategy | ___ ghc844 ____ | ghc865 | ghc882 | <- ghcver',
+        '|               |            |            |      N |      Y |      N |      N | <- debug',
+        '+---------------+------------+------------+--------+--------+--------+--------+',
+        '| x86_64-darwin |    develop |      HEADs |      + |        |        |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|  x86_64-linux | PR-feature |      HEADs |        |        | FAIL*2 | FAIL*1 |',
+        '|  x86_64-linux | PR-feature | submodules |      + |      + |      + | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|  x86_64-linux |    develop |      HEADs |      + |      + |      + |        |',
+        '|  x86_64-linux |    develop | submodules |      + |        |        | FAIL*1 |',
+        '|               +------------+------------+--------+--------+--------+--------+',
+        '|  x86_64-linux |     master |      HEADs |        | FAIL*1 | FAIL*1 | FAIL*1 |',
+        '|  x86_64-linux |     master | submodules |      + | FAIL*1 | FAIL*1 |        |',
+        '|               +------------+------------+--------+--------+--------+--------+',
         # Note ^^^^ no seplines under system because it wasn't included in the row_group
     ]) == show
+
+
+@pytest.fixture()
+def build_nested_kvitable():
+    kvit = KVITable({'millions': [ '0' ],
+                     'thousands': ['0'],
+                     'hundreds': ['0'],
+                     'tens': ['0'],
+                     'ones': [ '0' ],
+                     },
+                    kv_frozen=False)
+    for m in range(3):
+        for t in range(3):
+            for h in range(1,3):
+                for d in range(2,3):
+                    for o in range(2):
+                        kvit.add('odd' if o & 1 else 'even',
+                                 **{'millions':str(m), 'thousands':str(t), 'hundreds':str(h), 'tens':str(d), 'ones':str(o)})
+    return kvit
+
+def test_nested_colstack_ones(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False,
+                                        colstack_at='ones')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | hundreds | tens |    0 |   1 | <- ones',
+        '+----------+-----------+----------+------+------+-----+',
+        '|        0 |         0 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         1 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         2 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|        1 |         0 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         1 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         2 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|        2 |         0 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         1 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+        '|          |         2 |        1 |    2 | even | odd |',
+        '|          |           |        2 |    2 | even | odd |',
+    ]) == show
+
+def test_nested_colstack_tens(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False,
+                                        colstack_at='tens')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | hundreds | ___ 2 ____ | <- tens',
+        '|          |           |          |    0 |   1 | <- ones',
+        '+----------+-----------+----------+------+-----+',
+        '|        0 |         0 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         1 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         2 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|        1 |         0 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         1 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         2 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|        2 |         0 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         1 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+        '|          |         2 |        1 | even | odd |',
+        '|          |           |        2 | even | odd |',
+    ]) == show
+
+def test_nested_colstack_hundreds(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False,
+                                        colstack_at='hundreds')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | ___ 1 ____ | ___ 2 ____ | <- hundreds',
+        '|          |           | ___ 2 ____ | ___ 2 ____ | <- tens',
+        '|          |           |    0 |   1 |    0 |   1 | <- ones',
+        '+----------+-----------+------+-----+------+-----+',
+        '|        0 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+        '|        1 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+        '|        2 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+    ]) == show
+
+def test_nested_colstack_hundreds_all(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=False,
+                                        hide_blank_cols=False,
+                                        equisized_cols=False,
+                                        colstack_at='hundreds')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | _____ 0 _____ | _______ 1 ________ | _______ 2 ________ | <- hundreds',
+        '|          |           | _ 0 _ | _ 2 _ | _ 0 _ | ___ 2 ____ | _ 0 _ | ___ 2 ____ | <- tens',
+        '|          |           | 0 | 1 | 0 | 1 | 0 | 1 |    0 |   1 | 0 | 1 |    0 |   1 | <- ones',
+        '+----------+-----------+---+---+---+---+---+---+------+-----+---+---+------+-----+',
+        '|        0 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|        1 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|        2 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+        '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    ]) == show
+
+def test_nested_colstack_hundreds_all_equisized(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=False,
+                                        hide_blank_cols=False,
+                                        equisized_cols=True,
+                                        colstack_at='hundreds')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | __________ 0 __________ | __________ 1 __________ | __________ 2 __________ | <- hundreds',
+        '|          |           | ___ 0 ____ | ___ 2 ____ | ___ 0 ____ | ___ 2 ____ | ___ 0 ____ | ___ 2 ____ | <- tens',
+        '|          |           |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 | <- ones',
+        '+----------+-----------+------+-----+------+-----+------+-----+------+-----+------+-----+------+-----+',
+        '|        0 |         0 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         1 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         2 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|        1 |         0 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         1 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         2 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|        2 |         0 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         1 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+        '|          |         2 |      |     |      |     |      |     | even | odd |      |     | even | odd |',
+    ]) == show
+
+def test_nested_colstack_thousands(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False,
+                                        colstack_at='thousands')
+    print(show)
+    assert '\n'.join([
+        '| millions | __________ 0 __________ | __________ 1 __________ | __________ 2 __________ | <- thousands',
+        '|          | ___ 1 ____ | ___ 2 ____ | ___ 1 ____ | ___ 2 ____ | ___ 1 ____ | ___ 2 ____ | <- hundreds',
+        '|          | ___ 2 ____ | ___ 2 ____ | ___ 2 ____ | ___ 2 ____ | ___ 2 ____ | ___ 2 ____ | <- tens',
+        '|          |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 |    0 |   1 | <- ones',
+        '+----------+------+-----+------+-----+------+-----+------+-----+------+-----+------+-----+',
+        '|        0 | even | odd | even | odd | even | odd | even | odd | even | odd | even | odd |',
+        '|        1 | even | odd | even | odd | even | odd | even | odd | even | odd | even | odd |',
+        '|        2 | even | odd | even | odd | even | odd | even | odd | even | odd | even | odd |',
+    ]) == show
+
+def test_nested_colstack_none(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False)
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | hundreds | tens | ones | Value |',
+        '+----------+-----------+----------+------+------+-------+',
+        '|        0 |         0 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|        1 |         0 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|        2 |         0 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        1 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+    ]) == show
+
+def test_nested_colstack_none_all_cols(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        hide_blank_rows=False,
+                                        hide_blank_cols=False,
+                                        equisized_cols=False)
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | hundreds | tens | ones | Value |',
+        '+----------+-----------+----------+------+------+-------+',
+        '|        0 |         0 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|        1 |         0 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|        2 |         0 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         1 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |         2 |        0 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |        1 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+        '|          |           |        2 |    0 |    0 |       |',
+        '|          |           |          |      |    1 |       |',
+        '|          |           |          |    2 |    0 |  even |',
+        '|          |           |          |      |    1 |   odd |',
+    ]) == show
+
+# ----------------------------------------------------------------------
+
+def tbl(head,body):
+    return ''.join(['<table class="kvitable">\n\n',head,body,'</table>'])
+def tr(*v):
+    return ''.join(['<tr class="kvitable_tr">'] + list(v) + ['</tr>\n'])
+def thead(*v):
+    return ''.join(['<thead class="kvitable_head">\n'] + list(v) + ['</thead>'])
+def tbody(*v):
+    return ''.join(['<tbody class="kvitable_body">\n'] + list(v) + ['</tbody>'])
+def th(v,rowspan=None,colspan=False):
+    return ''.join(['<th class="kvitable_th',
+                    ' multicol' if colspan else '',
+                    '"',
+                    ' rowspan=%d' % rowspan if rowspan else '',
+                    ' colspan=%d' % colspan if colspan else '',
+                    '>',v,'</th>'])
+def rightlabel(v):
+    return ''.join(['<th class="rightlabel kvitable_th">&nbsp;&larr;',v,'</th>'])
+def td(v):
+    return ''.join(['<td class="kvitable_td">',v,'</td>'])
+
+
+def test_nested_colstack_hundreds_html(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        as_format='html',
+                                        hide_blank_rows=True,
+                                        hide_blank_cols=True,
+                                        equisized_cols=False,
+                                        colstack_at='hundreds')
+    print(show)
+    # ASCII form:
+    # '| millions | thousands | ___ 1 ____ | ___ 2 ____ | <- hundreds',
+    # '|          |           | ___ 2 ____ | ___ 2 ____ | <- tens',
+    # '|          |           |    0 |   1 |    0 |   1 | <- ones',
+    # '+----------+-----------+------+-----+------+-----+',
+    # '|        0 |         0 | even | odd | even | odd |',
+    # '|          |         1 | even | odd | even | odd |',
+    # '|          |         2 | even | odd | even | odd |',
+    # '|        1 |         0 | even | odd | even | odd |',
+    # '|          |         1 | even | odd | even | odd |',
+    # '|          |         2 | even | odd | even | odd |',
+    # '|        2 |         0 | even | odd | even | odd |',
+    # '|          |         1 | even | odd | even | odd |',
+    # '|          |         2 | even | odd | even | odd |',
+    expected = tbl(thead(tr(th('millions',rowspan=3),
+                            th('thousands',rowspan=3),
+                            th('1',colspan=2),
+                            th('2',colspan=2),
+                            rightlabel('hundreds')),
+                         tr(th('2',colspan=2),
+                            th('2',colspan=2),
+                            rightlabel('tens')),
+                         tr(th('0'),th('1'),th('0'),th('1'),rightlabel('ones'))),
+                   tbody(tr(th('0',rowspan=3),th('0'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('1'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('2'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('1',rowspan=3),th('0'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('1'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('2'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('2',rowspan=3),th('0'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('1'),td('even'),td('odd'),td('even'),td('odd')),
+                         tr(th('2'),td('even'),td('odd'),td('even'),td('odd'))))
+    print('----')
+    for exp,act in zip(show.split(), expected.split()):
+        print(exp,'   ==?   ',act)
+        assert exp == act
+
+
+def test_nested_colstack_hundreds_all_html(build_nested_kvitable):
+    show = build_nested_kvitable.render(row_repeat=False,
+                                        as_format='html',
+                                        hide_blank_rows=False,
+                                        hide_blank_cols=False,
+                                        equisized_cols=False,
+                                        colstack_at='hundreds')
+    print(show)
+    # ASCII form:
+    # '| millions | thousands | _____ 0 _____ | _______ 1 ________ | _______ 2 ________ | <- hundreds',
+    # '|          |           | _ 0 _ | _ 2 _ | _ 0 _ | ___ 2 ____ | _ 0 _ | ___ 2 ____ | <- tens',
+    # '|          |           | 0 | 1 | 0 | 1 | 0 | 1 |    0 |   1 | 0 | 1 |    0 |   1 | <- ones',
+    # '+----------+-----------+---+---+---+---+---+---+------+-----+---+---+------+-----+',
+    # '|        0 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|        1 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|        2 |         0 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         1 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    # '|          |         2 |   |   |   |   |   |   | even | odd |   |   | even | odd |',
+    expected = tbl(thead(tr(th('millions',rowspan=3),
+                            th('thousands',rowspan=3),
+                            th('0',colspan=4),
+                            th('1',colspan=4),
+                            th('2',colspan=4),
+                            rightlabel('hundreds')),
+                         tr(th('0',colspan=2),th('2',colspan=2),
+                            th('0',colspan=2),th('2',colspan=2),
+                            th('0',colspan=2),th('2',colspan=2),
+                            rightlabel('tens')),
+                         tr(th('0'),th('1'),
+                            th('0'),th('1'),
+                            th('0'),th('1'),
+                            th('0'),th('1'),
+                            th('0'),th('1'),
+                            th('0'),th('1'),
+                            rightlabel('ones'))),
+                   tbody(tr(th('0',rowspan=3),th('0'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('1'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('2'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('1',rowspan=3),th('0'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('1'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('2'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('2',rowspan=3),th('0'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('1'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd')),
+                         tr(th('2'),td(''),td(''),td(''),td(''),td(''),td(''),td('even'),td('odd'),td(''),td(''),td('even'),td('odd'))))
+    print('----')
+    for exp,act in zip(show.split(), expected.split()):
+        print(exp,'   ==?   ',act)
+        assert exp == act

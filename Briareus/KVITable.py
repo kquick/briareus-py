@@ -222,6 +222,7 @@ class KVITable(object):
 
     def render(self, as_format='ascii',
                hide_blank_rows=True,
+               hide_blank_cols=True,
                equisized_cols=True,
                sort_vals=False,
                colstack_at=None,
@@ -233,6 +234,8 @@ class KVITable(object):
         """Return the rendering of the table in the specified format (default=ascii).
 
             * hide_blank_rows is True (default) to remove rows for which there is no value(s)
+
+            * hide_blank_cols is True (default) to remove columns for which there is no value(s)
 
             * equisized_cols is True (default) to maintain a
               consistent column width, otherwise columns are shrunk to
@@ -262,6 +265,7 @@ class KVITable(object):
             'html' : KVITable__Render_HTML,
         }[as_format](self,
                      hide_blank_rows=hide_blank_rows,
+                     hide_blank_cols=hide_blank_cols,
                      equisized_cols=equisized_cols,
                      sort_vals=sort_vals,
                      colstack_at=colstack_at,
@@ -278,6 +282,7 @@ class KVITable(object):
 class KVITable__Render_(object):
     def __init__(self, kvitable,
                  hide_blank_rows=True,
+                 hide_blank_cols=True,
                  equisized_cols=True,
                  sort_vals=False,
                  colstack_at=None,
@@ -285,6 +290,7 @@ class KVITable__Render_(object):
                  row_group=None):
         self._table = kvitable
         self._hide_blank_rows = hide_blank_rows
+        self._hide_blank_cols = hide_blank_cols
         self._equisized_cols = equisized_cols
         self._colstack_at = colstack_at
         self._row_repeat = row_repeat
@@ -361,25 +367,33 @@ class KVITable__Render_ASCII(KVITable__Render_):
                 cwidths = [self.cellwidths(self._entrystr, **excursion, **{key:val}) for val in titles]
                 fmt = FmtLine(
                     lambda:
-                    (lambda cws: [ max(len(self._valstr(val)),
-                                            max([0] + cws[i]))
-                                        for i,val in enumerate(titles) ])
+                    (lambda cws: [ max(0 if self._hide_blank_cols and sum(cws[i]) == 0 else len(self._valstr(val)),
+                                       max([0] +
+                                           ([0] if sum(cws[i]) == 0 and self._hide_blank_cols else cws[i])))
+                                   for i,val in enumerate(titles) ])
                     (cwidths)
                 )
                 return [ (fmt, [ self._valstr(t) for t in titles], key) ]
             else:
                 vals = self._valsort(self._table._kv[key])
                 numvals = len(vals)
-                if self._equisized_cols:
+                if self._equisized_cols and not self._hide_blank_cols:
                     onesub = self._hdrvalstep(kseq[1:], **excursion)
                     subhdrs = [[(f.copy(),t,k) for f,t,k in onesub] for n in range(numvals) ]
                 else:
                     subhdrs = []
                     for val in vals:
                         subhdrs.append(self._hdrvalstep(kseq[1:], **excursion, **{key:val}))
+                    if self._equisized_cols:
+                        # Now make all *non-empty* columns equisized
+                        maxcolwidth = max([max([max(fmt) for fmt,_,_ in sh]) for sh in subhdrs])
+                        for subhgrp in subhdrs:
+                            for subhdr in subhgrp:
+                                subhdr[0].resize_each(maxcolwidth)
 
-                tophdrfmt = FmtLine(lambda: [ max(len(self._valstr(vals[idx])),
-                                                  sum([s.width() for s,_,_ in subhdrs[idx]]))
+                tophdrfmt = FmtLine(lambda: [ (lambda subwidths: max(len(self._valstr(vals[idx])), subwidths)
+                                               if subwidths else 0)
+                                              (max([s.width() for s,_,_ in subhdrs[idx]]))
                                               for idx in range(numvals)])
 
                 # Ensure that the width of the last sub-column is
@@ -476,6 +490,8 @@ class FmtLine(object):
         self._sepline_sigils = sepline_sigils or { 'sep': '+', 'pad': '-', 'cap': '_' }
         # n.b. the width of each sigil should be the same between
         # _sigils and _sepline_sigils for proper formatting.
+    def __repr__(self):
+        return '<FmtLine:' + repr(self._cols) + '>'
     def copy(self):
         r = FmtLine()
         r._cols = list(self._cols)
@@ -489,7 +505,13 @@ class FmtLine(object):
         self._cols = self._cols * count
         return self
     def width(self):
-        return sum(self) + (len(self._sigils['pad']) * 2 + len(self._sigils['sep'])) * (len(self) - 1)
+        s = sum(self)
+        if s:
+            return (s +
+                    (len(self._sigils['pad']) * 2 +
+                     len(self._sigils['sep'])) *
+                    (len([c for c in self._cols if c]) - 1))
+        return 0
     def __len__(self):
         return len(self._cols)
     def extended_with(self, other):
@@ -497,6 +519,8 @@ class FmtLine(object):
         return self
     def pad_last(self, padwidth):
         self._cols[-1] += padwidth
+    def resize_each(self, tgtwidth, skip_zero=True):
+        self._cols = [(tgtwidth if c else 0) for c in self._cols]
     def __getitem__(self, idx):
         return self._cols[idx]
     def render(self, flds):
@@ -517,6 +541,7 @@ class FmtLine(object):
                  (i < len(flds) - 1 and isinstance(flds[i+1], Separator))
                  else self._sigils['sep'])
               for i,fld in enumerate(flds)
+              if self[i]
             ])
 
 
@@ -544,8 +569,7 @@ class KVITable__Render_HTML(KVITable__Render_):
 
 
     def _html_renderhdrs(self, kseq):
-        hrows, ncols = self._hdrstep(kseq)
-        rowfmt = FmtLine_HTML(ncols)
+        hrows, rowfmt = self._hdrstep(kseq)
         # n.b. len(flds) may be > len(self._colspans) if some of the
         # fields span multiple rows and this is not the first row; in
         # that case there was no add_col_left for the remaining rows,
@@ -562,36 +586,44 @@ class KVITable__Render_HTML(KVITable__Render_):
                 # Switch over to column stacking mode computation
                 return self._hdrvalstep(kseq)
             # still a row-oriented key+val configuration
-            nexthdrs, ncols = self._hdrstep(kseq[1:])
+            nexthdrs, lowestfmt = self._hdrstep(kseq[1:])
             fstnxt_fmt, fstnxt_hdrvals, fstnxt_trailer = nexthdrs[0]
             return ([ (fstnxt_fmt.add_col_left(),
                        [self._valstr(key).set_height(len(nexthdrs))] + fstnxt_hdrvals,
                        fstnxt_trailer)
                     ] + nexthdrs[1:],
-                    ncols + 1)
+                    lowestfmt.add_col_left())
         # colstack_at wasn't recognized, so devolve to a non-colstack table
-        return [ (FmtLine_HTML(1), [self._valstr(self._table._valuecol_name)], '') ], 1
+        return [ (FmtLine_HTML([1]), [self._valstr(self._table._valuecol_name)], '') ], FmtLine_HTML([1])
 
-    def _hdrvalstep(self, kseq):
+    def _hdrvalstep(self, kseq, **excursion):
         if kseq:
             key = kseq[0]
             if len(kseq) == 1:
                 # Reached a leaf
                 titles = self._valsort(self._table._kv[key])
-                fmt = FmtLine_HTML(len(titles))
-                return [ (fmt, [ self._valstr(t) for t in titles], key) ], len(titles)
+                validt = titles if not self._hide_blank_cols else \
+                    [ val
+                      for val in titles
+                      if not all([(entry is None)
+                                  for _,entry in self._table.get_entries_matching(**excursion, **{key:val}) ]) ]
+                fmt = FmtLine_HTML([v in validt for v in titles])
+                return [ (fmt, [ self._valstr(t) for t in titles], key) ], fmt.copy()
             else:
-                subhdrs, _ = self._hdrvalstep(kseq[1:])
                 vals = self._valsort(self._table._kv[key])
                 numvals = len(vals)
-                val_colspan = len(subhdrs[-1][0])
-                upd_subhdrs = [ (fmt.repeat(numvals), titles * numvals, trailer)
-                                for fmt, titles, trailer in subhdrs ]
-                return ([ (FmtLine_HTML(numvals, val_colspan),
+                if self._hide_blank_cols:
+                    subhdrs = [ self._hdrvalstep(kseq[1:], **excursion, **{key:val})[0]
+                                for val in vals ]
+                else :
+                    subhdrs = [ self._hdrvalstep(kseq[1:], **excursion)[0] ] * numvals
+                val_colspan = len(subhdrs[-1][-1][0])
+                subhdr_rollup = [ reduce(lambda a, b: (a[0].extend_right(b[0]), a[1]+b[1], a[2]), e) for e in zip(*tuple(subhdrs)) ]
+                hdrvalid = [ v[0][0].numcols() for v in subhdrs ]
+                tophdr = (FmtLine_HTML(existing_colspans=hdrvalid),
                            [ CenterCap_HTML(self._valstr)(val) for val in vals ],
                            key)
-                        ] + upd_subhdrs,
-                        len(upd_subhdrs[-1][0]))
+                return ([ tophdr ] + subhdr_rollup, subhdr_rollup[-1][0].copy())
         else:
             # Normally caught at 'len(kseq) == 1' leaves above.
             # Coming here meant the colstack_at matched the current
@@ -646,6 +678,8 @@ class HTML__Elem(object):
         self._val = val if isinstance(val, str) else str(val)
         self._tag = tag or 'span'
         self._classes = None if classes is None else set(classes)
+    def __repr__(self):
+        return self._tag + '::' + self._val
     def add_class(self, newclass):
         if newclass is not None:
             if self._classes is None:
@@ -695,16 +729,30 @@ class RenderCell(HTML__TableElem):
         super(RenderCell, self).__init__(entry, tag='td', classes=["kvitable_td"])
 
 class FmtLine_HTML(object):
-    def __init__(self, numcols=0, colspan=1):
-        self._colspans = [colspan] * numcols
-    def add_col_left(self, colspan=1):
-        self._colspans.insert(0, colspan)
-        return self
-    def repeat(self, count):
-        self._colspans = self._colspans * count
-        return self
+    def __init__(self, enabled_columns=list(), colspan=1, existing_colspans=list()):
+        if existing_colspans:
+            if enabled_columns:
+                raise ValueError("Should specify either enabled_columns or existing_colspans")
+            self._colspans = list(existing_colspans)
+        else:
+            self._colspans = [ colspan if e else 0 for e in enabled_columns ]
+    def copy(self):
+        r = FmtLine_HTML()
+        r._colspans = list(self._colspans)
+        return r
+    def __repr__(self):
+        return '<FmtLine_HTML:' + repr(self._colspans) + '>'
     def __len__(self):
         return len(self._colspans)
+    def numcols(self):
+        return sum([c for c in self._colspans if c])
+    def extend_right(self, other):
+        r = self.copy()
+        r._colspans.extend(other._colspans)
+        return r
+    def add_col_left(self):
+        self._colspans.insert(0, 1)
+        return self
     def render(self, flds, rightlabel=None):
         # n.b. len(flds) may be < len(self._colspans) if some of the
         # fields span multiple rows and this is not the first row; in
@@ -716,6 +764,7 @@ class FmtLine_HTML(object):
             [ (fld.render(colspan, '') if hasattr(fld, 'render') else
                ('<th class="kvitable_th">' + fld + '</th>'))
               for fld, colspan in zip(flds, self._colspans[-len(flds):])
+              if colspan
             ]
             +
             ([RenderVal('&nbsp;&larr;' + rightlabel).add_class('rightlabel').render(1, '')]
