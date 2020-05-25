@@ -87,8 +87,12 @@ class EmailSender(ActorTypeDispatcher):
                           })
             self.send(sender, toJSON(rdict))
         else:
-            objmsg = fromJSON(msg)
-            self._dispatch(objmsg, sender, jsonReply=True)
+            try:
+                objmsg = fromJSON(msg)
+            except Exception:
+                pass # not sure what this message is; Actor style is to drop it
+            else:
+                self._dispatch(objmsg, sender, jsonReply=True)
 
     def _dispatch(self, objmsg, sender, jsonReply=False):
         if isinstance(objmsg, EmailEnvelope):
