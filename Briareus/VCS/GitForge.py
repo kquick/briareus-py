@@ -415,8 +415,8 @@ class GitHubInfo(RemoteGit__Info):
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         preqs = [ PullReqInfo(str(pr["number"]),   # for user reference
-                              pullreq_status=(PRSts_Closed() if pr["state"] == "closed"
-                                              else (PRSts_Merged() if pr["merged_at"]
+                              pullreq_status=(PRSts_Merged() if pr["merged_at"]
+                                              else (PRSts_Closed() if pr["state"] == "closed"
                                                     else PRSts_Active())),
                               pullreq_title=pr["title"],    # for user reference
                               pullreq_srcurl=(lambda r: r["html_url"] if r else '')(
