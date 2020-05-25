@@ -331,7 +331,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         for each in self._all_repos():
             if each.repo_name == repo_name:
                 return each.repo_url
-        raise ValueError('Repo not known by name (for url): ' % repo_name)
+        raise ValueError('Repo not known by name (for url): ' + repo_name)
 
     def check_for_branch(self, repo_name, branch_name):
         self._incr_stat('chk_for_branch')
