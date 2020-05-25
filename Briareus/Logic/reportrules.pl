@@ -174,8 +174,8 @@ report(status_report_badconfig,
 % still good) and with only one layer of history, introducing a
 % status_report(pending, ...) would obscure the previous results.
 report(pending_status,
-       pending_status(project(PName), Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
+       pending_status(Project, Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
+    bldres(Project, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc),
     N > 0.
 
 
@@ -192,7 +192,7 @@ report(new_pending,
 % This preserves the previous status for a pending build
 report(status_prev,
        status_report(Sts, Project, Strategy, BranchType, Branch, Bldname, Vars, BldDesc)) :-
-    bldres(PName, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
+    bldres(Project, BranchType, Branch, Strategy, Vars, Bldname, _, _, _, N, configValid, BldDesc1)
     , N > 0
     , prior_status(Sts, Project, Strategy, BranchType, Branch, Bldname, PriorVars, BldDesc2)
     , cmpBldDesc(BldDesc1, BldDesc2, BldDesc)
