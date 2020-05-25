@@ -413,8 +413,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
         if msg.reponame not in self.BL_queried:
             self.BL_queried.append(msg.reponame)
             for branch in self.BL:
-                if branch.branch_name != main_r.main_branch:
+                if not main_r or branch.branch_name != main_r.main_branch:
                     self.get_git_info(HasBranch(msg.reponame, branch.branch_name))
+
 
         self.got_response(response_name='branch_present')
 
