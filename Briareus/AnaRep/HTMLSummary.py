@@ -255,7 +255,7 @@ def html_summary(repdata, base_builder_url=None):
     ] + [ '<li><a href="#' + p + '">' + p + '</a></li>'
           for p in sorted(projects)
     ] + [
-        '<li id=\"navdate\">Updated: ' + str(datetime.datetime.now()) + '</li>',
+        '<li id=\"navdate\">Updated: ' + datetime.datetime.now().isoformat(sep=' ', timespec='minutes') + '</li>',
         '</ul>',
     ])
 
