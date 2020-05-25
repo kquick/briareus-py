@@ -12,10 +12,15 @@ import platform
 import sys
 import requests
 from collections import defaultdict
+from datetime import timedelta
 from thespian.actors import *
+from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Content import gen_content
 from Briareus.Types import SetForgeStatus, PRCfg
-from Briareus.VCS.GitForge import to_http_url, RepoAPI_Location, GitHubInfo, GitLabInfo
+from Briareus.VCS.GitForge import to_http_url
+
+
+SET_FORGE_STATUS_TIMEOUT = timedelta(seconds=20)
 
 
 def do_set_forge_status(action, full_report, runctxt, report_supplement):
@@ -44,16 +49,9 @@ def do_set_forge_status(action, full_report, runctxt, report_supplement):
 
 
 def set_forge_status(forge_list, status, desc, runctxt, report_supplement, project, notify_params):
-    can_post = os.getenv('BRIAREUS_FORGE_STATUS', None)
-    try:
-        can_post=int(can_post)
-    except Exception:
-        pass
-    if not can_post:
-        print('Warning: post to %s suppressed: %s (for %s)'
-              % (forge_list, desc, notify_params.prtype),
-              file=sys.stderr)
-        return forge_list
+    if not runctxt.actor_system:
+        runctxt.actor_system = ActorSystem('multiprocTCPBase')
+    asys = runctxt.actor_system
 
     proj_results = [ each
                      for each in runctxt.result_sets
@@ -83,19 +81,31 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
     print('Forge post "', desc, '" [',sts,'] about ',
           notify_params.prtype,'to', url_and_rev,'and url',stsurl)
 
-    successful = []
-    for loc,rev in url_and_rev:
-        forge = GitForge(loc)
-        try:
-            if forge.set_commit_status(sts, desc, rev, stsurl, project):
-                successful.extend(url_and_rev[(loc,rev)])
-        except Exception as ex:
-            print('Error posting forge status to %s: %s'
-                  % (str(loc), str(ex)),
-                  file = sys.stderr)
-            successful.extend(url_and_rev[(loc,rev)])
-
-    return successful
+    # Use a global name for this actor to re-connect to the existing "daemon"
+    rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.SetForgeStatus.SetForgeStatus',
+                                    globalName='SetForgeStatus'),
+                   toJSON(
+                       NewForgeStatus(
+                           # n.b. cannot pass a tuple key to the Actor
+                           # because JSON doesn't support tuples, so
+                           # tuples get converted to lists and lists
+                           # cannot be used as dict keys.  Instead,
+                           # translate the url_and_rev dict into a
+                           # list of RepoURLRevProjURL objects, and
+                           # allow the Actor to reconstitute as needed
+                           # on the other end.
+                           [ RepoURLRevProjURL(ur[0], ur[1], url_and_rev[ur])
+                             for ur in url_and_rev ],
+                           sts, desc, stsurl, project)
+                   ),
+                   SET_FORGE_STATUS_TIMEOUT)
+    if rsp == None:
+        raise RuntimeError('Timeout waiting for SetForgeStatus response')
+    rspobj = fromJSON(rsp)
+    if isinstance(rspobj, Posted):
+        print('got',type(rspobj.successful),rspobj.successful)
+        return set(rspobj.successful)
+    raise RuntimeError('Unexpected response to SetForgeStatus request: %s' % str(rsp))
 
 
 def get_repo_loc_and_PR_rev(r, proj_results, notify_params):
@@ -104,21 +114,3 @@ def get_repo_loc_and_PR_rev(r, proj_results, notify_params):
         if isinstance(p, PRCfg) and p.reponame == r.repo_name:
             return r.repo_name, tgtloc, p.revision
     return None, None, None
-
-
-class GitForge(object):
-    def __init__(self, repoloc):
-        self._repoloc = repoloc  # RepoAPI_Location
-        self._ghinfo = (GitHubInfo(repoloc) if 'github' in repoloc.apiloc else
-                        (GitLabInfo(repoloc) if 'gitlab' in repoloc.apiloc else None))
-        if not self._ghinfo:
-            raise ValueError('Cannot determine type of remote repo at %s'
-                             % self.repospec.repo_api_loc.apiloc)
-
-
-    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
-        rval = self._ghinfo.set_commit_status(sts, desc, commitref, url, context_ref)
-        if rval == self._ghinfo.NotFound or rval.status_code in [ 201, 404 ]:
-            return True
-        print('set_commit_sts response',rval)
-        return False

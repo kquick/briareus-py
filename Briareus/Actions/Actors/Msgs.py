@@ -1,6 +1,9 @@
 import attr
 import json
 
+# Bring objects that might appear in the JSON messages into scope
+from Briareus.VCS.GitForge import RepoAPI_Location
+
 
 def toJSON(obj):
     """Convert class objects to json by providing a type hint that can be
@@ -63,6 +66,26 @@ class EmailEnvelope(object):
 
 
 @attr.s
-class SendReceipt(object):
-    envelope = attr.ib()  # EmailEnvelope
+class SendReceipt(object): # Response to EmailEnvelope
+    envelope = attr.ib()   # EmailEnvelope
     recipients = attr.ib() # list of strs email was sent successfully to
+
+
+@attr.s
+class RepoURLRevProjURL(object):
+    tgt_url  = attr.ib()  # RepoAPI_Location
+    rev      = attr.ib()  # str revision hash
+    proj_url = attr.ib()  # string project url
+
+@attr.s
+class NewForgeStatus(object):
+    url_and_rev = attr.ib() # array of RepoURLRevProjURL
+    sts = attr.ib()         # "pending", "success", "failure"
+    desc = attr.ib()        # text description of status
+    stsurl = attr.ib()      # string URL for status details
+    project = attr.ib()     # project name string
+
+@attr.s
+class Posted(object):      # Response to NewForgeStatus
+    envelope = attr.ib()   # NewForgeStatus
+    successful = attr.ib() # list of proj_url

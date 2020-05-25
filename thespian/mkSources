@@ -27,4 +27,9 @@ python -m thespian.director gensrc \
     tli:$(pwd)/../Briareus_Actions.tli \
     ../../Briareus/__init__.py \
     ../../Briareus/Actions/__init__.py \
+    ../../Briareus/VCS/__init__.py \
+    ../../Briareus/VCS/GitForge.py \
+    ../../Briareus/VCS/InternalMessages.py \
+    ../../Briareus/Input/__init__.py \
+    ../../Briareus/Input/Description.py \
     '../../Briareus/Actions/Actors/*.py'
