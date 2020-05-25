@@ -209,6 +209,8 @@ def text_summary(repdata):
         ),
         section_hdrfun('Per-project Build Status Summary ::'),
         projtable.render(row_group=['Project'],
+                         hide_blank_rows=False,
+                         hide_blank_cols=False,
                          row_repeat=False,
                          sort_vals=False,
                          as_format='ascii',

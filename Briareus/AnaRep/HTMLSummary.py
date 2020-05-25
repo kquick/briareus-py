@@ -287,6 +287,8 @@ def html_summary(repdata, base_builder_url=None):
         summary_render,
         section_hdrfun('Per-project Build Status Summary', 'project_summary'),
         projtable.render(row_group=['Project'],
+                         hide_blank_rows=False,
+                         hide_blank_cols=False,
                          row_repeat=False,
                          sort_vals=False,
                          as_format='html',
