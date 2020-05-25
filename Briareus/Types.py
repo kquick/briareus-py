@@ -152,6 +152,7 @@ class PR_Status(object):
     prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
     branch = attr.ib() # string
     project = attr.ib() # string
+    strategy = attr.ib() # string: submodules, heads, standard
     prcfg = attr.ib() # list of PRCfg or BranchCfg
     prstatus_blds = attr.ib() # PR_Status_Bld objects
 
@@ -212,8 +213,8 @@ class PRData(object):
 class PRFailData(object):
     prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
     prcfg = attr.ib() # list of PRCfg or BranchCfg
-    goods = attr.ib() # list of BuildNames
-    fails = attr.ib() # list of BuildNames
+    goods = attr.ib(converter=sorted) # list of BuildNames
+    fails = attr.ib(converter=sorted) # list of BuildNames
 
     def as_fact(self):
         return ''.join(['prfaildata(',

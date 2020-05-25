@@ -182,25 +182,43 @@ action(notify(main_broken, Project, Configs)) :-
 %
 % The PR location(s) are obtained from the PRCfg.
 action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
-    , pr_status_blds_pend(PR_Status_Blds, NPend)
-    , NPend > 0
+    pr_config(PRType, Project, PRCfg)
+    , findall(NPend
+              , (report(pr_status, pr_status(PRType, _Branch, Project, _Strategy, PRCfg, PR_Status_Blds))
+                 , pr_status_blds_pend(PR_Status_Blds, NPend)
+                )
+              , NPendList)
+    , sum_list(NPendList, NPends)
+    , NPends > 0
 .
 
 action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
-    , pr_status_blds_pend(PR_Status_Blds, 0)
-    , pr_status_blds_fail(PR_Status_Blds, [])
-    , pr_status_blds_good(PR_Status_Blds, Goods)
+    pr_config(PRType, Project, PRCfg)
+    , findall(PR_Status_Blds
+              , report(pr_status, pr_status(PRType, _Branch, Project, _Strategy, PRCfg, PR_Status_Blds))
+              , Blds)
+    , maplist(pr_status_blds_pend, Blds, PendBldCnts)
+    , maplist(pr_status_blds_fail, Blds, FailBlds)
+    , maplist(pr_status_blds_good, Blds, GoodBlds)
+    , sum_list(PendBldCnts, 0)
+    , foldl(append, FailBlds, [], [])
+    , foldl(append, GoodBlds, [], Goods)
     , length(Goods, NGood)
     , NGood > 0
 .
 
 action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
-    , pr_status_blds_pend(PR_Status_Blds, 0)
-    , pr_status_blds_fail(PR_Status_Blds, Fails)
-    , pr_status_blds_good(PR_Status_Blds, Goods)
+    project(Project)
+    , pr_config(PRType, Project, PRCfg)
+    , findall(PR_Status_Blds
+              , report(pr_status, pr_status(PRType, _Branch, Project, _Strategy, PRCfg, PR_Status_Blds))
+              , Blds)
+    , maplist(pr_status_blds_pend, Blds, PendBldCnts)
+    , maplist(pr_status_blds_fail, Blds, FailBlds)
+    , maplist(pr_status_blds_good, Blds, GoodBlds)
+    , sum_list(PendBldCnts, 0)
+    , foldl(append, FailBlds, [], Fails)
+    , foldl(append, GoodBlds, [], Goods)
     , length(Fails, NFail)
     , NFail > 0
 .

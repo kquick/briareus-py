@@ -220,13 +220,14 @@ report(var_failure, var_failure(PName, N, V)) :-
 %% PR assessments
 
 report(pr_status,
-       pr_status(PRType, Branch, Project, PRCfg, PR_Status_Blds)) :-
+       pr_status(PRType, Branch, Project, Strategy, PRCfg, PR_Status_Blds)) :-
     % Return once for each PRType + ProjRepo, providing status of all Blds for that PRType + ProjRepo
     pr_config(PRType, Project, PRCfg)
     , branch_for_prtype(PRType, Branch)
     , project(Project)
+    , strategy(Strategy, Project, Branch)
     , findall(BldName
-              , (bldres(Project, pullreq, Branch, _, _, BldName, _, _, _, N, configValid, BldDesc)
+              , (bldres(Project, pullreq, Branch, Strategy, _, BldName, _, _, _, N, configValid, BldDesc)
                  , cmpBldDesc(PRType, BldDesc, _)
                  , N > 0
               )
@@ -238,15 +239,15 @@ report(pr_status,
               , BDS)
     , length(BDS, NumNotStarted)
     , findall(BldName2
-              , ((bldres(Project, pullreq, Branch, _, _, BldName2, _, _, M, 0, configValid, BldDesc2)
+              , ((bldres(Project, pullreq, Branch, Strategy, _, BldName2, _, _, M, 0, configValid, BldDesc2)
                   , cmpBldDesc(PRType, BldDesc2, _)
                   , M > 0)
-                ; bldres(Project, pullreq, Branch, _, _, BldName2, _, _, _, _, configError, BldDesc3)
+                ; bldres(Project, pullreq, Branch, Strategy, _, BldName2, _, _, _, _, configError, BldDesc3)
                   , cmpBldDesc(PRType, BldDesc3, _)
               )
               , BadBlds)
     , findall(BldName3
-              , (bldres(Project, pullreq, Branch, _, _, BldName3, Z, Z, 0, 0, configValid, BldDesc4)
+              , (bldres(Project, pullreq, Branch, Strategy, _, BldName3, Z, Z, 0, 0, configValid, BldDesc4)
                  , cmpBldDesc(PRType, BldDesc4, _)
                 )
               , GoodBlds)

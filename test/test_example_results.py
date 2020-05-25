@@ -258,7 +258,7 @@ def test_example_report_length(example_hydra_results):
     expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
                 + (num_varfailure * 2)  # VarValue + SepHandledVar
-                + pr_status
+                + (pr_status * 2) # HEADs and submodules
                 + num_notify
                 + num_actions)
     for each in reps:

@@ -358,48 +358,53 @@ def test_report_prstatus_count(builder_report):
             print(cfg)
             print('')
 
-    # Should be a PR_Status showing passing for proj1, since there's
-    # still a pr-foo in that repo.  Should NOT be a PR_Status for proj2.
-    assert 1 == len([r for r in reps if isinstance(r, PR_Status)])
+    # Should be a PR_Status showing passing for proj1 (for each
+    # strategy: HEADs, submodules), since there's still a pr-foo in
+    # that repo.  Should NOT be a PR_Status for proj2.
+    assert 2 == len([r for r in reps if isinstance(r, PR_Status)])
 
 def test_report_prstatus_proj1_present(builder_report):
     reps = builder_report.report
-    assert PR_Status(prtype=PR_Grouped('foo'),
-                     branch='foo',
-                     project='proj1',
-                     prcfg=[PRCfg(reponame='repo1',
-                                  pr_id='pr-foo',
-                                  branch='foo',
-                                  revision='r1prFooref',
-                                  user='bar',
-                                  email='bar@brows.cow'),
-                     ],
-                     prstatus_blds=PR_Status_Blds(
-                         passing=['PR-foo.HEADs',
-                                  'PR-foo.submodules',
+    for strategy in ( 'HEADs', 'submodules'):
+        assert PR_Status(prtype=PR_Grouped('foo'),
+                         branch='foo',
+                         project='proj1',
+                         strategy=strategy,
+                         prcfg=[PRCfg(reponame='repo1',
+                                      pr_id='pr-foo',
+                                      branch='foo',
+                                      revision='r1prFooref',
+                                      user='bar',
+                                      email='bar@brows.cow'),
                          ],
-                         failing=[],
-                         pending=[],
-                         unstarted=0)) not in reps
+                         prstatus_blds=PR_Status_Blds(
+                             passing=['PR-foo.HEADs',
+                                      'PR-foo.submodules',
+                             ],
+                             failing=[],
+                             pending=[],
+                             unstarted=0)) not in reps
 
 
 def test_issue2_report_prstatus_proj2_not_present(builder_report):
     reps = builder_report.report
-    assert PR_Status(prtype=PR_Grouped('foo'),
-                     branch='foo',
-                     project='proj2',
-                     prcfg=[PRCfg(reponame='repo2',
-                                  pr_id='pr-foo',
-                                  branch='foo',
-                                  revision='somehash',
-                                  user='bar',
-                                  email='bar@brows.cow'),
-                     ],
-                     prstatus_blds=PR_Status_Blds(
-                         passing=[],
-                         failing=[],
-                         pending=[],
-                         unstarted=0)) not in reps
+    for strategy in ( 'HEADs', 'submodules'):
+        assert PR_Status(prtype=PR_Grouped('foo'),
+                         branch='foo',
+                         project='proj2',
+                         strategy=strategy,
+                         prcfg=[PRCfg(reponame='repo2',
+                                      pr_id='pr-foo',
+                                      branch='foo',
+                                      revision='somehash',
+                                      user='bar',
+                                      email='bar@brows.cow'),
+                         ],
+                         prstatus_blds=PR_Status_Blds(
+                             passing=[],
+                             failing=[],
+                             pending=[],
+                             unstarted=0)) not in reps
 
 def test_report_pendingstatus_count(builder_report):
     reps = builder_report.report
