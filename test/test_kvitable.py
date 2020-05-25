@@ -1372,3 +1372,42 @@ def test_nested_colstack_hundreds_all_html(build_nested_kvitable):
     for exp,act in zip(show.split(), expected.split()):
         print(exp,'   ==?   ',act)
         assert exp == act
+
+
+def test_nested_colstack_hundreds_intvals():
+    kvit = KVITable({'millions': [ 0 ],
+                     'thousands': [0],
+                     'hundreds': [0],
+                     'tens': [0],
+                     'ones': [0],
+                     },
+                    kv_frozen=False)
+    for m in range(3):
+        for t in range(3):
+            for h in range(1,3):
+                for d in range(2,3):
+                    for o in range(2):
+                        kvit.add('odd' if o & 1 else 'even',
+                                 **{'millions':m, 'thousands':t, 'hundreds':h, 'tens':d, 'ones':o})
+
+    show = kvit.render(row_repeat=False,
+                       hide_blank_rows=True,
+                       hide_blank_cols=True,
+                       equisized_cols=False,
+                       colstack_at='hundreds')
+    print(show)
+    assert '\n'.join([
+        '| millions | thousands | ___ 1 ____ | ___ 2 ____ | <- hundreds',
+        '|          |           | ___ 2 ____ | ___ 2 ____ | <- tens',
+        '|          |           |    0 |   1 |    0 |   1 | <- ones',
+        '+----------+-----------+------+-----+------+-----+',
+        '|        0 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+        '|        1 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+        '|        2 |         0 | even | odd | even | odd |',
+        '|          |         1 | even | odd | even | odd |',
+        '|          |         2 | even | odd | even | odd |',
+    ]) == show

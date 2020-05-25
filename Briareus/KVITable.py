@@ -477,10 +477,10 @@ class CenterCap(object):
 
 class CenterCap_ASCII(CenterCap):
     def render(self, width, cap):
-        l = len(self._val)
+        l = len(self._valstr(self._val))
         clen,rlen = divmod(width - l - 2, 2)
         return ' '.join(filter(None, [(cap * clen) or None,
-                                      self._val,
+                                      self._valstr(self._val),
                                       (cap * (clen + rlen)) or None]))
 
 class FmtLine(object):
