@@ -100,8 +100,8 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
 
         # Specifies one possible value for a specified variable, as
         # obtained from the user's input specification.  Format is:
-        # varvalue(ProjectRepo, VarName, VarValue)
-        DeclareFact('varvalue/3'),
+        # varvalue(ProjectRepo, VarName, VarValue, ValueIndex)
+        DeclareFact('varvalue/4'),
 
     ]
 
@@ -182,9 +182,9 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     varval_facts = []
     for var in VAR:
         varname_facts.append( Fact('varname("%s", "%s")' % (project_name, var.variable_name)) )
-        varval_facts.extend( [ Fact('varvalue("%s", "%s", "%s")' %
-                                        (project_name, var.variable_name, val))
-                                   for val in var.variable_values ] )
+        varval_facts.extend( [ Fact('varvalue("%s", "%s", "%s", %d)' %
+                                        (project_name, var.variable_name, val, idx))
+                                   for idx,val in enumerate(var.variable_values) ] )
 
     return (declare_facts +
             project_facts +

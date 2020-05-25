@@ -99,11 +99,24 @@ strategy(S, PName, B) :- setof(ST, strategy_plan(ST,PName,B), SS), member(S, SS)
 
 % ----------------------------------------------------------------------
 % Variable Value combinations
+%
+% Processes input varname and varvalue specifications to generate a
+% list of varvalue configurations.
+%
+% Note that the input varvalue specification is /4 and has the index
+% of the value setting.  This is because the order of the values in
+% the list is important.  Once the list of values is generated, the
+% varvalues are /3 and the index is dropped because it is no longer
+% needed.
+:- discontiguous varvalue/3.
 
-% Given a Project and a list of variable names, return each array of
-% variable values for each of the variable names.  If there are two
-% variables, and each can have two values, then varcombs succeeds four
-% times, with:
+
+varcombs(PName, Vars, Vals) :- varcombs_first(PName, Vars, Vals).
+
+% Given a Project and a list of variable names+values, varcombs_all
+% returns each array of variable values for each of the variable
+% names.  If there are two variables, and each can have two values,
+% then varcombs succeeds four times, with:
 %
 %     [varvalue(P,V1,V1Val1), varvalue(P,V2,V2Val1)]
 %
@@ -113,8 +126,27 @@ strategy(S, PName, B) :- setof(ST, strategy_plan(ST,PName,B), SS), member(S, SS)
 %
 %     [varvalue(P,V1,V1Val2), varvalue(P,V2,V2Val2)]
 %
-varcombs(_, [], []).
-varcombs(PName, [VN|VNS], [varvalue(PName,VN,VVS)|VNSVS]) :-
+varcombs_all(_, [], []).
+varcombs_all(PName, [VN|VNS], [varvalue(PName,VN,VV)|VNSVS]) :-
     varname(PName, VN),
-    varvalue(PName, VN,VVS),
-    varcombs(PName, VNS, VNSVS).
+    varvalue(PName, VN, VV, _),
+    varcombs_all(PName, VNS, VNSVS).
+
+% Given a Project and a list of variable names+values, varcombs_first
+% returns an array where each variable is built against only the first
+% value of all other variables.
+varcombs_first(PName, [VN|VNS], [varvalue(PName,VN,VV)|VVALLS]) :-
+    varname(PName, VN),
+    varvalue(PName, VN, VV, 0),
+    varcombs_all(PName, VNS, VVALLS).
+varcombs_first(PName, [VN|VNS], [varvalue(PName,VN,VV)|VVFIRSTS]) :-
+    varname(PName, VN),
+    varvalue(PName, VN, VV, VI),
+    VI > 0,
+    varcombs_first_only(PName, VNS, VVFIRSTS).
+varcombs_first(_, [], []).
+
+varcombs_first_only(PName, [VN|VNS], [varvalue(PName,VN,VNV)|VNVS]) :-
+    varvalue(PName, VN, VNV, 0),
+    varcombs_first_only(PName, VNS, VNVS).
+varcombs_first_only(_, [], []).

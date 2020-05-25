@@ -62,7 +62,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branch_ref/3.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("Project #1").
 project("Project #1", "R1").
 repo("Project #1", "R1").
@@ -127,11 +127,11 @@ submodule("R1", "1", "blah", "R3", "r3_master_head").
 submodule("R1", "1", "blah", "R7", "r7_master_head^4").
 varname("Project #1", "ghcver").
 varname("Project #1", "c_compiler").
-varvalue("Project #1", "ghcver", "ghc844").
-varvalue("Project #1", "ghcver", "ghc865").
-varvalue("Project #1", "ghcver", "ghc881").
-varvalue("Project #1", "c_compiler", "gnucc").
-varvalue("Project #1", "c_compiler", "clang").
+varvalue("Project #1", "ghcver", "ghc844", 0).
+varvalue("Project #1", "ghcver", "ghc865", 1).
+varvalue("Project #1", "ghcver", "ghc881", 2).
+varvalue("Project #1", "c_compiler", "gnucc", 0).
+varvalue("Project #1", "c_compiler", "clang", 1).
 '''.split('\n')))
 
 # Note: the above does not contain branch("R2", "bugfix9").  This is

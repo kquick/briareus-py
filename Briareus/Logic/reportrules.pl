@@ -209,7 +209,7 @@ report(complete_failure, complete_failure(PName)) :-
 
 report(var_failure, var_failure(PName, N, V)) :-
     project(PName)
-    , varvalue(PName, N, V)
+    , varvalue(PName, N, V, _)
     , no_good_varvalue_status(PName, N, V)
     , \+ report(complete_failure, complete_failure(PName))
     , no_pending_varvalue_status(PName, N, V)

@@ -48,7 +48,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branch_ref/3.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("TheRepo").
 project("TheRepo", "TheRepo").
 repo("TheRepo", "TheRepo").

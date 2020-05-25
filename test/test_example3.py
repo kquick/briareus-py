@@ -20,7 +20,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branch_ref/3.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("R10").
 project("R10", "R10").
 default_main_branch("master").
@@ -47,8 +47,8 @@ branchreq("R10", "feat1").
 submodule("R10", project_primary, "master", "R3", "r3_master_head^9").
 submodule("R10", project_primary, "master", "R4", "r4_master_head^1").
 varname("R10", "ghcver").
-varvalue("R10", "ghcver", "ghc822").
-varvalue("R10", "ghcver", "ghc844").
+varvalue("R10", "ghcver", "ghc822", 0).
+varvalue("R10", "ghcver", "ghc844", 1).
 '''.split('\n')))
 
 gitactor = GitExample1

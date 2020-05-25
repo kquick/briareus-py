@@ -21,63 +21,63 @@ input_spec = open('test/inp_example').read()
 build_names = [
     "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111
     "PR-blah.HEADs-gnucc-ghc844",
-    "PR-blah.HEADs-clang-ghc865",
+    # "PR-blah.HEADs-clang-ghc865",
     "PR-blah.HEADs-gnucc-ghc865",
-    "PR-blah.HEADs-clang-ghc881",
+    # "PR-blah.HEADs-clang-ghc881",
     "PR-blah.HEADs-gnucc-ghc881",
     "PR-blah.submodules-clang-ghc844", # 1 111
     "PR-blah.submodules-gnucc-ghc844",
-    "PR-blah.submodules-clang-ghc865",
+    # "PR-blah.submodules-clang-ghc865",
     "PR-blah.submodules-gnucc-ghc865",
-    "PR-blah.submodules-clang-ghc881",
+    # "PR-blah.submodules-clang-ghc881",
     "PR-blah.submodules-gnucc-ghc881",
     "PR-bugfix9.HEADs-clang-ghc844",  # 23 8192
     "PR-bugfix9.HEADs-gnucc-ghc844",
-    "PR-bugfix9.HEADs-clang-ghc865",
+    # "PR-bugfix9.HEADs-clang-ghc865",
     "PR-bugfix9.HEADs-gnucc-ghc865",
-    "PR-bugfix9.HEADs-clang-ghc881",
+    # "PR-bugfix9.HEADs-clang-ghc881",
     "PR-bugfix9.HEADs-gnucc-ghc881",
     "PR-bugfix9.submodules-clang-ghc844",
     "PR-bugfix9.submodules-gnucc-ghc844",
-    "PR-bugfix9.submodules-clang-ghc865",
+    # "PR-bugfix9.submodules-clang-ghc865",
     "PR-bugfix9.submodules-gnucc-ghc865",
-    "PR-bugfix9.submodules-clang-ghc881",
+    # "PR-bugfix9.submodules-clang-ghc881",
     "PR-bugfix9.submodules-gnucc-ghc881",
     "dev.HEADs-clang-ghc844",
     "dev.HEADs-gnucc-ghc844",
-    "dev.HEADs-clang-ghc865",
+    # "dev.HEADs-clang-ghc865",
     "dev.HEADs-gnucc-ghc865",
-    "dev.HEADs-clang-ghc881",
+    # "dev.HEADs-clang-ghc881",
     "dev.HEADs-gnucc-ghc881",
     "dev.submodules-clang-ghc844",
     "dev.submodules-gnucc-ghc844",
-    "dev.submodules-clang-ghc865",
+    # "dev.submodules-clang-ghc865",
     "dev.submodules-gnucc-ghc865",
-    "dev.submodules-clang-ghc881",
+    # "dev.submodules-clang-ghc881",
     "dev.submodules-gnucc-ghc881",
     "feat1.HEADs-clang-ghc844",
     "feat1.HEADs-gnucc-ghc844",
-    "feat1.HEADs-clang-ghc865",
+    # "feat1.HEADs-clang-ghc865",
     "feat1.HEADs-gnucc-ghc865",
-    "feat1.HEADs-clang-ghc881",
+    # "feat1.HEADs-clang-ghc881",
     "feat1.HEADs-gnucc-ghc881",
     "feat1.submodules-clang-ghc844",
     "feat1.submodules-gnucc-ghc844",
-    "feat1.submodules-clang-ghc865",
+    # "feat1.submodules-clang-ghc865",
     "feat1.submodules-gnucc-ghc865",
-    "feat1.submodules-clang-ghc881",
+    # "feat1.submodules-clang-ghc881",
     "feat1.submodules-gnucc-ghc881",
     "master.HEADs-clang-ghc844",
     "master.HEADs-gnucc-ghc844",
-    "master.HEADs-clang-ghc865",
+    # "master.HEADs-clang-ghc865",
     "master.HEADs-gnucc-ghc865",
-    "master.HEADs-clang-ghc881",
+    # "master.HEADs-clang-ghc881",
     "master.HEADs-gnucc-ghc881",
     "master.submodules-clang-ghc844",
     "master.submodules-gnucc-ghc844",
-    "master.submodules-clang-ghc865",
+    # "master.submodules-clang-ghc865",
     "master.submodules-gnucc-ghc865",
-    "master.submodules-clang-ghc881",
+    # "master.submodules-clang-ghc881",
     "master.submodules-gnucc-ghc881",
 ]
 
@@ -140,7 +140,7 @@ def test_example_report_summary(example_hydra_results):
     print('')
     print(len(reps))
     assert ProjectSummary(project_name='Project #1',
-                          bldcfg_count=60, subrepo_count=4, pullreq_count=6) in reps
+                          bldcfg_count=40, subrepo_count=4, pullreq_count=6) in reps
 
 def test_example_report_status1(example_hydra_results):
     bldcfgs, reps = example_hydra_results
@@ -154,7 +154,7 @@ def test_example_report_status1(example_hydra_results):
                         blddesc=PR_Grouped('blah'),
     ) in reps
 
-CS = [ 'clang', 'gnucc' ]
+CS = [ 'gnucc', 'clang' ]
 GS = [ 'ghc844', 'ghc865', 'ghc881' ]
 SS = [ 'HEADs', 'submodules' ]
 BS = [ 'PR-bugfix9',  # PR23-PR8192
@@ -163,8 +163,8 @@ BS = [ 'PR-bugfix9',  # PR23-PR8192
 def test_example_report_statusMany(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
-    for C in CS:
-        for G in GS:
+    for G in GS:
+        for C in CS if G == GS[0] else CS[:1]:
             for S in SS:
                 for B in BS:
                     r = StatusReport(
@@ -193,8 +193,8 @@ def test_example_report_statusMany(example_hydra_results):
 def test_example_report_status2(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
-    for C in CS:
-        for G in GS:
+    for G in GS:
+        for C in CS if G == GS[0] else CS[:1]:
             S = 'submodules'
             B = 'PR-blah' # PR1-PR111-blah
             r = StatusReport(
@@ -218,8 +218,8 @@ def test_example_report_status2(example_hydra_results):
 def test_example_report_status3(example_hydra_results):
     bldcfgs, reps = example_hydra_results
     # Check for all entries that should be present
-    for C in CS:
-        for G in GS:
+    for G in GS:
+        for C in CS if G == GS[0] else CS[:1]:
             S = 'HEADs'
             B = 'PR-blah' # PR1-PR11-PR111-PR1111-blah
             r = StatusReport(
@@ -256,7 +256,7 @@ def test_example_report_length(example_hydra_results):
                    pr_status +  # SendEmail
                    pr_status    # SetForgeStatus
                    )
-    expected = ((len(CS) * len(GS) * len(SS) * (len(BS)+additional_bldcfgs)) +
+    expected = (((len(CS) + len(GS) - 1) * len(SS) * (len(BS)+additional_bldcfgs)) +
                 len(['ProjectSummary'])
                 + (num_varfailure * 2)  # VarValue + SepHandledVar
                 + (pr_status * 2) # HEADs and submodules
@@ -355,8 +355,8 @@ def test_pr_projstatus_fail_do_email(example_hydra_results):
                               'PR-blah.submodules-gnucc-ghc881',
                        ],
                        fails=['PR-blah.submodules-clang-ghc844',
-                              'PR-blah.submodules-clang-ghc865',
-                              'PR-blah.submodules-clang-ghc881',
+                              # 'PR-blah.submodules-clang-ghc865',
+                              # 'PR-blah.submodules-clang-ghc881',
                        ]),
                 BldSet('pullreq', 'HEADs',
                        goods=['PR-blah.HEADs-gnucc-ghc844',
@@ -364,8 +364,8 @@ def test_pr_projstatus_fail_do_email(example_hydra_results):
                               'PR-blah.HEADs-gnucc-ghc881',
                        ],
                        fails=['PR-blah.HEADs-clang-ghc844',
-                              'PR-blah.HEADs-clang-ghc865',
-                              'PR-blah.HEADs-clang-ghc881',
+                              # 'PR-blah.HEADs-clang-ghc865',
+                              # 'PR-blah.HEADs-clang-ghc881',
                        ]),
                 BldSet('regular', 'HEADs',
                        goods=['master.HEADs-gnucc-ghc844',
@@ -373,8 +373,8 @@ def test_pr_projstatus_fail_do_email(example_hydra_results):
                               'master.HEADs-gnucc-ghc881',
                        ],
                        fails=['master.HEADs-clang-ghc844',
-                              'master.HEADs-clang-ghc865',
-                              'master.HEADs-clang-ghc881',
+                              # 'master.HEADs-clang-ghc865',
+                              # 'master.HEADs-clang-ghc881',
                        ],
                        ),
                 BldSet('regular', 'submodules',
@@ -383,8 +383,8 @@ def test_pr_projstatus_fail_do_email(example_hydra_results):
                               'master.submodules-gnucc-ghc881',
                        ],
                        fails=['master.submodules-clang-ghc844',
-                              'master.submodules-clang-ghc865',
-                              'master.submodules-clang-ghc881',
+                              # 'master.submodules-clang-ghc865',
+                              # 'master.submodules-clang-ghc881',
                        ],
                 ),
             )),
@@ -420,8 +420,8 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
                               'PR-blah.submodules-gnucc-ghc881',
                        ],
                        fails=['PR-blah.submodules-clang-ghc844',
-                              'PR-blah.submodules-clang-ghc865',
-                              'PR-blah.submodules-clang-ghc881',
+                              # 'PR-blah.submodules-clang-ghc865',
+                              # 'PR-blah.submodules-clang-ghc881',
                        ],
                 ),
                 BldSet('pullreq', 'HEADs',
@@ -430,8 +430,8 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
                               'PR-blah.HEADs-gnucc-ghc881',
                        ],
                        fails=['PR-blah.HEADs-clang-ghc844',
-                              'PR-blah.HEADs-clang-ghc865',
-                              'PR-blah.HEADs-clang-ghc881',
+                              # 'PR-blah.HEADs-clang-ghc865',
+                              # 'PR-blah.HEADs-clang-ghc881',
                        ],
                 ),
                 BldSet('regular', 'HEADs',
@@ -440,8 +440,8 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
                               'master.HEADs-gnucc-ghc881',
                        ],
                        fails=['master.HEADs-clang-ghc844',
-                              'master.HEADs-clang-ghc865',
-                              'master.HEADs-clang-ghc881',
+                              # 'master.HEADs-clang-ghc865',
+                              # 'master.HEADs-clang-ghc881',
                        ],
                 ),
                 BldSet('regular', 'submodules',
@@ -450,8 +450,8 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
                               'master.submodules-gnucc-ghc881',
                        ],
                        fails=['master.submodules-clang-ghc844',
-                              'master.submodules-clang-ghc865',
-                              'master.submodules-clang-ghc881',
+                              # 'master.submodules-clang-ghc865',
+                              # 'master.submodules-clang-ghc881',
                        ],
                 ),
             )),
@@ -475,8 +475,8 @@ bugfix9_prfaildata=PRFailedSubBlds(
                   'PR-bugfix9.submodules-gnucc-ghc881',
            ],
            fails=['PR-bugfix9.submodules-clang-ghc844',
-                  'PR-bugfix9.submodules-clang-ghc865',
-                  'PR-bugfix9.submodules-clang-ghc881',
+                  # 'PR-bugfix9.submodules-clang-ghc865',
+                  # 'PR-bugfix9.submodules-clang-ghc881',
            ],
     ),
     BldSet('pullreq', 'HEADs',
@@ -485,8 +485,8 @@ bugfix9_prfaildata=PRFailedSubBlds(
                   'PR-bugfix9.HEADs-gnucc-ghc881',
            ],
            fails=['PR-bugfix9.HEADs-clang-ghc844',
-                  'PR-bugfix9.HEADs-clang-ghc865',
-                  'PR-bugfix9.HEADs-clang-ghc881',
+                  # 'PR-bugfix9.HEADs-clang-ghc865',
+                  # 'PR-bugfix9.HEADs-clang-ghc881',
            ],
     ),
     BldSet('regular', 'HEADs',
@@ -495,8 +495,8 @@ bugfix9_prfaildata=PRFailedSubBlds(
                   'master.HEADs-gnucc-ghc881',
            ],
            fails=['master.HEADs-clang-ghc844',
-                  'master.HEADs-clang-ghc865',
-                  'master.HEADs-clang-ghc881',
+                  # 'master.HEADs-clang-ghc865',
+                  # 'master.HEADs-clang-ghc881',
            ],
     ),
     BldSet('regular', 'submodules',
@@ -505,8 +505,8 @@ bugfix9_prfaildata=PRFailedSubBlds(
                   'master.submodules-gnucc-ghc881',
            ],
            fails=['master.submodules-clang-ghc844',
-                  'master.submodules-clang-ghc865',
-                  'master.submodules-clang-ghc881',
+                  # 'master.submodules-clang-ghc865',
+                  # 'master.submodules-clang-ghc881',
            ],
     ),
 )
@@ -534,7 +534,7 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
     gitforge().set_commit_status.assert_has_calls(
         [
             call('failure',
-                 'Fails 3/3/6 (master 3/3/6) submods/heads/total',
+                 'Fails 1/1/4 (master 1/1/4) submods/heads/total',
                  ref,
                  'http://hydra.builder/path/project/Project #1',
                  'Project #1')
@@ -582,7 +582,7 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
     gitforge().set_commit_status.assert_has_calls(
         [
             call('failure',
-                 'Fails 3/3/6 (master 3/3/6) submods/heads/total',
+                 'Fails 1/1/4 (master 1/1/4) submods/heads/total',
                  ref,
                  'http://hydra.builder/path/project/Project #1',
                  'Project #1')
@@ -645,7 +645,7 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
     gitforge().set_commit_status.assert_has_calls(
         [
             call('failure',
-                 'Fails 3/3/6 (master 3/3/6) submods/heads/total',
+                 'Fails 1/1/4 (master 1/1/4) submods/heads/total',
                  ref,
                  'https://company.com/base/Project #1/status',
                  'Project #1')
@@ -755,8 +755,8 @@ def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
                               'PR-blah.submodules-gnucc-ghc881',
                        ],
                        fails=['PR-blah.submodules-clang-ghc844',
-                              'PR-blah.submodules-clang-ghc865',
-                              'PR-blah.submodules-clang-ghc881',
+                              # 'PR-blah.submodules-clang-ghc865',
+                              # 'PR-blah.submodules-clang-ghc881',
                        ],
                 ),
                 BldSet('pullreq', 'HEADs',
@@ -765,8 +765,8 @@ def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
                               'PR-blah.HEADs-gnucc-ghc881',
                        ],
                        fails=['PR-blah.HEADs-clang-ghc844',
-                              'PR-blah.HEADs-clang-ghc865',
-                              'PR-blah.HEADs-clang-ghc881',
+                              # 'PR-blah.HEADs-clang-ghc865',
+                              # 'PR-blah.HEADs-clang-ghc881',
                        ],
                 ),
                 BldSet('regular', 'HEADs',
@@ -775,8 +775,8 @@ def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
                               'master.HEADs-gnucc-ghc881',
                        ],
                        fails=['master.HEADs-clang-ghc844',
-                              'master.HEADs-clang-ghc865',
-                              'master.HEADs-clang-ghc881',
+                              # 'master.HEADs-clang-ghc865',
+                              # 'master.HEADs-clang-ghc881',
                        ],
                 ),
                 BldSet('regular', 'submodules',
@@ -785,8 +785,8 @@ def test_pr_blah_fail_do_setforgestatus(example_hydra_results):
                               'master.submodules-gnucc-ghc881',
                        ],
                        fails=['master.submodules-clang-ghc844',
-                              'master.submodules-clang-ghc865',
-                              'master.submodules-clang-ghc881',
+                              # 'master.submodules-clang-ghc865',
+                              # 'master.submodules-clang-ghc881',
                        ],
                 ),
             )),

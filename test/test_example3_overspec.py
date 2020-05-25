@@ -46,7 +46,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branch_ref/3.
 :- discontiguous submodule/5.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("R10").
 project("R10", "R10").
 repo("R10", "R10").
@@ -73,8 +73,8 @@ pullreq("R3", "33", "merged_pr", "r3_MERGED_mergeref", prsts_merged, "done", "do
 submodule("R10", project_primary, "master", "R4", "r4_master_head^1").
 submodule("R10", project_primary, "master", "R3", "r3_master_head^9").
 varname("R10", "ghcver").
-varvalue("R10", "ghcver", "ghc822").
-varvalue("R10", "ghcver", "ghc844").
+varvalue("R10", "ghcver", "ghc822", 0).
+varvalue("R10", "ghcver", "ghc844", 1).
 '''.split('\n')))
 
 def test_example_facts(generated_facts):

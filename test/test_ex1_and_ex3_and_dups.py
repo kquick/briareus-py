@@ -105,7 +105,7 @@ def test_example_bldcfg_count(generated_inp_config_bldconfigs):
     #     print('')
     ex_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
                    if any([R for R in Res.inp_desc.RL if R.project_repo and R.repo_name == 'R1' ])][0]
-    assert len(ex_GS) * len(ex_CS) * len(ex_top_level) == len(ex_results.build_cfgs.cfg_build_configs)
+    assert (len(ex_GS) + len(ex_CS) - 1) * len(ex_top_level) == len(ex_results.build_cfgs.cfg_build_configs)
 
 def test_example3_bldcfg_count(generated_inp_config_bldconfigs):
     ex3_results = [ Res for Res in generated_inp_config_bldconfigs.result_sets
@@ -137,7 +137,7 @@ def test_example_empty_report_summary(example_empty_report):
         print(each)
 
     assert ProjectSummary(project_name='Project #1+R10+Repo1',
-                          bldcfg_count=92, subrepo_count=6, pullreq_count=15) in reps
+                          bldcfg_count=72, subrepo_count=6, pullreq_count=15) in reps
 
 def test_example_empty_report_complete_failures(example_empty_report):
     reps = example_empty_report
@@ -209,7 +209,7 @@ def test_example_report_summary(example_report):
         print(each)
 
     assert ProjectSummary(project_name='Project #1+R10+Repo1', # brek',
-                          bldcfg_count=92, subrepo_count=6, pullreq_count=15) in reps
+                          bldcfg_count=72, subrepo_count=6, pullreq_count=15) in reps
 
 def test_example_report_varfailures(example_report):
     reps = example_report.report

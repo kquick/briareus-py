@@ -119,7 +119,7 @@ proj1_expected_facts = '''
 :- discontiguous branch/2.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("proj1").
 project("proj1", "repo1").
 default_main_branch("master").
@@ -150,7 +150,7 @@ proj2_expected_facts = '''
 :- discontiguous branch/2.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("proj2").
 project("proj2", "repo2").
 default_main_branch("master").

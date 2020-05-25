@@ -9,7 +9,7 @@
 %% values for the variable that have not completely failed.
 analysis(var_handled_separately(Project, VarName, VarValue)) :-
     report(var_failure, var_failure(Project, VarName, VarValue)),
-    findall(V, (varvalue(Project, VarName, V)), VS),
+    findall(V, (varvalue(Project, VarName, V, _)), VS),
     delete(VS, VarValue, VVS),
     length(VVS, L),
     L > 0,

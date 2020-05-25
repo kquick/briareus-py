@@ -93,7 +93,7 @@ top_level = [
 ]
 
 def test_example_internal_count(generated_bldconfigs):
-    assert len(GS) * len(CS) * len(top_level) == len(generated_bldconfigs.cfg_build_configs)
+    assert (len(GS) + len(CS) - 1) * len(top_level) == len(generated_bldconfigs.cfg_build_configs)
 
 def test_example_internal_blah_pullreq_submods(generated_bldconfigs):
     # Note that R1 has a pullreq for the blah branch, and this pullreq
@@ -114,7 +114,8 @@ def test_example_internal_blah_pullreq_submods(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_blah_pullreq_HEADs(generated_bldconfigs):
@@ -133,7 +134,8 @@ def test_example_internal_blah_pullreq_HEADs(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_no_blah_regular_submods(generated_bldconfigs):
@@ -163,7 +165,8 @@ def test_example_internal_bugfix9_pullreq_submods(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_bugfix9_pullreq_HEADs(generated_bldconfigs):
@@ -181,7 +184,8 @@ def test_example_internal_bugfix9_pullreq_HEADs(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_no_bugfix9_regular_submods(generated_bldconfigs):
@@ -211,7 +215,8 @@ def test_example_internal_feat1_regular_submodules(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_feat1_regular_HEADs(generated_bldconfigs):
@@ -229,7 +234,8 @@ def test_example_internal_feat1_regular_HEADs(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_submodules(generated_bldconfigs):
@@ -247,7 +253,8 @@ def test_example_internal_master_regular_submodules(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_master_regular_HEADs(generated_bldconfigs):
@@ -265,7 +272,8 @@ def test_example_internal_master_regular_HEADs(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 def test_example_internal_dev_regular_submodules(generated_bldconfigs):
@@ -283,7 +291,8 @@ def test_example_internal_dev_regular_submodules(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         print(generated_bldconfigs)
         assert each in generated_bldconfigs.cfg_build_configs
 
@@ -302,14 +311,15 @@ def test_example_internal_dev_regular_HEADs(generated_bldconfigs):
                                 BldVariable("Project #1", "ghcver", G),
                                 BldVariable("Project #1", "c_compiler", C),
                             ])
-                  for G in GS for C in CS]:
+                  for G in GS
+                  for C in (CS if G == GS[0] else CS[:1])]:
         assert each in generated_bldconfigs.cfg_build_configs
 
 
 def test_example_hydra_count(example_hydra_jobsets):
     print('##### OUTPUT:')
     print(example_hydra_jobsets)
-    assert len(GS) * len(CS) * len(top_level) == len(json.loads(example_hydra_jobsets))
+    assert (len(GS) + len(CS) - 1) * len(top_level) == len(json.loads(example_hydra_jobsets))
 
 def test_example_hydra_master_submodules(example_hydra_jobsets):
     expected = dict([
@@ -371,7 +381,9 @@ def test_example_hydra_master_submodules(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -438,7 +450,9 @@ def test_example_hydra_master_heads(example_hydra_jobsets):
              "nixexprinput": "R1-src",
              "nixexprpath": "./release.nix",
              "schedulingshares": 1
-         }) for G in GS for C in CS ])
+         })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -505,7 +519,9 @@ def test_example_hydra_feat1_submodules(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -572,7 +588,9 @@ def test_example_hydra_feat1_heads(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -639,7 +657,9 @@ def test_example_hydra_dev_submodules(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -706,7 +726,9 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -773,7 +795,9 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -845,7 +869,9 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
              "nixexprinput": "R1-src",
              "nixexprpath": "./release.nix",
              "schedulingshares": 1
-         }) for G in GS for C in CS ])
+         })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -912,7 +938,9 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
             "nixexprinput": "R1-src",
             "nixexprpath": "./release.nix",
             "schedulingshares": 1
-        }) for G in GS for C in CS ])
+        })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)
@@ -979,7 +1007,9 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
              "nixexprinput": "R1-src",
              "nixexprpath": "./release.nix",
              "schedulingshares": 1
-         }) for G in GS for C in CS ])
+         })
+        for G in GS
+        for C in (CS if G == GS[0] else CS[:1])])
     for each in expected:
         print(each)
         actual = json.loads(example_hydra_jobsets)

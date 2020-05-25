@@ -257,7 +257,7 @@ expected_facts = sorted(filter(None, '''
 :- discontiguous branch_ref/3.
 :- discontiguous pullreq/7.
 :- discontiguous varname/2.
-:- discontiguous varvalue/3.
+:- discontiguous varvalue/4.
 project("Repo1").
 project("Repo1", "Repo1").
 default_main_branch("master").
@@ -288,8 +288,8 @@ branch_ref("Repo2", "develop", "r2-develop-ref").
 branch_ref("Repo1", "master", "Repo1-master-ref").
 branch_ref("Repo2", "foo", "r2-foo-ref").
 varname("Repo1", "ghcver").
-varvalue("Repo1", "ghcver", "ghc865").
-varvalue("Repo1", "ghcver", "ghc881").
+varvalue("Repo1", "ghcver", "ghc865", 0).
+varvalue("Repo1", "ghcver", "ghc881", 1).
 '''.split('\n')))
 
 
