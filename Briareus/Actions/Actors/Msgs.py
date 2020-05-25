@@ -3,12 +3,21 @@ import json
 
 
 def toJSON(obj):
+    """Convert class objects to json by providing a type hint that can be
+    used by the fromJSON decoder.
+
+    Warning: be careful passing tuple objects!  The python json class
+    performs encoding of standard objects and only calls the 'default'
+    below if it doesn't have a default encoding.  The default encoding
+    for tuples is a list, so on decode, the tuple will have been
+    converted to a python list.  In many cases, this is fine, but not
+    if the target object is required to be immutable (e.g. as a
+    dictionary key)
+
+    """
     class objToJSON(json.JSONEncoder):
         def default(self, obj):
-            if obj.__class__.__name__ in [ 'dict', 'list', 'int', 'float',
-                                           'str', 'bool', 'NoneType' ]:
-                return obj
-            if obj.__class__.__name__ in ['set', 'tuple']:
+            if obj.__class__.__name__ in ['set']:
                 return { '__type__': obj.__class__.__name__,
                          '__value__': [self.default(e) for e in obj]
                 }
@@ -16,10 +25,23 @@ def toJSON(obj):
                 return { '__type__': obj.__class__.__name__ + '.fromisoformat',
                          '__value__': str(obj)
                 }
-            objdict = attr.asdict(obj, recurse=False)
-            objdict['__type__'] = obj.__class__.__name__
-            return objdict
+            if obj.__class__.__name__ == 'ActorAddress':
+                return str(str(obj))
+            try:
+                objdict = attr.asdict(obj, recurse=False)
+                objdict['__type__'] = obj.__class__.__name__
+                return objdict
+            except Exception:
+                return super(objToJSON, self).default(obj)
     return json.dumps(obj, cls=objToJSON)
+
+
+def normallyToJSON(thing):
+    try:
+        return toJSON(thing)
+    except TypeError:
+        return thing
+
 
 def fromJSON(jstr):
     def objFromJSON(objdict):
