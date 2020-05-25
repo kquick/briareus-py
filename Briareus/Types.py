@@ -164,6 +164,8 @@ class PR_Status_Blds(object):
     unstarted = attr.ib() # number of builds not yet started
 
 fact_str = lambda s: '"' + s + '"'
+fact_list = lambda l: '[' + ', '.join([e.as_fact() if hasattr(e, 'as_fact') else fact_str(e)
+                                       for e in l]) + ']'
 
 @attr.s(frozen=True)
 class PRCfg(object):
@@ -204,10 +206,13 @@ class PRData(object):
 
     def as_fact(self):
         return ''.join(['prdata(',
-                        self.prtype.as_fact(), ',',
-                        '[', ','.join([c.as_fact() for c in self.prcfg]), ']',
+                        self._as_fact_fields(),
                         ')'])
 
+    def _as_fact_fields(self):
+        return ', '.join([self.prtype.as_fact(),
+                          fact_list(self.prcfg),
+        ])
 
 @attr.s(frozen=True)
 class PRFailData(object):
