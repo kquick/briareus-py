@@ -46,7 +46,8 @@
 
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             PR_Grouped, MainBranch, PRCfg, PendingStatus,
-                            ProjectSummary, StatusReport, PR_Status)
+                            ProjectSummary, StatusReport,
+                            PR_Status, PR_Status_Blds)
 from Briareus.BuildSys import buildcfg_name
 from git_scenario32 import GitScenario32
 import Briareus.hh as hh
@@ -373,12 +374,13 @@ def test_report_prstatus_proj1_present(builder_report):
                                   user='bar',
                                   email='bar@brows.cow'),
                      ],
-                     passing=['PR-foo.HEADs',
-                              'PR-foo.submodules',
-                     ],
-                     failing=[],
-                     pending=[],
-                     unstarted=0) not in reps
+                     prstatus_blds=PR_Status_Blds(
+                         passing=['PR-foo.HEADs',
+                                  'PR-foo.submodules',
+                         ],
+                         failing=[],
+                         pending=[],
+                         unstarted=0)) not in reps
 
 
 def test_issue2_report_prstatus_proj2_not_present(builder_report):
@@ -393,10 +395,11 @@ def test_issue2_report_prstatus_proj2_not_present(builder_report):
                                   user='bar',
                                   email='bar@brows.cow'),
                      ],
-                     passing=[],
-                     failing=[],
-                     pending=[],
-                     unstarted=0) not in reps
+                     prstatus_blds=PR_Status_Blds(
+                         passing=[],
+                         failing=[],
+                         pending=[],
+                         unstarted=0)) not in reps
 
 def test_report_pendingstatus_count(builder_report):
     reps = builder_report.report

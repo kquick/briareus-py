@@ -220,7 +220,7 @@ report(var_failure, var_failure(PName, N, V)) :-
 %% PR assessments
 
 report(pr_status,
-       pr_status(PRType, Branch, Project, PRCfg, GoodBlds, BadBlds, PendingBlds, NumNotStarted)) :-
+       pr_status(PRType, Branch, Project, PRCfg, PR_Status_Blds)) :-
     % Return once for each PRType + ProjRepo, providing status of all Blds for that PRType + ProjRepo
     pr_config(PRType, Project, PRCfg)
     , branch_for_prtype(PRType, Branch)
@@ -250,4 +250,12 @@ report(pr_status,
                  , cmpBldDesc(PRType, BldDesc4, _)
                 )
               , GoodBlds)
+    , PR_Status_Blds = pr_status_blds(GoodBlds, BadBlds, PendingBlds, NumNotStarted)
+.
+
+pr_status_blds_good(pr_status_blds(GoodBlds, _, _, _), GoodBlds).
+pr_status_blds_fail(pr_status_blds(_, FailBlds, _, _), FailBlds).
+pr_status_blds_pend(pr_status_blds(_, _, PendBlds, NotStarted), PendCnt) :-
+    length(PendBlds, NPendBlds)
+    , plus(NPendBlds, NotStarted, PendCnt)
 .

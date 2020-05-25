@@ -153,6 +153,10 @@ class PR_Status(object):
     branch = attr.ib() # string
     project = attr.ib() # string
     prcfg = attr.ib() # list of PRCfg or BranchCfg
+    prstatus_blds = attr.ib() # PR_Status_Bld objects
+
+@attr.s(frozen=True)
+class PR_Status_Blds(object):
     passing = attr.ib() # list of passing BldNames
     failing = attr.ib() # list of failing BldNames
     pending = attr.ib() # list of pending BldNames (i.e. in-progress)
@@ -295,6 +299,7 @@ logic_result_expr = {
     "pending": "pending",
     "var_failure": lambda *args: VarFailure(*args),
     "pr_status": PR_Status,
+    "pr_status_blds": PR_Status_Blds,
     "prcfg": PRCfg,
     "branchcfg": BranchCfg,
     "pr_projstatus_pending": "pr_projstatus_pending",

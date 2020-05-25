@@ -182,19 +182,25 @@ action(notify(main_broken, Project, Configs)) :-
 %
 % The PR location(s) are obtained from the PRCfg.
 action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, _, _, Pends, NumToStart))
-    , length(Pends, NPend)
-    , (NPend > 0 ; NumToStart > 0)
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
+    , pr_status_blds_pend(PR_Status_Blds, NPend)
+    , NPend > 0
 .
 
 action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, Goods, [], [], 0))
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
+    , pr_status_blds_pend(PR_Status_Blds, 0)
+    , pr_status_blds_fail(PR_Status_Blds, [])
+    , pr_status_blds_good(PR_Status_Blds, Goods)
     , length(Goods, NGood)
     , NGood > 0
 .
 
 action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
-    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, Goods, Fails, [], 0))
+    report(pr_status, pr_status(PRType, _Branch, Project, PRCfg, PR_Status_Blds))
+    , pr_status_blds_pend(PR_Status_Blds, 0)
+    , pr_status_blds_fail(PR_Status_Blds, Fails)
+    , pr_status_blds_good(PR_Status_Blds, Goods)
     , length(Fails, NFail)
     , NFail > 0
 .

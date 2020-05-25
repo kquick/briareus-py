@@ -62,7 +62,9 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
         # Identifies a pull request that was found by probing the VCS.
         # The format is:
         #
-        # pullreq(Repo, PR_Ident, PR_Branch, PR_Ref, PR_Status, PR_User, PR_Email)
+        # pullreq(Repo, PR_Ident, PR_Branch, PR_Ref, PR_Mode, PR_User, PR_Email)
+        #
+        #  The PR_Mode may be "active", "closed", "merged", etc.
         #
         # The PR_Branch may be used to correlate against branches in
         # other repositories (whether or not they have an active
