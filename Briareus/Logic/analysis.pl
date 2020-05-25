@@ -195,14 +195,17 @@ action(notify(pr_projstatus_pending, Project, prdata(PRType, PRCfg))) :-
 
 action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
     pr_config(PRType, Project, PRCfg)
+    % Get all pr_status reports for this project
     , findall(PR_Status_Blds
               , report(pr_status, pr_status(PRType, _Branch, Project, _Strategy, PRCfg, PR_Status_Blds))
               , Blds)
+    % Ensure that there are no pending or failed builds for this PR
     , maplist(pr_status_blds_pend, Blds, PendBldCnts)
     , maplist(pr_status_blds_fail, Blds, FailBlds)
     , maplist(pr_status_blds_good, Blds, GoodBlds)
     , sum_list(PendBldCnts, 0)
     , foldl(append, FailBlds, [], [])
+    % Ensure there is at least one good build (there should be!)
     , foldl(append, GoodBlds, [], Goods)
     , length(Goods, NGood)
     , NGood > 0
@@ -211,9 +214,11 @@ action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
 action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
     project(Project)
     , pr_config(PRType, Project, PRCfg)
+    % Get all pr_status reports for this project
     , findall(PR_Status_Blds
               , report(pr_status, pr_status(PRType, _Branch, Project, _Strategy, PRCfg, PR_Status_Blds))
               , Blds)
+    % Ensure that there are no in-progress and at least on failure
     , maplist(pr_status_blds_pend, Blds, PendBldCnts)
     , maplist(pr_status_blds_fail, Blds, FailBlds)
     , maplist(pr_status_blds_good, Blds, GoodBlds)
