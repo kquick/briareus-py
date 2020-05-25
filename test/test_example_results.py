@@ -7,7 +7,7 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             SendEmail, SetForgeStatus)
 import Briareus.hh as hh
 from Briareus.VCS.GitForge import RepoAPI_Location
-from git_example1 import GitExample1
+from test_example import expected_repo_info
 import json
 import pytest
 from unittest.mock import (patch, ANY, call)
@@ -15,7 +15,6 @@ from datetime import timedelta
 from thespian.actors import ActorSystem
 
 
-gitactor = GitExample1
 input_spec = open('test/inp_example').read()
 
 build_names = [

@@ -1,5 +1,5 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, MainBranch, BranchReq
-from git_example1 import GitExample1
+from test_example3 import expected_repo_info
 import json
 import pytest
 from datetime import timedelta
@@ -13,8 +13,6 @@ from datetime import timedelta
 # ensure that "master" is still probed.
 
 input_spec = open('test/inp_example3_overspec').read()
-
-gitactor = GitExample1
 
 build_output_time_budget = timedelta(seconds=1, milliseconds=250)  # avg 0.52s
 

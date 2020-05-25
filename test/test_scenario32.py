@@ -52,7 +52,6 @@ from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
                                            PRSts_Active, PRSts_Merged,
                                            RepoDesc, SubModuleInfo)
 from Briareus.BuildSys import buildcfg_name
-from git_scenario32 import GitScenario32
 import Briareus.hh as hh
 import json
 import pytest
@@ -192,17 +191,17 @@ def inp_configs(testing_dir):
     outfile_p1 = testing_dir.join("p1.hhc")
     outfile_p2 = testing_dir.join("p2.hhc")
     return [
-        (GitScenario32, outfile_p1, hh.InpConfig(hhd='test/inp_scenario32_proj1',
-                                                 builder_type="hydra",
-                                                 # builder_conf="
-                                                 output_file=outfile_p1,
+        (expected_repo_proj1_info, outfile_p1,
+         hh.InpConfig(hhd='test/inp_scenario32_proj1',
+                      builder_type="hydra",
+                      # builder_conf="
+                      output_file=outfile_p1),
         ),
-        ),
-        (GitScenario32, outfile_p2, hh.InpConfig(hhd='test/inp_scenario32_proj2',
-                                                 builder_type="hydra",
-                                                 # builder_conf="
-                                                 output_file=outfile_p2,
-        ),
+        (expected_repo_proj2_info, outfile_p2,
+         hh.InpConfig(hhd='test/inp_scenario32_proj2',
+                      builder_type="hydra",
+                      # builder_conf="
+                      output_file=outfile_p2),
         ),
     ]
 

@@ -1,15 +1,11 @@
-from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
-                            ProjectSummary, StatusReport, VarFailure)
 from Briareus.Input.Operations import input_desc_and_VCS_info
-from git_example2 import GitExample2
-from test_example2_add import expected_repo_info
-import json
+from git_example1 import GitExample1
+from test_example3 import expected_repo_info
 import pytest
-from datetime import timedelta
 
 
-gitactor = GitExample2
-input_spec = open('test/inp_example2_add').read()
+gitactor = GitExample1
+input_spec = open('test/inp_example3').read()
 
 
 def test_gitinfo(actor_system):

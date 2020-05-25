@@ -1,12 +1,10 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             ProjectSummary, StatusReport, VarFailure)
 from Briareus.VCS.InternalMessages import (BranchRef, RepoDesc, SubModuleInfo)
-from git_example2 import GitExample2
 import json
 import pytest
 from datetime import timedelta
 
-gitactor = GitExample2
 input_spec = open('test/inp_example2').read()
 
 

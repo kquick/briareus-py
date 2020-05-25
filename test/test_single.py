@@ -33,7 +33,6 @@ def test_example_facts(generated_facts):
     assert expected_facts == list(map(str, generated_facts))
 
 
-gitactor = GitTestSingle
 input_spec = open('test/inp_single').read()
 
 expected_facts = sorted(filter(None, '''

@@ -4,7 +4,6 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
                                            PRSts_Active, PRSts_Merged,
                                            RepoDesc, SubModuleInfo)
-from git_exampledups import GitExample
 import json
 import pytest
 from datetime import timedelta
@@ -29,8 +28,6 @@ from datetime import timedelta
 
 
 input_spec = open('test/inp_exampledups').read()
-
-gitactor = GitExample
 
 expected_repo_info = {
     'branches' : set([

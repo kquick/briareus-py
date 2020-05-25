@@ -9,9 +9,6 @@ import Briareus.BCGen.Generator as Generator
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.hh as hh
 from thespian.actors import *
-from git_example1 import GitExample1
-from git_example2 import GitExample2
-import git_exampledups as GitDups
 import json
 import os
 import pytest
@@ -37,21 +34,21 @@ def inp_configs(testing_dir):
     outfile_example3 = testing_dir.join("ex3.hhc")
     outfile_dup = testing_dir.join("dup.hhc")
     return [
-        (GitExample1, outfile_example,
+        (texample.expected_repo_info, outfile_example,
          hh.InpConfig(hhd='test/inp_example',
                       builder_type="hydra",
                       # builder_conf="
                       output_file=outfile_example,
          ),
         ),
-        (GitExample1, outfile_example3,
+        (tex3.expected_repo_info, outfile_example3,
          hh.InpConfig(hhd='test/inp_example3',
                       builder_type="hydra",
                       # builder_conf="
                       output_file=outfile_example3,
          ),
         ),
-        (GitDups.GitExample, outfile_dup,
+        (tdups.expected_repo_info, outfile_dup,
          hh.InpConfig(hhd='test/inp_exampledups',
                       builder_type="hydra",
                       # builder_conf="

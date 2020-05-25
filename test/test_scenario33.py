@@ -48,7 +48,6 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo, PRSts_Active,
                                            RepoDesc, SubModuleInfo)
 from Briareus.BuildSys import buildcfg_name
-from git_scenario33 import GitScenario33
 import Briareus.hh as hh
 import json
 import pytest
@@ -261,23 +260,23 @@ def inp_configs(testing_dir):
     outfile_p2 = testing_dir.join("p2.hhc")
     outfile_p3 = testing_dir.join("p3.hhc")
     return [
-        (GitScenario33, outfile_p1, hh.InpConfig(hhd='test/inp_scenario33_proj1',
-                                                 builder_type="hydra",
-                                                 # builder_conf="
-                                                 output_file=outfile_p1,
+        (expected_repo_proj1_info, outfile_p1,
+         hh.InpConfig(hhd='test/inp_scenario33_proj1',
+                      builder_type="hydra",
+                      # builder_conf="
+                      output_file=outfile_p1),
         ),
+        (expected_repo_proj2_info, outfile_p2,
+         hh.InpConfig(hhd='test/inp_scenario33_proj2',
+                      builder_type="hydra",
+                      # builder_conf="
+                      output_file=outfile_p2),
         ),
-        (GitScenario33, outfile_p2, hh.InpConfig(hhd='test/inp_scenario33_proj2',
-                                                 builder_type="hydra",
-                                                 # builder_conf="
-                                                 output_file=outfile_p2,
-        ),
-        ),
-        (GitScenario33, outfile_p3, hh.InpConfig(hhd='test/inp_scenario33_proj3',
-                                                 builder_type="hydra",
-                                                 # builder_conf="
-                                                 output_file=outfile_p3,
-        ),
+        (expected_repo_proj3_info, outfile_p3,
+         hh.InpConfig(hhd='test/inp_scenario33_proj3',
+                      builder_type="hydra",
+                      # builder_conf="
+                      output_file=outfile_p3),
         ),
     ]
 

@@ -1,11 +1,12 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, BranchReq, MainBranch
+from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
+                                           PRSts_Active, PRSts_Merged, PRSts_Closed, PRSts_New,
+                                           RepoDesc, SubModuleInfo)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
-from thespian.actors import *
-from git_example1 import GitExample1
 import json
 import pytest
-# from datetime import timedelta
+import test_example3 as tex
 
 # Similar to test_example3 except:
 #
@@ -24,11 +25,38 @@ import pytest
 
 input_spec = open('test/inp_example4').read()
 
-gitactor = GitExample1
-gitactor_updates = [
-    ( ("primary branch", "R10", "develop"), "ok: R10 main branch is develop"),
-    ( ("primary branch", "R4",  "primary"), "ok: R4 main branch is primary"),
-]
+
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='R10', branchname='develop', branchref='R10-master-ref'),
+        BranchRef(reponame='R3', branchname='blah', branchref='r3-blah-ref'),
+        BranchRef(reponame='R3', branchname='master', branchref='R3-master-ref'),
+        BranchRef(reponame='R4', branchname='feat1', branchref='r4-feat1-ref'),
+        BranchRef(reponame='R4', branchname='primary', branchref='R4-master-ref'),
+    ]),
+    'pullreqs': set([
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_CLOSED_url', pr_branch='closed_pr',
+               pr_revision='r3_CLOSED_mergeref', pr_ident='22', pr_status=PRSts_Closed(),
+               pr_title='ignored because closed', pr_user='done', pr_email='done@already.yo'),
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_MERGED_url', pr_branch='merged_pr',
+               pr_revision='r3_MERGED_mergeref', pr_ident='33', pr_status=PRSts_Merged(),
+               pr_title='ignored because merged', pr_user='done', pr_email='done@already.yo'),
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_pr11_url', pr_branch='blah',
+               pr_revision='r3_blah_mergeref', pr_ident='11', pr_status=PRSts_Active(),
+               pr_title='blah started', pr_user='nick', pr_email='nick@bad.seeds'),
+        PRInfo(pr_target_repo='R4', pr_srcrepo_url='remote_R4_y', pr_branch='bugfix9',
+               pr_revision='r1_bf9_mergeref', pr_ident='8192', pr_status=PRSts_New(),
+               pr_title='fix ninth bug!', pr_user='ozzie', pr_email='ozzie@crazy.train'),
+    ]),
+    'submodules': set([
+        SubModuleInfo(sm_repo_name='R10', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='R3', sm_sub_vers='r3_master_head^9'),
+        SubModuleInfo(sm_repo_name='R10', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
+    ]),
+    'subrepos': set([
+        RepoDesc(repo_name='R3', repo_url='r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R4', repo_url='r4_explicit_default_url', main_branch='primary', project_repo=False),
+    ]),
+}
 
 
 @pytest.fixture(scope="module")
@@ -94,23 +122,6 @@ varvalue("R10", "ghcver", "ghc844", 1).
 
 def test_example_facts(generated_facts):
     assert expected_facts == list(map(str, generated_facts))
-
-
-def test_incorrect_input_facts_attempt():
-    asys = ActorSystem('simpleSystemBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitExample1, globalName="GetGitInfo")
-        # Replication of BCGen.Operations.BCGengenerate()
-        inp, repo_info = BInput.input_desc_and_VCS_info(input_spec,
-                                                        actor_system=asys,
-                                                        verbose=True)
-        gen = Generator.Generator(actor_system = asys)
-        with pytest.raises(RuntimeError) as excinfo:
-            (rtype, facts) = gen.generate_build_configs(inp, repo_info, up_to="facts")
-        assert "The following repos have no available branches: ['R10']" in str(excinfo.value)
-    finally:
-        asys.shutdown()
 
 
 def test_example_internal_count(generated_bldconfigs):

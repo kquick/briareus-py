@@ -1,6 +1,6 @@
 import Briareus.Input.Parser as Parser
 import Briareus.Input.Description as D
-from git_example1 import GitExample1
+from test_example import expected_repo_info
 
 
 def test_input_parser():
@@ -8,7 +8,6 @@ def test_input_parser():
     inp = parser.parse(input_spec)
     assert expected_inp == inp
 
-gitactor = GitExample1
 input_spec = open('test/inp_example').read()
 
 def test_example_facts(generated_facts):

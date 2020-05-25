@@ -2,11 +2,9 @@ from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Gro
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
                                            PRSts_Active, PRSts_Merged, PRSts_Closed, PRSts_New,
                                            RepoDesc, SubModuleInfo)
-from git_example1 import GitExample1
 import json
 import pytest
 
-gitactor = GitExample1
 input_spec = open('test/inp_example').read()
 
 expected_repo_info = {

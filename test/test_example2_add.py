@@ -1,7 +1,7 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             ProjectSummary, StatusReport, VarFailure,
                             Notify, SendEmail)
-from git_example2 import GitExample2
+from Briareus.VCS.InternalMessages import (BranchRef, RepoDesc, SubModuleInfo)
 import Briareus.hh as hh
 import test_example2 as tex2
 import json
@@ -20,7 +20,28 @@ from datetime import datetime, timedelta
 
 input_spec = open('test/inp_example2_add').read()
 
-gitactor = GitExample2
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='RAdd1', branchname='master', branchref='RAdd1-master-ref'),
+        BranchRef(reponame='RAdd2', branchname='master', branchref='RAdd2-master-ref'),
+        BranchRef(reponame='Repo1', branchname='master', branchref='Repo1-master-ref'),
+        BranchRef(reponame='Repo2', branchname='master', branchref='Repo2-master-ref'),
+        BranchRef(reponame='Repo3', branchname='master', branchref='Repo3-master-ref'),
+        BranchRef(reponame='Repo4', branchname='master', branchref='Repo4-master-ref'),
+    ]),
+    'pullreqs': set([]),
+    'subrepos': set([
+        RepoDesc(repo_name='Repo2', repo_url='r2_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo3', repo_url='r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo4', repo_url='r4_url', main_branch='master', project_repo=False),
+    ]),
+    'submodules': set([
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo2', sm_sub_vers='r2_master_head'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo3', sm_sub_vers='r3_master_head^3'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo4', sm_sub_vers='r4_master_head^1'),
+    ]),
+}
+
 
 @pytest.fixture(scope="session")
 def testing_dir(tmpdir_factory):
@@ -31,10 +52,10 @@ def inp_configs(testing_dir):
     outfile_ex2 = testing_dir.join("ex2.hhc")
     outfile_ex2add = testing_dir.join("ex2add.hhc")
     return [
-        (GitExample2, outfile_ex2,
+        (tex2.expected_repo_info, outfile_ex2,
          hh.InpConfig(hhd='test/inp_example2', builder_type="hydra", output_file=outfile_ex2),
          ),
-        (GitExample2, outfile_ex2add,
+        (expected_repo_info, outfile_ex2add,
          hh.InpConfig(hhd='test/inp_example2_add', builder_type="hydra", output_file=outfile_ex2add),
          ),
     ]

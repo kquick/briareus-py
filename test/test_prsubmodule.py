@@ -2,7 +2,6 @@ from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Gro
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
                                            PRSts_Active, PRSts_Merged,
                                            RepoDesc, SubModuleInfo)
-from git_prsubmodule import GitPRSub
 import json
 import pytest
 
@@ -59,8 +58,6 @@ top_level = [
     "pullreq subfix heads",
     "pullreq subfix submodules",
 ]
-
-gitactor = GitPRSub
 
 
 def test_facts(generated_facts):

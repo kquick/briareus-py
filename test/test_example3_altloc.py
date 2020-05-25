@@ -1,9 +1,10 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS.InternalMessages import PullReqInfo, PRSts_Active
-from git_example1 import GitExample1
+from Briareus.VCS.InternalMessages import PullReqInfo, PRSts_Active, PRInfo, SubModuleInfo, RepoDesc
+import test_example3 as tex3
 from datetime import timedelta
 import json
 import pytest
+import copy
 
 
 # Like example3 except R3 and R10 are both explicitly listed with a
@@ -11,28 +12,23 @@ import pytest
 # test ensures that the Hydra input specifications use the correct
 # location for primary and pull request references.
 
-# KWQ: can this verify the VCS accesses?
-#      DeclareRepo.repo_url and repolocs (is RepoLoc)
-#      PullReqInfo.pullreq_srcurl
-#      SubRepoVers.subrepo_url  ****
-#      PRInfo.pr_srcrepo_url
-# KWQ: make a PR on R10 to test the Repo_AltLoc_ReqMsg
-
 input_spec = open('test/inp_example3_altloc').read()
 
-gitactor = GitExample1
-gitactor_updates = [
-    ( ("pullreq", "R10",
-       PullReqInfo("321",
-                   pullreq_status=PRSts_Active(),
-                   pullreq_title='test R10 PR',
-                   pullreq_srcurl='https://r10_xlated_url/pullpath/part',
-                   pullreq_branch='devtest',
-                   pullreq_ref='r10_devtest_ref',
-                   pullreq_user='miles',
-                   pullreq_email='miles@to.go')),
-      "ok: added pullreq for R10" ),
-]
+expected_repo_info = copy.deepcopy(tex3.expected_repo_info)
+expected_repo_info['pullreqs'].add(
+    PRInfo(pr_target_repo='R10',
+           pr_srcrepo_url='git@r10_git_url:pullpath/part',
+           pr_branch='devtest',
+               pr_revision='r10_devtest_ref', pr_ident='321', pr_status=PRSts_Active(),
+               pr_title='test R10 PR', pr_user='miles', pr_email='miles@to.go'))
+expected_repo_info['submodules'].add(
+    SubModuleInfo(sm_repo_name='R10', sm_branch='devtest', sm_pullreq_id='321', sm_sub_name='R3', sm_sub_vers='r3_master_head^7'))
+expected_repo_info['submodules'].add(
+    SubModuleInfo(sm_repo_name='R10', sm_branch='devtest', sm_pullreq_id='321', sm_sub_name='R4', sm_sub_vers='r4_master_head^11'))
+expected_repo_info['subrepos'] = set(filter(lambda r: r.repo_name != 'R3', expected_repo_info['subrepos']))
+expected_repo_info['subrepos'].add(
+    RepoDesc(repo_name='R3', repo_url='foo@r3_inp_url:foo/bar', main_branch='master', project_repo=False))
+
 
 build_output_time_budget = timedelta(seconds=1, milliseconds=250)  # avg 0.52s
 
