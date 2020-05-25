@@ -1,5 +1,6 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             ProjectSummary, StatusReport, VarFailure)
+from Briareus.VCS.InternalMessages import (BranchRef, RepoDesc, SubModuleInfo)
 from git_example2 import GitExample2
 import json
 import pytest
@@ -7,6 +8,36 @@ from datetime import timedelta
 
 gitactor = GitExample2
 input_spec = open('test/inp_example2').read()
+
+
+def test_repo_info(generated_repo_info):
+    assert generated_repo_info[1] == expected_repo_info
+
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='Repo1', branchname='develop', branchref='r1-develop-ref'),
+        BranchRef(reponame='Repo1', branchname='master', branchref='Repo1-master-ref'),
+        BranchRef(reponame='Repo2', branchname='develop', branchref='r2-develop-ref'),
+        BranchRef(reponame='Repo2', branchname='master', branchref='Repo2-master-ref'),
+        BranchRef(reponame='Repo3', branchname='develop', branchref='r3-develop-ref'),
+        BranchRef(reponame='Repo3', branchname='master', branchref='Repo3-master-ref'),
+        BranchRef(reponame='Repo4', branchname='master', branchref='Repo4-master-ref'),
+    ]),
+    'pullreqs': set([]),
+    'subrepos': set([
+        RepoDesc(repo_name='Repo2', repo_url='r2_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo3', repo_url='r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo4', repo_url='r4_url', main_branch='master', project_repo=False),
+    ]),
+    'submodules': set([
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='Repo2', sm_sub_vers='r2_develop_head'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='Repo3', sm_sub_vers='r3_develop_head'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='Repo4', sm_sub_vers='r4_master_head'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo2', sm_sub_vers='r2_master_head'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo3', sm_sub_vers='r3_master_head^3'),
+        SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo4', sm_sub_vers='r4_master_head^1'),
+    ]),
+}
 
 
 @pytest.fixture(scope="module")

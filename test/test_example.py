@@ -1,10 +1,76 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
+from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
+                                           PRSts_Active, PRSts_Merged, PRSts_Closed, PRSts_New,
+                                           RepoDesc, SubModuleInfo)
 from git_example1 import GitExample1
 import json
 import pytest
 
 gitactor = GitExample1
 input_spec = open('test/inp_example').read()
+
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='R1', branchname='feat1', branchref='r1-feat1-ref'),
+        BranchRef(reponame='R1', branchname='master', branchref='R1-master-ref'),
+        BranchRef(reponame='R2', branchname='bugfix9', branchref='r2-bugfix9-ref'),
+        BranchRef(reponame='R2', branchname='master', branchref='R2-master-ref'),
+        BranchRef(reponame='R3', branchname='blah', branchref='r3-blah-ref'),
+        BranchRef(reponame='R3', branchname='master', branchref='R3-master-ref'),
+        BranchRef(reponame='R4', branchname='feat1', branchref='r4-feat1-ref'),
+        BranchRef(reponame='R4', branchname='master', branchref='R4-master-ref'),
+        BranchRef(reponame='R5', branchname='blah', branchref='r5-blah-ref'),
+        BranchRef(reponame='R5', branchname='bugfix9', branchref='r5-bugfix9-ref'),
+        BranchRef(reponame='R5', branchname='dev', branchref='r5-dev-ref'),
+        BranchRef(reponame='R5', branchname='master', branchref='R5-master-ref'),
+        BranchRef(reponame='R6', branchname='feat1', branchref='r6-feat1-ref'),
+        BranchRef(reponame='R6', branchname='master', branchref='R6-master-ref'),
+        BranchRef(reponame='R7', branchname='master', branchref='R7-master-ref'),
+    ]),
+    'pullreqs': set([
+        PRInfo(pr_target_repo='R1', pr_srcrepo_url='remote_R1_b', pr_branch='blah',
+               pr_revision='r1_blah_mergeref', pr_ident='1', pr_status=PRSts_Active(),
+               pr_title='pr#19', pr_user='nick', pr_email='nick@bad.seeds'),
+        PRInfo(pr_target_repo='R2', pr_srcrepo_url='remote_r2_a', pr_branch='bugfix9',
+               pr_revision='r2_b9_mergeref', pr_ident='23', pr_status=PRSts_Active(),
+               pr_title='add fantasticness', pr_user='banana', pr_email=''),
+        PRInfo(pr_target_repo='R2', pr_srcrepo_url='remote_r2_pr1111_url', pr_branch='blah',
+               pr_revision='r2_blah_mergeref', pr_ident='1111', pr_status=PRSts_Active(),
+               pr_title='blah also', pr_user='not_nick', pr_email='not_nick@bad.seeds'),
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_CLOSED_url', pr_branch='closed_pr',
+               pr_revision='r3_CLOSED_mergeref', pr_ident='22', pr_status=PRSts_Closed(),
+               pr_title='ignored because closed', pr_user='done', pr_email='done@already.yo'),
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_MERGED_url', pr_branch='merged_pr',
+               pr_revision='r3_MERGED_mergeref', pr_ident='33', pr_status=PRSts_Merged(),
+               pr_title='ignored because merged', pr_user='done', pr_email='done@already.yo'),
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_pr11_url', pr_branch='blah',
+               pr_revision='r3_blah_mergeref', pr_ident='11', pr_status=PRSts_Active(),
+               pr_title='blah started', pr_user='nick', pr_email='nick@bad.seeds'),
+        PRInfo(pr_target_repo='R4', pr_srcrepo_url='remote_R4_y', pr_branch='bugfix9',
+               pr_revision='r1_bf9_mergeref', pr_ident='8192', pr_status=PRSts_New(),
+               pr_title='fix ninth bug!', pr_user='ozzie', pr_email='ozzie@crazy.train'),
+        PRInfo(pr_target_repo='R6', pr_srcrepo_url='remote_r6_pr111_url', pr_branch='blah',
+               pr_revision='r6_blah_mergeref', pr_ident='111', pr_status=PRSts_Active(),
+               pr_title='blah match', pr_user='nick', pr_email='nick@bad.seeds'),
+    ]),
+    'submodules': set([
+        SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R2', sm_sub_vers='r2_master_head^22'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R3', sm_sub_vers='r3_master_head'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R7', sm_sub_vers='r7_master_head^4'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='feat1', sm_pullreq_id=None, sm_sub_name='R2', sm_sub_vers='r2_master_head^1'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='feat1', sm_pullreq_id=None, sm_sub_name='R3', sm_sub_vers='r3_master_head'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='feat1', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_feat1_head^2'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R2', sm_sub_vers='r2_master_head'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R3', sm_sub_vers='r3_master_head^3'),
+        SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
+    ]),
+    'subrepos': set([
+        RepoDesc(repo_name='R2', repo_url='r2_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R3', repo_url='r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R4', repo_url='r4_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R7', repo_url='r7_url', main_branch='master', project_repo=False),
+    ]),
+}
 
 
 @pytest.fixture(scope="module")

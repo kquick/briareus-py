@@ -8,6 +8,27 @@ from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grou
 from Briareus.VCS.InternalMessages import *
 
 
+def test_repo_info(generated_repo_info):
+    assert generated_repo_info[1] == expected_repo_info
+
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='TheRepo', branchname='feat1', branchref='feat1-ref'),
+        BranchRef(reponame='TheRepo', branchname='master', branchref='master-ref'),
+    ]),
+    'pullreqs': set([
+        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='frog_repo_url', pr_branch='frog',
+               pr_revision='frog_mergeref', pr_ident='91', pr_status=PRSts_Active(),
+               pr_title='Croaking frogs', pr_user='frog', pr_email='frog@lilypond.pad'),
+        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='toad_repo_url', pr_branch='toad',
+               pr_revision='toad_mergeref', pr_ident='134', pr_status=PRSts_Active(),
+               pr_title='Hoppy toads', pr_user='hoppy', pr_email=''),
+    ]),
+    'subrepos': set([]),
+    'submodules': set([]),
+}
+
+
 def test_example_facts(generated_facts):
     assert expected_facts == list(map(str, generated_facts))
 

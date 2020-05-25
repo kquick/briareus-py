@@ -1,6 +1,9 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             PR_Grouped, PR_Solo, BranchReq, MainBranch,
                             ProjectSummary, StatusReport, VarFailure)
+from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
+                                           PRSts_Active, PRSts_Merged,
+                                           RepoDesc, SubModuleInfo)
 from git_exampledups import GitExample
 import json
 import pytest
@@ -28,6 +31,45 @@ from datetime import timedelta
 input_spec = open('test/inp_exampledups').read()
 
 gitactor = GitExample
+
+expected_repo_info = {
+    'branches' : set([
+        BranchRef(reponame='Repo1', branchname='develop', branchref='r1-develop-ref'),
+        BranchRef(reponame='Repo1', branchname='master', branchref='Repo1-master-ref'),
+        BranchRef(reponame='Repo2', branchname='develop', branchref='r2-develop-ref'),
+        BranchRef(reponame='Repo2', branchname='foo', branchref='r2-foo-ref'),
+        BranchRef(reponame='Repo2', branchname='master', branchref='Repo2-master-ref'),
+        BranchRef(reponame='Repo3', branchname='develop', branchref='r3-develop-ref'),
+        BranchRef(reponame='Repo3', branchname='master', branchref='Repo3-master-ref'),
+    ]),
+    'pullreqs': set([
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='Repo1_Remote8', pr_branch='dog',
+               pr_revision='r1_r8_f32', pr_ident='Req8', pr_status=PRSts_Active(),
+               pr_title='pr8 is great', pr_user='r.user', pr_email=''),
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='remote_Repo1', pr_branch='master',
+               pr_revision='r1_master_maskref', pr_ident='1', pr_status=PRSts_Active(),
+               pr_title='pr#mastermask', pr_user='jdoe', pr_email='jdoe@nocompany.com'),
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='remote_Repo1_pr2', pr_branch='master',
+               pr_revision='r1_master_p2^head', pr_ident='2', pr_status=PRSts_Active(),
+               pr_title='pr numero dos', pr_user='jdoe', pr_email='jdoe@nocompany.com'),
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='Repo3_r3', pr_branch='dog',
+               pr_revision='r3_r3^7', pr_ident='101', pr_status=PRSts_Active(),
+               pr_title='start changes', pr_user='fido', pr_email='fido@woof.grr'),
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_Repo3', pr_branch='develop',
+               pr_revision='r3_develop_pr2', pr_ident='2', pr_status=PRSts_Active(),
+               pr_title='pr#develop', pr_user='frank', pr_email='frank@stein.co'),
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_Repo3_2', pr_branch='foo',
+               pr_revision='r3_foo_pr3', pr_ident='1', pr_status=PRSts_Active(),
+               pr_title='pr#foo', pr_user='earl', pr_email='earl@king.wild'),
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_repo3_other', pr_branch='master',
+               pr_revision='r3_master_2', pr_ident='9', pr_status=PRSts_Active(),
+               pr_title='pr#master3', pr_user='frank', pr_email='frank@stein.co'),
+    ]),
+    'subrepos': set([
+    ]),
+    'submodules': set([
+    ]),
+}
 
 
 @pytest.fixture(scope="module")
