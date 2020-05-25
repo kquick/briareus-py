@@ -178,7 +178,7 @@ def prior_fact_StatusReport(prior):
              for v in prior.bldvars ]
     return Fact(
         ('prior_status({p.status}'
-         ', project("{p.project}")'
+         ', "{p.project}"'
          ', {strategy}'
          ', {p.branchtype}'
          ', "{p.branch}"'
