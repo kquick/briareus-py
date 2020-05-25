@@ -12,17 +12,7 @@ from datetime import timedelta
 # This test also removes "master" from the Branches input_spec to
 # ensure that "master" is still probed.
 
-input_spec = '''
-{
-  "Repos" : [ ("R10", "r10_url"),
-              ("R4",  "r4_url_from_input_spec"),
-            ]
-, "Branches" : [ "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc822", "ghc844" ],
-  }
-}
-'''
+input_spec = open('test/inp_example3_overspec').read()
 
 gitactor = GitExample1
 

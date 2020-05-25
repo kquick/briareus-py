@@ -18,25 +18,7 @@ from datetime import datetime, timedelta
 # proper logic is applied to each project.
 
 
-input_spec = '''
-{
-  "Repos" : [ ("Repo1", "r1_url"),
-              ("RAdd1", "ra1_url"),
-              ("Repo3", "r3_url"),
-              ("RAdd2", "ra2_url"),
-            ]
-, "Name": "alt-proj"
-, "Branches" : [ "master" ]
-, "Variables" : {
-      "ghcver" : [ "ghc865" ],
-  }
-, "Reporting" : {
-      "logic": """
-project_owner("alt-proj", "julio@uptown.funk").
-      """
-  }
-}
-'''
+input_spec = open('test/inp_example2_add').read()
 
 gitactor = GitExample2
 
@@ -44,30 +26,16 @@ gitactor = GitExample2
 def testing_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("ex2_add")
 
-@pytest.fixture(scope="session")
-def ex2_hhd(testing_dir):
-    hhd = testing_dir.join("example2.hdd")
-    hhd.write(tex2.input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
-@pytest.fixture(scope="session")
-def ex2add_hhd(testing_dir):
-    hhd = testing_dir.join("example2add.hdd")
-    hhd.write(input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
 @pytest.fixture(scope="module")
-def inp_configs(testing_dir, ex2_hhd, ex2add_hhd):
+def inp_configs(testing_dir):
     outfile_ex2 = testing_dir.join("ex2.hhc")
     outfile_ex2add = testing_dir.join("ex2add.hhc")
     return [
         (GitExample2, outfile_ex2,
-         hh.InpConfig(hhd=ex2_hhd, builder_type="hydra", output_file=outfile_ex2),
+         hh.InpConfig(hhd='test/inp_example2', builder_type="hydra", output_file=outfile_ex2),
          ),
         (GitExample2, outfile_ex2add,
-         hh.InpConfig(hhd=ex2add_hhd, builder_type="hydra", output_file=outfile_ex2add),
+         hh.InpConfig(hhd='test/inp_example2_add', builder_type="hydra", output_file=outfile_ex2add),
          ),
     ]
 

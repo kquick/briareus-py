@@ -1,0 +1,8 @@
+{
+  "Repos" : [ ("R10", "r10_url"),
+            ]
+, "Branches" : [ "master", "feat1", "dev" ]
+, "Variables" : {
+      "ghcver" : [ "ghc822", "ghc844" ],
+  }
+}

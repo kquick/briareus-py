@@ -22,17 +22,7 @@ import pytest
 # The other repos (R3) still use "master".  The R3 "master" should be
 # aligned with R4 "primary" and R10 "develop".
 
-input_spec = '''
-{
-  "Repos" : [ ("R10", "r10_url", "develop"),
-              ("R4", "r4_explicit_default_url", "primary"),
-            ]
-, "Branches" : [ "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc822", "ghc844" ],
-  }
-}
-'''
+input_spec = open('test/inp_example4').read()
 
 gitactor = GitExample1
 gitactor_updates = [

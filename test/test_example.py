@@ -3,39 +3,9 @@ from git_example1 import GitExample1
 import json
 import pytest
 
-input_spec = '''
-{
-  "Repos" : [ ("R1", "r1_url"),
-              ("R2", "r2_url"),
-              ("R3", "r3_url"),
-              ("R5", "r5_url"),
-              ("R6", "r6_url") ]
-, "Name" : "Project #1"
-, "Branches" : [ "master", "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc844", "ghc865", "ghc881" ],
-      "c_compiler" : [ "gnucc", "clang" ],
-  }
-, "Reporting" : {
-      "logic": """
-project_owner("Project #1", "george@_company.com").
-
-project_owner("R3", "john@not_a_company.com").
-
-enable(email, "fred@nocompany.com", notify(_, "Project #1", _)).
-enable(email, "eddy@nocompany.com", notify(_, "Project #1", _)).
-enable(email, "sam@not_a_company.com", notify(_, "Project #1", _)).
-enable(email, "john@_company.com", notify(_, "Project #1", _)).
-enable(email, "anne@nocompany.com", notify(master_submodules_broken, "Project #1", _)).
-enable(email, "betty@nocompany.com", notify(variable_failing, "Project #1", _)).
-
-enable(forge_status, "Project #1", _).
-      """
-  }
-}
-'''
-
 gitactor = GitExample1
+input_spec = open('test/inp_example').read()
+
 
 @pytest.fixture(scope="module")
 def example_hydra_jobsets(generated_hydra_builder_output):

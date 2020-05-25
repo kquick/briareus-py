@@ -31,49 +31,28 @@ from datetime import datetime, timedelta
 def testing_dir(tmpdir_factory):
     return tmpdir_factory.mktemp("ex1_ex3_dups")
 
-@pytest.fixture(scope="session")
-def example_hhd(testing_dir):
-    hhd = testing_dir.join("example.hdd")
-    hhd.write(texample.input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
-@pytest.fixture(scope="session")
-def example3_hhd(testing_dir):
-    hhd = testing_dir.join("example3.hdd")
-    hhd.write(tex3.input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
-@pytest.fixture(scope="session")
-def dup_hhd(testing_dir):
-    hhd = testing_dir.join("dups.hdd")
-    hhd.write(tdups.input_spec)
-    yield str(hhd)
-    print('os.remove(%s)' % hhd)
-
 @pytest.fixture(scope="module")
-def inp_configs(testing_dir, example_hhd, example3_hhd, dup_hhd):
+def inp_configs(testing_dir):
     outfile_example = testing_dir.join("ex.hhc")
     outfile_example3 = testing_dir.join("ex3.hhc")
     outfile_dup = testing_dir.join("dup.hhc")
     return [
         (GitExample1, outfile_example,
-         hh.InpConfig(hhd=example_hhd,
+         hh.InpConfig(hhd='test/inp_example',
                       builder_type="hydra",
                       # builder_conf="
                       output_file=outfile_example,
          ),
         ),
         (GitExample1, outfile_example3,
-         hh.InpConfig(hhd=example3_hhd,
+         hh.InpConfig(hhd='test/inp_example3',
                       builder_type="hydra",
                       # builder_conf="
                       output_file=outfile_example3,
          ),
         ),
         (GitDups.GitExample, outfile_dup,
-         hh.InpConfig(hhd=dup_hhd,
+         hh.InpConfig(hhd='test/inp_exampledups',
                       builder_type="hydra",
                       # builder_conf="
                       output_file=outfile_dup,

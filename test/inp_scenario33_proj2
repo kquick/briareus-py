@@ -1,0 +1,12 @@
+{
+    "Name" : "proj2",
+    "Repos" : [ ("repo2", "repo2_loc"),
+                ("repo2sub", "repo2_loc"),
+              ],
+    "Branches" : [ 'dog' ],
+    "Reporting": {
+      "logic": """
+         enable(forge_status, _, _).
+      """,
+    },
+}

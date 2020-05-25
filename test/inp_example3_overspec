@@ -1,0 +1,9 @@
+{
+  "Repos" : [ ("R10", "r10_url"),
+              ("R4",  "r4_url_from_input_spec"),
+            ]
+, "Branches" : [ "feat1", "dev" ]
+, "Variables" : {
+      "ghcver" : [ "ghc822", "ghc844" ],
+  }
+}

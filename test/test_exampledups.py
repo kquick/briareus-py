@@ -25,30 +25,7 @@ from datetime import timedelta
 #
 
 
-input_spec = '''
-{
-  "Repos" : [ ("Repo1", "r1_url"),
-              ("Repo2", "r2_url"),
-              ("Repo3", "r3_url"),
-            ]
-, "Branches" : [ "master", "develop" ]
-, "Variables" : {
-      "ghcver" : [ "ghc865", "ghc881" ],
-  }
-, "Reporting" : {
-      "logic": """
-project_owner("Repo1", "george@_company.com").
-
-project_owner("Repo3", "john@not_a_company.com").
-
-enable(email, "fred@nocompany.com", notify(_, "Repo1", _)).
-enable(email, "anne@nocompany.com", notify(main_submodules_broken, "Repo1", _)).
-
-enable(forge_status, "Repo1", _).
-      """
-  }
-}
-'''
+input_spec = open('test/inp_exampledups').read()
 
 gitactor = GitExample
 

@@ -3,18 +3,10 @@ from git_example1 import GitExample1
 import json
 import pytest
 
-# Different top-level R10 shares R3 and R4 with test_example.py.  This also has different variables.
 
-input_spec = '''
-{
-  "Repos" : [ ("R10", "r10_url"),
-            ]
-, "Branches" : [ "master", "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc822", "ghc844" ],
-  }
-}
-'''
+input_spec = open('test/inp_example3').read()
+
+# Different top-level R10 shares R3 and R4 with test_example.py.  This also has different variables.
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.

@@ -1,0 +1,12 @@
+{
+  "Repos" : [ ("R10", "git@r10_git_url:path/portion"),
+              ("R3", "foo@r3_inp_url:foo/bar"),
+            ]
+, "RepoLoc" : [ ("r10_git_url", "r10_xlated_url"),
+                ("r3_inp_url", "r3_direct_url"),
+              ]
+, "Branches" : [ "master", "feat1", "dev" ]
+, "Variables" : {
+      "ghcver" : [ "ghc822", "ghc844" ],
+  }
+}

@@ -3,13 +3,7 @@ from git_prsubmodule import GitPRSub
 import json
 import pytest
 
-input_spec = '''
-{
-    "Name" : "prsubtest",
-    "Repos" : [ ("TopRepo", "toprepo_loc"),
-              ]
-}
-'''
+input_spec = open('test/inp_prsubmodule').read()
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.

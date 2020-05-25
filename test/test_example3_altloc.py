@@ -18,20 +18,7 @@ import pytest
 #      PRInfo.pr_srcrepo_url
 # KWQ: make a PR on R10 to test the Repo_AltLoc_ReqMsg
 
-input_spec = '''
-{
-  "Repos" : [ ("R10", "git@r10_git_url:path/portion"),
-              ("R3", "foo@r3_inp_url:foo/bar"),
-            ]
-, "RepoLoc" : [ ("r10_git_url", "r10_xlated_url"),
-                ("r3_inp_url", "r3_direct_url"),
-              ]
-, "Branches" : [ "master", "feat1", "dev" ]
-, "Variables" : {
-      "ghcver" : [ "ghc822", "ghc844" ],
-  }
-}
-'''
+input_spec = open('test/inp_example3_altloc').read()
 
 gitactor = GitExample1
 gitactor_updates = [

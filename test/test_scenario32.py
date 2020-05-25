@@ -55,33 +55,9 @@ import json
 import pytest
 from datetime import datetime, timedelta
 
+proj1_input_spec = open('test/inp_scenario32_proj1').read()
+proj2_input_spec = open('test/inp_scenario32_proj2').read()
 
-proj1_input_spec = '''
-{
-    "Name" : "proj1",
-    "Repos" : [ ("repo1", "repo1_loc"),
-              ],
-    "Reporting": {
-      "logic": """
-         enable(forge_status, _, _).
-      """,
-    },
-}
-'''
-
-proj2_input_spec = '''
-{
-    "Name" : "proj2",
-    "Repos" : [ ("repo2", "repo2_loc"),
-              ],
-    "Branches" : [ 'dog' ],
-    "Reporting": {
-      "logic": """
-         enable(forge_status, _, _).
-      """,
-    },
-}
-'''
 
 proj1_expected_facts = '''
 :- discontiguous project/1.

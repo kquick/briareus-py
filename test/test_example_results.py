@@ -11,12 +11,12 @@ from git_example1 import GitExample1
 import json
 import pytest
 from unittest.mock import (patch, ANY, call)
-from test_example import input_spec
 from datetime import timedelta
 from thespian.actors import ActorSystem
 
 
 gitactor = GitExample1
+input_spec = open('test/inp_example').read()
 
 build_names = [
     "PR-blah.HEADs-clang-ghc844",  # 1 11 111 1111

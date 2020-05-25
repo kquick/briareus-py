@@ -1,0 +1,10 @@
+{
+    "Name" : "proj1",
+    "Repos" : [ ("repo1", "repo1_loc"),
+              ],
+    "Reporting": {
+      "logic": """
+         enable(forge_status, _, _).
+      """,
+    },
+}

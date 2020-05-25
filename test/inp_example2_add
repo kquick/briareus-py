@@ -1,0 +1,17 @@
+{
+  "Repos" : [ ("Repo1", "r1_url"),
+              ("RAdd1", "ra1_url"),
+              ("Repo3", "r3_url"),
+              ("RAdd2", "ra2_url"),
+            ]
+, "Name": "alt-proj"
+, "Branches" : [ "master" ]
+, "Variables" : {
+      "ghcver" : [ "ghc865" ],
+  }
+, "Reporting" : {
+      "logic": """
+project_owner("alt-proj", "julio@uptown.funk").
+      """
+  }
+}

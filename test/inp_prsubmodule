@@ -1,0 +1,5 @@
+{
+    "Name" : "prsubtest",
+    "Repos" : [ ("TopRepo", "toprepo_loc"),
+              ]
+}
