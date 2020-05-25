@@ -91,6 +91,7 @@ at_least_one_success(PName, Branch) :-
 %% Parameters which provide the details about that notification.
 %% What the Parameters are is determined by the What + Subject.
 
+:- table action/1.
 
 action(notify(completely_broken, Project, NBldCfgs)) :-
     report(complete_failure, complete_failure(Project))

@@ -131,6 +131,7 @@ no_bldres(_, _, _, _, _, _).
 
 % A BldDesc is really a PRType, so special PRType comparison must be
 % performed (see cmpPrType in pullreqinfo.pl)
+:- table cmpBldDesc/3.
 cmpBldDesc(D1, D1, D1) :- ! .  % red cut to avoid duplicates on below
 cmpBldDesc(D1, D2, D3) :- cmpPrType(D1, D2, D3).
 

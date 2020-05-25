@@ -35,6 +35,8 @@ proj_repo_branch(PName, B) :- project(PName, R), is_main_branch(R, B), \+ branch
 % ----------------------------------------------------------------------
 % Branch Type
 
+:- table branch_type/3.
+
 branch_type(pullreq, B, PR_ID) :-
     setof((PI,PB), R^pullreq(R, PI, PB, _, _, _, _), XS)
     , member((PR_ID,B), XS)
@@ -47,6 +49,8 @@ branch_type(regular, B, project_primary) :-
 
 % ----------------------------------------------------------------------
 % Build Strategies
+
+:- table strategy_plan/3.
 
 strategy_plan(submodules, PName, B) :-
     project(PName, R)
@@ -72,9 +76,13 @@ strategy_plan(standard, PName, B) :-
     , \+ strategy_plan(heads, PName, B)
 .
 
+:- table useable_submodules/3.
+
 useable_submodules(PName, R, B) :-
     (branch(R, B), has_gitmodules(PName, R, B));
     (is_main_branch(R, MB), has_gitmodules(PName, R, MB), \+ branch(R, B)).
+
+:- table has_gitmodules/3.
 
 has_gitmodules(PName, R, B) :-
     project(PName, R)
@@ -84,6 +92,8 @@ has_gitmodules(PName, R, B) :-
             , SBG)
     , \+ length(SBG, 0)
 .
+
+:- table strategy/3.
 
 strategy(S, PName, B) :- setof(ST, strategy_plan(ST,PName,B), SS), member(S, SS).
 
