@@ -3,6 +3,8 @@
 import sys
 import os.path
 import Briareus.Actions
+from Briareus.Types import (PRFailedSubBlds, PRFailedStdBlds)
+
 
 class FileContent(object):
     """Use this module for content which should come from local files.
@@ -44,22 +46,56 @@ class PR_ProjStatus_Fail(object):
 
             project = notification.subject
 
-            proj_resultlist = [ each
-                                for each in runctxt.result_sets
-                                if project == each.inp_desc.PNAME ]
-            if not proj_resultlist:
-                raise ValueError("Expected to find \"%s\" in: %s" %
-                                 (project, [(each.inp_desc.PNAME, r.repo_name)
-                                            for each in runctxt.result_sets
-                                            for r in each.inp_desc.RL
-                                            if r.project_repo]))
+            # N.B. space is *extremely* limited.  The API accepts
+            # about 120 characters, but the display shows even less
+            # and the full 120 is only visible on mouse hover.
 
-            proj_results = proj_resultlist[0]
+            pi = notification.params
+            if isinstance(pi, PRFailedStdBlds):
+                txt = 'Fails {numfail}/{numtotal} builds (master {mastersts})'.format(
+                    numfail=len(pi.pr_blds.fails),
+                    numtotal=len(pi.pr_blds.fails) + len(pi.pr_blds.goods),
+                    mastersts='{numfail}/{numtotal}'.format(
+                        numfail=len(pi.main_blds.fails),
+                        numtotal=len(pi.main_blds.fails) + len(pi.main_blds.goods),
+                    ) if pi.main_blds.fails else 'succeeds'
+                )
+            elif isinstance(pi, PRFailedSubBlds):
+                if (len(pi.pr_subs.goods) + len(pi.pr_subs.fails) ==
+                    len(pi.pr_heads.goods) + len(pi.pr_heads.fails)):
+                    txt = 'Fails {subfails}/{headfails}/{total} (master {mastersts}) submods/heads/total'.format(
+                        subfails=len(pi.pr_subs.fails),
+                        headfails=len(pi.pr_heads.fails),
+                        total=len(pi.pr_subs.fails) + len(pi.pr_subs.goods),
+                        mastersts=('{subfails}/{headfails}/{total}'.format(
+                            subfails=len(pi.main_subs.fails),
+                            headfails=len(pi.main_heads.fails),
+                            total=len(pi.main_subs.fails) + len(pi.main_subs.goods))
+                                   if (len(pi.main_subs.fails) + len(pi.main_subs.goods) ==
+                                       len(pi.main_heads.fails) + len(pi.main_heads.goods))
+                                   else '{subfails}/{subtot} {headfails}/{headtot}'.format(
+                                           subfails=len(pi.main_subs.fails),
+                                           subtot=len(pi.main_subs.fails) + len(pi.main_subs.goods),
+                                           headfails=len(pi.main_heads.fails),
+                                           headtot=len(pi.main_heads.fails) + len(pi.main_heads.goods),
+                                   )))
+                else:
+                    summ = lambda b: '{numf}/{numt}'.format(
+                        numf=len(b.fails), numt=len(b.goods)+len(b.fails),
+                    ) if b.fails else 'succeeds'
+                    txt = ('Fails submods={substs}'
+                           ', heads={headsts}, (master {mastersts})'.format(
+                               substs=summ(pi.pr_subs),
+                               headsts=summ(pi.pr_heads),
+                               mastersts='submods={substs}, heads={headsts}'.format(
+                                   substs=summ(pi.main_subs),
+                                   headsts=summ(pi.main_heads),
+                               )))
+            else:
+                raise TypeError('No translation for pr_projstatus_fail param type %s'
+                                % type(notification.params))
 
-            return action_type, 'Failing {numfail} of {numtotal} {n.subject} builds.'.format(
-                n=notification,
-                numfail=len(notification.params.fails),
-                numtotal=len(notification.params.fails)+len(notification.params.goods))
+            return action_type, txt
 
         return None, None
 

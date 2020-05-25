@@ -215,19 +215,59 @@ class PRData(object):
         ])
 
 @attr.s(frozen=True)
-class PRFailData(object):
-    prtype = attr.ib() # PR_Solo, PR_Repogroup, or PR_Grouped
-    prcfg = attr.ib() # list of PRCfg or BranchCfg
+class BldSet(object):
+    brtype = attr.ib() # "pullreq" or "regular"
+    strategy = attr.ib() # "submodules", "heads" or "regular"
     goods = attr.ib(converter=sorted) # list of BuildNames
     fails = attr.ib(converter=sorted) # list of BuildNames
 
     def as_fact(self):
-        return ''.join(['prfaildata(',
-                        self.prtype.as_fact(), ',',
-                        '[', ','.join([c.as_fact() for c in self.prcfg]), '],',
-                        '[', ','.join([fact_str(bn) for bn in self.goods]), '],',
-                        '[', ','.join([fact_str(bn) for bn in self.fails]), ']',
-                        ')'])
+        return ('bldset(' +
+                ', '.join([self.brtype,
+                           self.strategy,
+                           fact_list(self.goods),
+                           fact_list(self.fails),
+                ]) +
+                ')')
+
+@attr.s(frozen=True)
+class PRFailedSubBlds(PRData):
+    pr_subs = attr.ib()    # BldSet for pullreq submodules
+    pr_heads = attr.ib()   # BldSet for pullreq heads
+    main_heads = attr.ib() # BldSet for main branch heads
+    main_subs = attr.ib()  # BldSet for main branch submodules
+
+    def as_fact(self):
+        return ('prfailedblds(' +
+                ', '.join([super()._as_fact_fields(),
+                           self.pr_subs.as_fact(),
+                           self.pr_heads.as_fact(),
+                           self.main_heads.as_fact(),
+                           self.main_subs.as_fact(),
+                ]) +
+                ')')
+
+@attr.s(frozen=True)
+class PRFailedStdBlds(PRData):
+    pr_blds = attr.ib()    # list of BldSet for pullreq standard
+    main_blds = attr.ib() # list of BldSet for main branch standard
+
+    def as_fact(self):
+        return ('prfailedblds(' +
+                ', '.join([super()._as_fact_fields(),
+                           self.pr_subs.as_fact(),
+                           self.pr_blds.as_fact(),
+                           self.main_blds.as_fact(),
+                ]) +
+                ')')
+
+def pr_failedblds(*args):
+    if len(args) == 4:
+        return PRFailedStdBlds(*args)
+    elif len(args) == 6:
+        return PRFailedSubBlds(*args)
+    else:
+        raise IndexError('pr_faildblds with %d args not implemented' % len(args))
 
 @attr.s(frozen=True)
 class CompletelyFailing(object):
@@ -312,7 +352,8 @@ logic_result_expr = {
     "pr_projstatus_good": "pr_projstatus_good",
     "pr_projstatus_fail": "pr_projstatus_fail",
     "prdata": PRData,
-    "prfaildata": PRFailData,
+    "prfailedblds": pr_failedblds,
+    "bldset": BldSet,
     "complete_failure": lambda *args: CompletelyFailing(*args),
 
     "var_handled_separately": lambda *args: SepHandledVar(*args),

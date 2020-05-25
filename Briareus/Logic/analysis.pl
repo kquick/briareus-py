@@ -211,7 +211,7 @@ action(notify(pr_projstatus_good, Project, prdata(PRType, PRCfg))) :-
     , NGood > 0
 .
 
-action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fails))) :-
+action(notify(pr_projstatus_fail, Project, PRData)) :-
     project(Project)
     , pr_config(PRType, Project, PRCfg)
     % Get all pr_status reports for this project
@@ -221,28 +221,109 @@ action(notify(pr_projstatus_fail, Project, prfaildata(PRType, PRCfg, Goods, Fail
     % Ensure that there are no in-progress and at least on failure
     , maplist(pr_status_blds_pend, Blds, PendBldCnts)
     , maplist(pr_status_blds_fail, Blds, FailBlds)
+    , sum_list(PendBldCnts, 0)
+    , foldl(append, FailBlds, [], Fails)
+    , length(Fails, NFail)
+    , NFail > 0
+    % Collect data for this result
+    , pr_projdata(pr_config(PRType, Project, PRCfg), PRData)
+.
+
+
+:- table pr_projdata/2.
+
+pr_projdata(pr_config(PRType, Project, PRCfg), Data) :-
+    pr_projblds(pr_config(PRType, Project, PRCfg), submodules, PrSGoods, PrSFails)
+
+    , length(PrSGoods, NSGoodBlds)
+    , length(PrSFails, NSFailBlds)
+    , NPrSBlds is NSGoodBlds + NSFailBlds
+    , NPrSBlds > 0   % if this fails, then the "standard" strategy should match
+
+    , pr_projblds(pr_config(PRType, Project, PRCfg), heads, PrHGoods, PrHFails)
+    , main_projblds(Project, submodules, MSGoods, MSFails)
+    , main_projblds(Project, heads, MHGoods, MHFails)
+
+    , Data = prfailedblds(PRType, PRCfg,
+                          bldset(pullreq, submodules, PrSGoods, PrSFails),
+                          bldset(pullreq, heads, PrHGoods, PrHFails),
+                          bldset(regular, heads, MHGoods, MHFails),
+                          bldset(regular, submodules, MSGoods, MSFails))
+.
+
+pr_projdata(pr_config(PRType, Project, PRCfg), Data) :-
+    pr_projblds(pr_config(PRType, Project, PRCfg), standard, PrSGoods, PrSFails)
+
+    , length(PrSGoods, NSGoodBlds)
+    , length(PrSFails, NSFailBlds)
+    , NPrSBlds is NSGoodBlds + NSFailBlds
+    , NPrSBlds > 0   % if this fails, then the "submodules" strategy should match
+
+    , main_projblds(Project, standard, MSGoods, MSFails)
+
+    , Data = prfailedblds(PRType, PRCfg,
+                          bldset(pullreq, regular, PrSGoods, PrSFails),
+                          bldset(regular, regular, MSGoods, MSFails))
+.
+
+pr_projblds(pr_config(PRType, Project, PRCfg), Strategy, Goods, Fails) :-
+    findall(PR_Status_Blds
+              , report(pr_status, pr_status(PRType, _Branch, Project, Strategy, PRCfg, PR_Status_Blds))
+              , Blds)
+    , length(Blds, NBlds)
+    , NBlds > 0   % if this fails, then this strategy was wrong
+    , maplist(pr_status_blds_pend, Blds, PendBldCnts)
+    , maplist(pr_status_blds_fail, Blds, FailBlds)
     , maplist(pr_status_blds_good, Blds, GoodBlds)
     , sum_list(PendBldCnts, 0)
     , foldl(append, FailBlds, [], Fails)
     , foldl(append, GoodBlds, [], Goods)
-    , length(Fails, NFail)
-    , NFail > 0
-.
+                       .
+
+main_projblds(Project, Strategy, Goods, Fails) :-
+    project(Project, ProjRepo)
+    , is_main_branch(ProjRepo, Branch)
+    , findall(BldNameG
+              , (good_status(Status)
+                 , report(_GTag,
+                          status_report(Status, Project, Strategy, regular, Branch, BldNameG,
+                                        _GVars, _GBldDesc))
+                )
+              , Goods)
+    , findall(BldNameF
+              , (report(_FTag,
+                        status_report(Status, Project, Strategy, regular, Branch, BldNameF,
+                                      _FVars, _FBldDesc))
+                 , bad_status(Status)
+                )
+              , Fails)
+    .
+
 
 % Filter notify(pr_projstatus_X, ...) to the specified PR.
-notify_is_for_PR(notify(_, _, prdata(PRType, _)), PRTy) :-
-    PRType,
-    cmpPrType(PRType, PRTy, _).
-notify_is_for_PR(notify(_, _, prfaildata(PRType, _, _, _)), PRTy) :-
-    PRType,
-    cmpPrType(PRType, PRTy, _).
+notify_is_for_PR(notify(_, Project, prdata(PRType, _)), PRTy) :-
+    pr_config(PRType, Project, _)
+    , cmpPrType(PRType, PRTy, _)
+    .
+notify_is_for_PR(notify(_, Project, prfailedblds(PRType, _, _, _)), PRTy) :-
+    pr_config(PRType, Project, _)
+    , cmpPrType(PRType, PRTy, _)
+    .
+notify_is_for_PR(notify(_, Project, prfailedblds(PRType, _, _, _, _, _)), PRTy) :-
+    pr_config(PRType, Project, _)
+    , cmpPrType(PRType, PRTy, _)
+    .
 
 % Filter notify(any, ...) for association with the specified users
 notify_is_for_user(notify(_, _, prdata(_, PRCfgs)), User) :-
     prcfg_has_user(PRCfgs, User)
     , !  % one is enough
 .
-notify_is_for_user(notify(_, _, prfaildata(_, PRCfgs, _, _)), User) :-
+notify_is_for_user(notify(_, _, prfailedblds(_, PRCfgs, _, _)), User) :-
+    prcfg_has_user(PRCfgs, User)
+    , !  % one is enough
+.
+notify_is_for_user(notify(_, _, prfailedblds(_, PRCfgs, _, _, _, _)), User) :-
     prcfg_has_user(PRCfgs, User)
     , !  % one is enough
 .
@@ -261,7 +342,14 @@ forge_status_repos(AllowedRepos, prdata(_, PRCfg), TargetRepos) :-
             )
             , TargetRepos)
 .
-forge_status_repos(AllowedRepos, prfaildata(_, PRCfg, _, _), TargetRepos) :-
+forge_status_repos(AllowedRepos, prfailedblds(_, PRCfg, _, _), TargetRepos) :-
+    findall(TargetRepo
+            , (member(TargetRepo, AllowedRepos)
+               , repo_in_prcfg(TargetRepo, PRCfg)
+            )
+            , TargetRepos)
+.
+forge_status_repos(AllowedRepos, prfailedblds(_, PRCfg, _, _, _, _), TargetRepos) :-
     findall(TargetRepo
             , (member(TargetRepo, AllowedRepos)
                , repo_in_prcfg(TargetRepo, PRCfg)
