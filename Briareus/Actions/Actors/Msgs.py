@@ -89,3 +89,12 @@ class NewForgeStatus(object):
 class Posted(object):      # Response to NewForgeStatus
     envelope = attr.ib()   # NewForgeStatus
     successful = attr.ib() # list of proj_url
+
+@attr.s
+class ForgeStatusResults(object):
+    succeeded = attr.ib() # boolean
+    project   = attr.ib() # string
+    rev       = attr.ib() # target VCS revision hash string
+    projrepos = attr.ib() # repos for which these results were set
+    status    = attr.ib() # posted status (string)
+    message   = attr.ib() # on failure

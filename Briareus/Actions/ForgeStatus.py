@@ -57,6 +57,11 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
                      for each in runctxt.result_sets
                      if project == each.inp_desc.PNAME ][0] # must match at least one!
 
+    # Modules may share the same actual repository, so the status need
+    # only be set once for the entire repository.  Build a translation
+    # dictionary from url locations and revision to the list of
+    # modules.
+
     url_and_rev = defaultdict(list)  # key=(loc, rev), value = [repos]
 
     for r in (list(proj_results.inp_desc.RL) +     # r is Description.RepoDesc
@@ -64,6 +69,8 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
         if r.repo_name in forge_list:
             repo, loc, rev = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
             url_and_rev[(loc,rev)].append(repo)
+
+    # Determine the status to set, and the details URL to post with each status
 
     sts = { "pr_projstatus_pending": "pending",
             "pr_projstatus_good": "success",
@@ -81,7 +88,10 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
     print('Forge post "', desc, '" [',sts,'] about ',
           notify_params.prtype,'to', url_and_rev,'and url',stsurl)
 
-    # Use a global name for this actor to re-connect to the existing "daemon"
+    # Now pass the details to the actor troupe that will actually set
+    # the status.  The actors will set the status concurrently to
+    # accomodate slow forge responses or errors.  Use a global name
+    # for this actor to re-connect to the existing "daemon"
     rsp = asys.ask(asys.createActor('Briareus.Actions.Actors.SetForgeStatus.SetForgeStatus',
                                     globalName='SetForgeStatus'),
                    toJSON(
@@ -101,9 +111,9 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
                    SET_FORGE_STATUS_TIMEOUT)
     if rsp == None:
         raise RuntimeError('Timeout waiting for SetForgeStatus response')
+
     rspobj = fromJSON(rsp)
     if isinstance(rspobj, Posted):
-        print('got',type(rspobj.successful),rspobj.successful)
         return set(rspobj.successful)
     raise RuntimeError('Unexpected response to SetForgeStatus request: %s' % str(rsp))
 

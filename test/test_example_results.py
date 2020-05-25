@@ -13,6 +13,7 @@ import pytest
 from unittest.mock import (patch, ANY, call)
 from test_example import input_spec
 from datetime import timedelta
+from thespian.actors import ActorSystem
 
 
 gitactor = GitExample1
@@ -510,9 +511,10 @@ bugfix9_prfaildata=PRFailedSubBlds(
     ),
 )
 
-@patch('Briareus.Actions.ForgeStatus.GitForge')
-@patch('Briareus.Actions.ForgeStatus.os.getenv')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydra_results):
+    asys = ActorSystem('simpleSystemBase')
     getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
 
     bldcfgs, ctxt = generate_hydra_results(
@@ -543,9 +545,10 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
         ],
         any_order=True)
 
-@patch('Briareus.Actions.ForgeStatus.GitForge')
-@patch('Briareus.Actions.ForgeStatus.os.getenv')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydra_results):
+    asys = ActorSystem('simpleSystemBase')
     getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
 
     bldcfgs, ctxt = generate_hydra_results(
@@ -590,9 +593,10 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
         ],
         any_order=True)
 
-@patch('Briareus.Actions.ForgeStatus.GitForge')
-@patch('Briareus.Actions.ForgeStatus.os.getenv')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hydra_results):
+    asys = ActorSystem('simpleSystemBase')
     getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
 
     bldcfgs, ctxt = generate_hydra_results(
@@ -614,12 +618,12 @@ def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hy
                           updated=["R2", "R4"]) in reps
 
     for each in gitforge().set_commit_status.call_args_list:
-        assert each.ref not in ['r2_b9_mergeref', 'r1_bf9_mergeref' ]
+        assert each.ref not in ['r2_b9_mergeref', 'r1_bf9_patch' ]
 
-
-@patch('Briareus.Actions.ForgeStatus.GitForge')
-@patch('Briareus.Actions.ForgeStatus.os.getenv')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hydra_results):
+    asys = ActorSystem('simpleSystemBase')
     getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
 
     bldcfgs, ctxt = generate_hydra_results(
@@ -652,9 +656,10 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
         ],
         any_order=True)
 
-@patch('Briareus.Actions.ForgeStatus.GitForge')
-@patch('Briareus.Actions.ForgeStatus.os.getenv')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate_hydra_results):
+    asys = ActorSystem('simpleSystemBase')
     getenv.side_effect = lambda var, defval=None: "1" if var == 'BRIAREUS_FORGE_STATUS' else defval
 
     bldcfgs, ctxt = generate_hydra_results(
