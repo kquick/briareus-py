@@ -1,0 +1,20 @@
+{
+  "Repos" : [ ("Repo1", "r1_url"),
+              ("Repo2", "r2_url"),
+              ("Repo3", "r3_url"),
+            ]
+, "Branches" : [ "master", "develop" ]
+, "Variables" : {
+      "ghcver" : [ "ghc844", "ghc865", "ghc881" ],
+  }
+, "Reporting" : {
+      "logic": """
+project_owner("Repo1", "george@_company.com").
+
+project_owner("Repo3", "john@not_a_company.com").
+
+action_type(email, "fred@nocompany.com", "Repo1").
+action_type(email, "anne@nocompany.com", "Repo1", master_submodules_broken).
+      """
+  }
+}
