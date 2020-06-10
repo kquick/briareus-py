@@ -52,11 +52,8 @@ class FileWriterSession(object):
         self._ended = False
 
     def add_file(self, fname, gen_contents):
-        tmp_subpath = os.path.dirname(fname)
-        tmpdir = os.path.join(self.tempdir, tmp_subpath)
-        os.makedirs(tmpdir, exist_ok=True)
         newfile = AtomicUpdFileWriter(fname, gen_contents,
-                                      tempdir=tmpdir,
+                                      tempdir=self.tempdir,
                                       in_session=True)
         newfile.generate_new_tempfile()
         self.files.append(newfile)
@@ -72,11 +69,21 @@ class AtomicUpdFileWriter(object):
     """Used to atomically update the target file, and to make no changes
        (even file metadata changes) if the file hasn't changed.
 
-       Passed the target filename and the function that will output
-       contents given a file-stream argument.  The tempdir optional
-       argument can specify where the temporary files are to be
-       generated.  The in_session argument is intended to be used only
-       by the FileWriterSession object.
+       Passed the target filepath and the function that will
+       output contents given a file-stream argument.  The tempdir
+       optional argument can specify where the temporary files are to
+       be generated.  The in_session argument is intended to be used
+       only by the FileWriterSession object.
+
+       The target filepath may be absolute, or it may be relative to
+       the current directory, similar to normal file creation
+       operations.  If the target filepath is absolute, the temporary
+       storage of that file will still be in the special temporary
+       location, but it is possible that the temporary location and
+       the resulting target location will be on different filesystems
+       (this is also possible even with relative paths, but it is more
+       likely to occur when an absolute path is used).
+
     """
     def __init__(self, fname, gen_contents, tempdir=None, in_session=False):
         self.tempdir = use_tempdir(tempdir)
@@ -85,8 +92,9 @@ class AtomicUpdFileWriter(object):
         # goes, so adding a ".new" extension prevents collisions.
         # However, collisions aren't actually checked for... that
         # might be a good thing to add here someday.
-        self.temp_fname = os.path.join(self.tempdir.name,
-                                       os.path.basename(self.fname) + ".new")
+        self.temp_fname = os.path.join(
+            self.tempdir.name,
+            (fname[1:] if fname[0] == '/' else fname) + ".new")
         self.gen_contents = gen_contents
         self._generated = False
         if not in_session:
@@ -97,6 +105,7 @@ class AtomicUpdFileWriter(object):
         self.atomic_update()
 
     def generate_new_tempfile(self):
+        os.makedirs(os.path.dirname(self.temp_fname), exist_ok=True)
         with open(self.temp_fname, 'w') as outf:
             self.gen_contents(outf)
         self._generated = True
