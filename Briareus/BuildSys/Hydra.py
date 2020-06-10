@@ -72,7 +72,7 @@ class HydraBuilder(BuilderBase.Builder):
         """
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
-        project_name = input_cfg.get('project_name', 'unnamed')
+        project_name = input_cfg.get('project_name', input_desc.PNAME)
         gen_files_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) \
             if bldcfg_fname else None
