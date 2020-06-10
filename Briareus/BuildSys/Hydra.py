@@ -519,7 +519,7 @@ class VCSInputs(object):
 
     @staticmethod
     def _collated_input_name(key_for):
-        return '-'.join(list(key_for)).replace('.','---').replace('/','--')
+        return '-'.join(list(key_for)).replace('.','----').replace('/','--').replace('_','---')
 
     def _collated_vcs_input_jobsets(self, gen_files_path,
                                     additional_passthru_inputs=[]):

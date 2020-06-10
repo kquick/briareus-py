@@ -81,9 +81,9 @@ def verify_repo1_hydracfg(bpath, bldcfgs):
         *tuple([
             VerifyBldCfg('develop.submodules-'+ghcver,
                          VerifyInput('Repo1-src', 'build', 'Repo1-inputs:update_inputs:Repo1-develop'),
-                         VerifyInput('Repo2-src', 'build', 'Repo1-inputs:update_inputs:Repo2-r2_develop_head'),
-                         VerifyInput('Repo3-src', 'build', 'Repo1-inputs:update_inputs:Repo3-r3_develop_head'),
-                         VerifyInput('Repo4-src', 'build', 'Repo1-inputs:update_inputs:Repo4-r4_master_head'),
+                         VerifyInput('Repo2-src', 'build', 'Repo1-inputs:update_inputs:Repo2-r2---develop---head'),
+                         VerifyInput('Repo3-src', 'build', 'Repo1-inputs:update_inputs:Repo3-r3---develop---head'),
+                         VerifyInput('Repo4-src', 'build', 'Repo1-inputs:update_inputs:Repo4-r4---master---head'),
                          # VerifyInput('Repo1-src', 'git', 'r1_url develop'),
                          # VerifyInput('Repo2-src', 'git', 'r2_url r2_develop_head'),
                          # VerifyInput('Repo3-src', 'git', 'r3_url r3_develop_head'),
@@ -109,9 +109,9 @@ def verify_repo1_hydracfg(bpath, bldcfgs):
         *tuple([
             VerifyBldCfg('master.submodules-'+ghcver,
                          VerifyInput('Repo1-src', 'build', 'Repo1-inputs:update_inputs:Repo1-master'),
-                         VerifyInput('Repo2-src', 'build', 'Repo1-inputs:update_inputs:Repo2-r2_master_head'),
-                         VerifyInput('Repo3-src', 'build', 'Repo1-inputs:update_inputs:Repo3-r3_master_head^3'),
-                         VerifyInput('Repo4-src', 'build', 'Repo1-inputs:update_inputs:Repo4-r4_master_head^1'),
+                         VerifyInput('Repo2-src', 'build', 'Repo1-inputs:update_inputs:Repo2-r2---master---head'),
+                         VerifyInput('Repo3-src', 'build', 'Repo1-inputs:update_inputs:Repo3-r3---master---head^3'),
+                         VerifyInput('Repo4-src', 'build', 'Repo1-inputs:update_inputs:Repo4-r4---master---head^1'),
                          # VerifyInput('Repo1-src', 'git', 'r1_url master'),
                          # VerifyInput('Repo2-src', 'git', 'r2_url r2_master_head'),
                          # VerifyInput('Repo3-src', 'git', 'r3_url r3_master_head^3'),
@@ -182,9 +182,9 @@ def verify_repo1_hydracfg(bpath, bldcfgs):
                      # VerifyInput('Repo4-develop-src', 'git', 'r4_url master'),
 
                      # VerifyInput('Repo1-develop-src', 'git', 'r1_url develop'),
-                     VerifyInput('Repo2-r2_develop_head-src', 'git', 'r2_url r2_develop_head'),
-                     VerifyInput('Repo3-r3_develop_head-src', 'git', 'r3_url r3_develop_head'),
-                     VerifyInput('Repo4-r4_master_head-src', 'git', 'r4_url r4_master_head'),
+                     VerifyInput('Repo2-r2---develop---head-src', 'git', 'r2_url r2_develop_head'),
+                     VerifyInput('Repo3-r3---develop---head-src', 'git', 'r3_url r3_develop_head'),
+                     VerifyInput('Repo4-r4---master---head-src', 'git', 'r4_url r4_master_head'),
 
                      VerifyInput('Repo1-master-src', 'git', 'r1_url master'),
                      VerifyInput('Repo2-master-src', 'git', 'r2_url master'),
@@ -192,9 +192,9 @@ def verify_repo1_hydracfg(bpath, bldcfgs):
                      VerifyInput('Repo4-master-src', 'git', 'r4_url master'),
 
                      # VerifyInput('Repo1-src', 'git', 'r1_url master'),
-                     VerifyInput('Repo2-r2_master_head-src', 'git', 'r2_url r2_master_head'),
-                     VerifyInput('Repo3-r3_master_head^3-src', 'git', 'r3_url r3_master_head^3'),
-                     VerifyInput('Repo4-r4_master_head^1-src', 'git', 'r4_url r4_master_head^1'),
+                     VerifyInput('Repo2-r2---master---head-src', 'git', 'r2_url r2_master_head'),
+                     VerifyInput('Repo3-r3---master---head^3-src', 'git', 'r3_url r3_master_head^3'),
+                     VerifyInput('Repo4-r4---master---head^1-src', 'git', 'r4_url r4_master_head^1'),
 
                      # nixpkgs is needed for the KWQ? expression
                      admin_nixpkgs,
@@ -209,20 +209,20 @@ def verify_repo1_hydracfg(bpath, bldcfgs):
     assert_in('Repo1-develop-src', updinp_expr)
     assert_in('Repo2-develop-src', updinp_expr)
     assert_in('Repo3-develop-src', updinp_expr)
-    assert_in('Repo2-r2_develop_head-src', updinp_expr)
-    assert_in('Repo3-r3_develop_head-src', updinp_expr)
-    assert_in('Repo4-r4_master_head-src', updinp_expr)
+    assert_in('Repo2-r2---develop---head-src', updinp_expr)
+    assert_in('Repo3-r3---develop---head-src', updinp_expr)
+    assert_in('Repo4-r4---master---head-src', updinp_expr)
     assert_in('Repo1-master-src', updinp_expr)
     assert_in('Repo2-master-src', updinp_expr)
     assert_in('Repo3-master-src', updinp_expr)
     assert_in('Repo4-master-src', updinp_expr)
-    assert_in('Repo2-r2_master_head-src', updinp_expr)
+    assert_in('Repo2-r2---master---head-src', updinp_expr)
     # n.b. the following 2 are invalid nix expression names; this is
     # OK since these are made up here and actual expressions are
     # computed from git branch names which should be constrained to
     # valid nix expression names as well.
-    assert_in('Repo3-r3_master_head^3-src', updinp_expr)
-    assert_in('Repo4-r4_master_head^1-src', updinp_expr)
+    assert_in('Repo3-r3---master---head^3-src', updinp_expr)
+    assert_in('Repo4-r4---master---head^1-src', updinp_expr)
 
 # ----------------------------------------------------------------------
 
@@ -269,9 +269,9 @@ def verify_alt_proj_hydracfg(bpath, bldcfgs):
                      # VerifyInput('RAdd1-src', 'git', 'ra1_url master'),
                      # VerifyInput('RAdd2-src', 'git', 'ra2_url master'),
                      VerifyInput('Repo1-src', 'build', 'alt-proj-inputs:update_inputs:Repo1-master'),
-                     VerifyInput('Repo2-src', 'build', 'alt-proj-inputs:update_inputs:Repo2-r2_master_head'),
-                     VerifyInput('Repo3-src', 'build', 'alt-proj-inputs:update_inputs:Repo3-r3_master_head^3'),
-                     VerifyInput('Repo4-src', 'build', 'alt-proj-inputs:update_inputs:Repo4-r4_master_head^1'),
+                     VerifyInput('Repo2-src', 'build', 'alt-proj-inputs:update_inputs:Repo2-r2---master---head'),
+                     VerifyInput('Repo3-src', 'build', 'alt-proj-inputs:update_inputs:Repo3-r3---master---head^3'),
+                     VerifyInput('Repo4-src', 'build', 'alt-proj-inputs:update_inputs:Repo4-r4---master---head^1'),
                      VerifyInput('RAdd1-src', 'build', 'alt-proj-inputs:update_inputs:RAdd1-master'),
                      VerifyInput('RAdd2-src', 'build', 'alt-proj-inputs:update_inputs:RAdd2-master'),
                      VerifyInput('ghcver', 'string', 'ghc865'),
@@ -341,9 +341,9 @@ def verify_alt_proj_hydracfg(bpath, bldcfgs):
                      VerifyInput('RAdd1-master-src', 'git', 'ra1_url master'),
                      VerifyInput('RAdd2-master-src', 'git', 'ra2_url master'),
 
-                     VerifyInput('Repo2-r2_master_head-src', 'git', 'r2_url r2_master_head'),
-                     VerifyInput('Repo3-r3_master_head^3-src', 'git', 'r3_url r3_master_head^3'),
-                     VerifyInput('Repo4-r4_master_head^1-src', 'git', 'r4_url r4_master_head^1'),
+                     VerifyInput('Repo2-r2---master---head-src', 'git', 'r2_url r2_master_head'),
+                     VerifyInput('Repo3-r3---master---head^3-src', 'git', 'r3_url r3_master_head^3'),
+                     VerifyInput('Repo4-r4---master---head^1-src', 'git', 'r4_url r4_master_head^1'),
 
                      # nixpkgs is needed for the KWQ? expression
                      admin_nixpkgs,
@@ -361,13 +361,13 @@ def verify_alt_proj_hydracfg(bpath, bldcfgs):
     assert_in('Repo4-master-src', updinp_expr)
     assert_in('RAdd1-master-src', updinp_expr)
     assert_in('RAdd2-master-src', updinp_expr)
-    assert_in('Repo2-r2_master_head-src', updinp_expr)
+    assert_in('Repo2-r2---master---head-src', updinp_expr)
     # n.b. the following 2 are invalid nix expression names; this is
     # OK since these are made up here and actual expressions are
     # computed from git branch names which should be constrained to
     # valid nix expression names as well.
-    assert_in('Repo3-r3_master_head^3-src', updinp_expr)
-    assert_in('Repo4-r4_master_head^1-src', updinp_expr)
+    assert_in('Repo3-r3---master---head^3-src', updinp_expr)
+    assert_in('Repo4-r4---master---head^1-src', updinp_expr)
 
 
 def verify_cfg_instructions(bpath, instrs):
