@@ -109,7 +109,7 @@ class HydraBuilder(BuilderBase.Builder):
                      if self._conf_file else {})
         project_name = input_cfg.get('project_name', input_desc.PNAME)
         gen_files_path = os.path.abspath(
-            os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) \
+            os.path.join(os.path.dirname(bldcfg_fname), 'hydra', project_name)) \
             if bldcfg_fname else None
         gen_files_pathsub = lambda s: os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra', s)) \
