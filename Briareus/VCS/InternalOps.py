@@ -220,7 +220,8 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # collection didn't have the URL, so it couldn't
                 # generate an actual URL.
                 p.pullreq_srcurl = [ r.repo_url
-                                     for r in self.RL if r.repo_name == msg.reponame ][0]  # must match
+                                     for r in self._all_repos()
+                                     if r.repo_name == msg.reponame ][0] # must exist if we got to here
             elif isinstance(p.pullreq_srcurl, tuple) and \
                  p.pullreq_srcurl[0] == 'DifferentProject':
                 # This is likely a GitLab repo, where the merge
