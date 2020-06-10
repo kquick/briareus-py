@@ -2,12 +2,15 @@
 
 from Briareus.Types import PR_Solo, PR_Repogroup
 
-def fix_branchname(branchname):
+def fix_jobname(branchname):
     """Git (and other VCS tools) allows all sorts of characters in a
        branch name (a common form often seen is "bugfix/foo"), but a
        Hydra jobset and a URL specification are much more restricted.
        This function ensures that a valid jobset and URL specification
        are generated for the branch.
+
+       This is also used for converting variant values that are
+       included in the jobname.
 
     """
     # Although this is a generic Builder fixup, the Hydra restriction
@@ -34,7 +37,13 @@ def fix_branchname(branchname):
     #    is convenient, but not necessary.
     #
     #  * The jobset name does not have to be a valid branch name
-    return branchname.replace('/', '__')
+    #
+    #  * Postgresql uses '_' as a wildcard character in some
+    #    situations, and unfortunately apparently when checking for
+    #    primary key uniqueness constraints.  This also seems to
+    #    defeat "CASCADE ON DELETE" relations, so the underscore
+    #    character is avoided.
+    return branchname.replace('/', '--')
 
 
 def buildcfg_name(bldcfg):
@@ -44,8 +53,9 @@ def buildcfg_name(bldcfg):
         varparts = [ vdict[n] for n in vnames ]
     else:
         varparts = []
-    parts = "-".join([".".join([ fix_branchname(bldcfg.branchname),
-                                 bldcfg.strategy])] + varparts)
+    parts = "-".join([".".join([ bldcfg.branchname, bldcfg.strategy])] +
+                     varparts)
+
     if bldcfg.branchtype == "pullreq":
 
         # n.b. a PR jobset is not identified by a single PR number
@@ -117,10 +127,5 @@ def buildcfg_name(bldcfg):
         # The bldcfg.description for strategy=pullreq is the pr_type.
         prinfo = "PR" + getattr(bldcfg.description, 'pullreq_id', '')
 
-        return '-'.join([prinfo] +
-                        ['.'.join([fix_branchname(bldcfg.branchname),
-                                   bldcfg.strategy])] +
-                        varparts)
-    return '-'.join(['.'.join([fix_branchname(bldcfg.branchname),
-                               bldcfg.strategy])] +
-                    varparts)
+        return fix_jobname('-'.join([prinfo, parts]))
+    return fix_jobname(parts)
