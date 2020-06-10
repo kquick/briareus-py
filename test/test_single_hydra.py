@@ -78,7 +78,7 @@ def verify_primary_cfg_uncollated(bpath, bldcfgs):
                         'https://github.com/NixOS/nixpkgs-channels nixos-19.09'),
             # The copy_hh_src input is needed to copy the output
             # briareus config file (bldcfgs[None]) to the nix store
-            VerifyInput('copy_hh_src', 'path', bpath + '/hydra'),
+            VerifyInput('copy_hh_src', 'path', bpath + '/hydra/_common'),
             # The hh_output input is the source for the copy operation
             VerifyInput('hh_output', 'path', bpath + '/fname'),
             nixexprinput = 'copy_hh_src',

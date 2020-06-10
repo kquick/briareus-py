@@ -111,6 +111,9 @@ class HydraBuilder(BuilderBase.Builder):
         gen_files_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) \
             if bldcfg_fname else None
+        gen_files_pathsub = lambda s: os.path.abspath(
+            os.path.join(os.path.dirname(bldcfg_fname), 'hydra', s)) \
+            if bldcfg_fname else None
         collated_inputs = self._collate_directive if bldcfg_fname else False
         vcs_inputs = VCSInputs(project_name, collated_inputs)
 
@@ -243,7 +246,7 @@ class HydraBuilder(BuilderBase.Builder):
                 inpcfg_fname,
                 "copy_hh_src") \
                 .add_input('hh_output', mkpath(bldcfg_fname), 'path') \
-                .add_input('copy_hh_src', gen_files_path, 'path') \
+                .add_input('copy_hh_src', gen_files_pathsub('_common'), 'path') \
                 .add_input('nixpkgs', recent_nixpkgs)
 
             if 'jobset' in input_cfg:
