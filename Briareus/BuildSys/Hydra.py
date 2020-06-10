@@ -130,9 +130,10 @@ class HydraBuilder(BuilderBase.Builder):
             return {None: json.dumps({ n: jobsets[n].spec() for n in jobsets },
                                      sort_keys=True) }
 
-        proj_cfgfname = project_name + '-hydra-project-config.json'
+        proj_cfgfname = os.path.join(gen_files_pathsub(project_name),
+                                     project_name + '-hydra-project-config.json')
         mkpath = lambda fname: os.path.abspath(
-            os.path.join(gen_files_path, fname))
+            os.path.join(gen_files_pathsub(project_name), fname))
 
         if collated_inputs:
             projcfg_job = project_name + '-cfg'
@@ -161,9 +162,10 @@ class HydraBuilder(BuilderBase.Builder):
                                 inpty)
 
             update_inputs_jobset, vcs_files = \
-                vcs_inputs.vcs_input_jobsets(gen_files_path, projcfgs)
-            inps_cfgfname = project_name + '-hydra-inputs-config.json'
-            inpcfg_fname = "gen_inpupd.nix"
+                vcs_inputs.vcs_input_jobsets(gen_files_pathsub(project_name), projcfgs)
+            inps_cfgfname = os.path.join(gen_files_pathsub(project_name),
+                                         project_name + '-hydra-inputs-config.json')
+            inpcfg_fname = os.path.join(gen_files_pathsub('_common'), "gen_inpupd.nix")
             inpcfg_body = '\n'.join([
                 '{ nixpkgs, inpupd_jobset_def }:',
                 '{ jobsets =',
@@ -174,19 +176,20 @@ class HydraBuilder(BuilderBase.Builder):
                 '    };',
                 '}', ''
             ])
-            inpupd_jobset_fname = project_name + "_inpupd_jobsets.json"
+            inpupd_jobset_fname = mkpath(project_name + "_inpupd_jobsets.json")
             inpupd_jobset_body = json.dumps(update_inputs_jobset)
             inp_cfgjobset = Jobset(
                 'Briareus-generated %s Project inputs declaration'
                 % project_name,
-                inpcfg_fname,
+                os.path.basename(inpcfg_fname),
                 "inpupd_cfg") \
-                .add_input("inpupd_cfg", gen_files_path, 'path') \
-                .add_input("inpupd_jobset_def", mkpath(inpupd_jobset_fname),
+                .add_input("inpupd_cfg", os.path.dirname(inpcfg_fname), 'path') \
+                .add_input("inpupd_jobset_def", inpupd_jobset_fname,
                            'path') \
                 .add_input('nixpkgs', recent_nixpkgs)
 
-            projcfg_fname = "gen_proj_jobsets.nix"
+            projcfg_fname = os.path.join(gen_files_pathsub('_common'),
+                                         "gen_proj_jobsets.nix")
             projcfg_body = '\n'.join([
                 '{ nixpkgs, projcfg }:',
                 '{ jobsets =',
@@ -199,9 +202,9 @@ class HydraBuilder(BuilderBase.Builder):
             ])
             proj_cfgjobset = Jobset(
                 "Briareus-generated %s Project declaration" % project_name,
-                projcfg_fname,
+                os.path.basename(projcfg_fname),
                 "mkjobsets") \
-                .add_input("mkjobsets", gen_files_path, 'path') \
+                .add_input("mkjobsets", os.path.dirname(projcfg_fname), 'path') \
                 .add_input("projcfg",
                            ':'.join([project_name + "-inputs",
                                      list(update_inputs_jobset.keys())[0],
@@ -212,9 +215,9 @@ class HydraBuilder(BuilderBase.Builder):
             otherfiles = [
                 ( proj_cfgfname, json.dumps(proj_cfgjobset.spec()) ),
                 ( inps_cfgfname, json.dumps(inp_cfgjobset.spec()) ),
-                ( mkpath(inpcfg_fname), inpcfg_body ),
-                ( mkpath(inpupd_jobset_fname), inpupd_jobset_body ),
-                ( mkpath(projcfg_fname), projcfg_body ),
+                ( inpcfg_fname, inpcfg_body ),
+                ( inpupd_jobset_fname, inpupd_jobset_body ),
+                ( projcfg_fname, projcfg_body ),
                 ( project_name + ".txt",
                   '\n'.join([
                       'Instructions for configuring Hydra for the %s project:'
@@ -222,31 +225,33 @@ class HydraBuilder(BuilderBase.Builder):
                       '',
                       '  1. Create a new project on the Hydra system',
                       '     a. Identifer = %s-inputs' % project_name,
-                      '     b. Declarative spec file = %s' % inps_cfgfname,
+                      '     b. Declarative spec file = %s'
+                      % os.path.basename(inps_cfgfname),
                       '     c. Declarative input',
                       '         type: Local path or URL',
                       '         value: ' + os.path.abspath(
-                          os.path.dirname(bldcfg_fname)),
+                          os.path.dirname(inps_cfgfname)),
                       '',
                       '  2. Create a new project on the Hydra system',
                       '     a. Identifer = %s' % project_name,
-                      '     b. Declarative spec file = %s' % proj_cfgfname,
+                      '     b. Declarative spec file = %s'
+                      % os.path.basename(proj_cfgfname),
                       '     c. Declarative input',
                       '         type: Local path or URL',
                       '         value: ' + os.path.abspath(
-                          os.path.dirname(bldcfg_fname)),
+                          os.path.dirname(proj_cfgfname)),
                       '',
                   ]) ),
             ] + vcs_files
         else:
-                                     # Not collated mode
-            inpcfg_fname = "copy_hh.nix"
+            # Non-collated mode
+            inpcfg_fname = os.path.join(gen_files_pathsub('_common'), "copy_hh.nix")
             projectdef_jobset = Jobset(
                 "Briareus-generated %s Project declaration" % project_name,
-                inpcfg_fname,
+                os.path.basename(inpcfg_fname),
                 "copy_hh_src") \
                 .add_input('hh_output', mkpath(bldcfg_fname), 'path') \
-                .add_input('copy_hh_src', gen_files_pathsub('_common'), 'path') \
+                .add_input('copy_hh_src', os.path.dirname(inpcfg_fname), 'path') \
                 .add_input('nixpkgs', recent_nixpkgs)
 
             if 'jobset' in input_cfg:
@@ -279,11 +284,12 @@ class HydraBuilder(BuilderBase.Builder):
                       '',
                       '  1. Create a new project on the Hydra system',
                       '     a. Identifer = %s' % project_name,
-                      '     b. Declarative spec file = %s' % proj_cfgfname,
+                      '     b. Declarative spec file = %s'
+                      % os.path.basename(proj_cfgfname),
                       '     c. Declarative input',
                       '         type: Local path or URL',
                       '         value: ' + os.path.abspath(
-                          os.path.dirname(bldcfg_fname)),
+                          os.path.dirname(proj_cfgfname)),
                       '',
                   ]) ),
             ] + vcs_files
