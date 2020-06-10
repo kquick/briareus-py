@@ -42,11 +42,9 @@ class FileWriterSession(object):
        as possible instead of spreading the updates out over a broader
        period of time.
 
-       Also note that a single temporary location is used for all
-       updated files, irrespective of any path element of the ultimate
-       target.  This means that if any of the files share the same
-       filename that there will be a collision/overwrite.
-
+       Path portions of the result files are duplicated underneath the
+       temporary base directory, so file collisions will only occur on
+       full path references.
     """
     def __init__(self, tempdir=None):
         self.files = []
@@ -54,8 +52,11 @@ class FileWriterSession(object):
         self._ended = False
 
     def add_file(self, fname, gen_contents):
+        tmp_subpath = os.path.dirname(fname)
+        tmpdir = os.path.join(self.tempdir, tmp_subpath)
+        os.makedirs(tmpdir, exist_ok=True)
         newfile = AtomicUpdFileWriter(fname, gen_contents,
-                                      tempdir=self.tempdir,
+                                      tempdir=tmpdir,
                                       in_session=True)
         newfile.generate_new_tempfile()
         self.files.append(newfile)
@@ -110,4 +111,6 @@ class AtomicUpdFileWriter(object):
                 os.remove(self.temp_fname)
                 return
         if os.path.exists(self.temp_fname):
+            if not os.path.exists(os.path.dirname(self.fname)):
+                os.makedirs(os.path.dirname(self.fname), exist_ok=True)
             os.rename(self.temp_fname, self.fname)
