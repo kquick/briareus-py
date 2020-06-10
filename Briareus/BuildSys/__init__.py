@@ -43,7 +43,7 @@ def fix_jobname(branchname):
     #    primary key uniqueness constraints.  This also seems to
     #    defeat "CASCADE ON DELETE" relations, so the underscore
     #    character is avoided.
-    return branchname.replace('/', '--')
+    return branchname.replace('/', '--').replace('_','---')
 
 
 def buildcfg_name(bldcfg):
