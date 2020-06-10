@@ -29,9 +29,38 @@ class HydraBuilder(BuilderBase.Builder):
                 }
             }
           }
+
+       Inputs:
+
+         * conf_file :: builder_conf JSON file (or None)
+
+         * builder_url :: URL of builder to fetch build results (default=None)
+
+         * collate_inputs :: if True (the default), create a separate
+                             project referencing the actual VCS inputs
+                             (e.g. git) to aggregate any VCS accesses
+                             into a single jobset instead of
+                             duplicating across all jobsets for the
+                             main project.  The main project will use
+                             the build *outputs* from the inputs
+                             project as inputs.
+
+                             The advantage of this mode is faster
+                             overall evaluation and less load on
+                             updating local copies of repositories
+                             from their remote version.  The
+                             disadvantage is a more complicated
+                             configuration and input changes require
+                             extra indirection for identifying what
+                             has changed.
+
     """
 
     builder_type = 'hydra'
+
+    def __init__(self, *args, collate_inputs=True, **kw):
+        super(HydraBuilder, self).__init__(*args, **kw)
+        self._collate_directive = collate_inputs
 
     def output_build_configurations(self, input_desc, bldcfgs,
                                     bldcfg_fname=None,
@@ -69,6 +98,12 @@ class HydraBuilder(BuilderBase.Builder):
                            description and corresponding installation
                            nix file are not generated.
 
+                           Note that if this parameter is *not*
+                           supplied, then there is no location for
+                           writing separate files, so only the primary
+                           hydra configuration is returned and there
+                           is also no collation of inputs.
+
         """
         input_cfg = (json.loads(open(self._conf_file, 'r').read())
                      if self._conf_file else {})
@@ -76,7 +111,7 @@ class HydraBuilder(BuilderBase.Builder):
         gen_files_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra')) \
             if bldcfg_fname else None
-        collated_inputs = True if bldcfg_fname else False
+        collated_inputs = self._collate_directive if bldcfg_fname else False
         vcs_inputs = VCSInputs(project_name, collated_inputs)
 
         for each in bldcfgs.cfg_build_configs:
