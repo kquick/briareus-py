@@ -330,6 +330,10 @@ Priority C means this is extended functionality to be added later
    *after* jobsets *after* briareus) can be managed by this external
    driver.
 
+** TODO [#C] thespian could use type annotation to assist with receiveMsg_x t ocall the right receiveMsg.
+** TODO [#B] compare transientidle decorator in GitRepo.py with the one in thespian
+** TODO [#C] separate "module" from "repo" 
+   where multiple of the former may appear in the latter, but the VCS portion is only concerned with the latter.
 * Hydra notes
 ** The "pull" method is slow and degrades as builds are added.
    This is exacerbated by the separate inputs pass being utilized, and
