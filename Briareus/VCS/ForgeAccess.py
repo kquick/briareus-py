@@ -4,24 +4,26 @@ from urllib.parse import urlparse, urlunparse
 from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 
-class UserURL(str): urltype='User'     # URL specified by a user, can be any form
-class SSH_URL(str): urltype='SSH'      # Form: git@github.com:project/repo
-class HTTPS_URL(str): urltype='HTTPS'  # Form: https://github.com/project/repo
-class API_URL(str): urltype='API'      # URL for accessing the API interface
-class SAME_URL(object): urltype='Same' # Same URL as referencing URL,
-                                       # but latter isn't known when
-                                       # this is set.
+class UserURL(str): 'URL specified by a user, can be any form'
+class SSH_URL(str): 'Form: git@github.com:project/repo'
+class HTTPS_URL(str): 'Form: https://github.com/project/repo'
+class API_URL(str): 'URL for accessing the API interface'
+class SAME_URL(object):
+    "Same URL as referencing URL, but latter isn't known when this is set."
+
 @attr.s(auto_attribs=True, frozen=True)
 class DIFFERENT_URL(object):
     """URL is different than the current URL, but there is not enough
-information to get an actual URL.  This can happen for gitforge merge
-request source URLs."""
+       information to get an actual URL.  This can happen for gitforge
+       merge request source URLs.
+    """
     reponame: str
     urltype: str = 'DURL'
 
 @attr.s(auto_attribs=True, frozen=True)
 class BOGUS_URL(object):
-    """Not an actual URL but something that was synthesized internally as a placeholder.  The placeholder should never actually be used."""
+    """Not an actual URL but something that was synthesized internally as
+       a placeholder.  The placeholder should never actually be used."""
     reason: str
     urltype: str = 'BOGUS'
 
