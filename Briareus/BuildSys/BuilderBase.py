@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Dict, Optional
 
 
 class BuilderURL(str): "URL to fetch build results from Builder"
+
+BuilderConfigsTy = Dict[Optional[str],str]
 
 
 # Base definitions for a Builder
@@ -12,8 +14,9 @@ class Builder(object):
         self._builder_url = builder_url
 
     def output_build_configurations(self, input_desc,
-                                    bldcfgs, bldcfg_fname=None,
-                                    verbose=False):
+                                    bldcfgs,
+                                    bldcfg_fname: str = None,
+                                    verbose: bool = False) -> BuilderConfigsTy:
         """Given an input description and the set of build configurations
            generated from the BCGen logic, return the builder-specific
            configuration of those build configurations, along with any

@@ -58,13 +58,13 @@ class HydraBuilder(BuilderBase.Builder):
 
     builder_type = 'hydra'
 
-    def __init__(self, *args, collate_inputs=True, **kw):
+    def __init__(self, *args, collate_inputs: bool = True, **kw):
         super(HydraBuilder, self).__init__(*args, **kw)
         self._collate_directive = collate_inputs
 
     def output_build_configurations(self, input_desc, bldcfgs,
                                     bldcfg_fname=None,
-                                    verbose=False):
+                                    verbose=False) -> BuilderBase.BuilderConfigsTy:
         """Given an input description and the set of build configurations
            generated from the BCGen logic, return the Hydra-specific
            configuration of those build configurations, along with any
@@ -111,9 +111,6 @@ class HydraBuilder(BuilderBase.Builder):
         gen_files_path = os.path.abspath(
             os.path.join(os.path.dirname(bldcfg_fname), 'hydra', project_name)) \
             if bldcfg_fname else None
-        gen_files_pathsub = lambda s: os.path.abspath(
-            os.path.join(os.path.dirname(bldcfg_fname), 'hydra', s)) \
-            if bldcfg_fname else None
         collated_inputs = self._collate_directive if bldcfg_fname else False
         vcs_inputs = VCSInputs(project_name, collated_inputs)
 
@@ -125,10 +122,13 @@ class HydraBuilder(BuilderBase.Builder):
                                         vcs_inputs, each)
                            for each in bldcfgs.cfg_build_configs }
 
-        if not bldcfg_fname:
+        if bldcfg_fname is None:
             # Sort by key for output stability
             return {None: json.dumps({ n: jobsets[n].spec() for n in jobsets },
                                      sort_keys=True) }
+
+        gen_files_pathsub = lambda s: os.path.abspath(
+            os.path.join(os.path.dirname(bldcfg_fname), 'hydra', s))
 
         proj_cfgfname = os.path.join(gen_files_pathsub(project_name),
                                      project_name + '-hydra-project-config.json')
@@ -506,10 +506,12 @@ class VCSInputs(object):
                 'build')
         return jobset
 
-    def vcs_input_jobsets(self, gen_files_path):
+    def vcs_input_jobsets(self, gen_files_path,
+                          additional_passthru_inputs=[]):
         if self._collated:
-            return self._collated_vcs_input_jobsets(gen_files_path)
-        return self._distinct_vcs_input_jobsets(gen_files_path)
+            return self._collated_vcs_input_jobsets(gen_files_path,
+                                                    additional_passthru_inputs)
+        return self._distinct_vcs_input_jobsets(gen_files_path, additional_passthru_inputs)
 
     def _distinct_vcs_input_jobsets(self, gen_files_path,
                                     additional_passthru_inputs=[]):
