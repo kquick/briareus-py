@@ -48,13 +48,13 @@ forge_responses = {
     '/repos/the_repo_url/pulls?state=all': b'''
 [
   {
-    "url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134",
+    "url": "https://github.com/the_repo_url/pulls/134",
     "id": 365427239,
     "node_id": "MDExOlB1bGxSZXF1ZXN0MzY1NDI3MjM5",
     "html_url": "https://localhost/the_repo_url/pull/134",
     "diff_url": "https://localhost/the_repo_url/pull/134.diff",
     "patch_url": "https://localhost/the_repo_url/pull/134.patch",
-    "issue_url": "https://github.com/the_repo_url/repos/the_repo_url/issues/134",
+    "issue_url": "https://github.com/the_repo_url/issues/134",
     "number": 134,
     "state": "open",
     "locked": false,
@@ -86,11 +86,11 @@ forge_responses = {
     ],
     "milestone": null,
     "draft": false,
-    "commits_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134/commits",
-    "review_comments_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134/comments",
-    "review_comment_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/comments{/number}",
-    "comments_url": "https://github.com/the_repo_url/repos/the_repo_url/issues/134/comments",
-    "statuses_url": "https://github.com/the_repo_url/repos/the_repo_url/statuses/toad_mergeref",
+    "commits_url": "https://github.com/the_repo_url/pulls/134/commits",
+    "review_comments_url": "https://github.com/the_repo_url/pulls/134/comments",
+    "review_comment_url": "https://github.com/the_repo_url/pulls/comments{/number}",
+    "comments_url": "https://github.com/the_repo_url/issues/134/comments",
+    "statuses_url": "https://github.com/the_repo_url/statuses/toad_mergeref",
     "head": {
       "label": "toad_repo:toad",
       "ref": "toad",
@@ -192,28 +192,28 @@ forge_responses = {
     },
     "_links": {
       "self": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134"
+        "href": "https://github.com/the_repo_url/pulls/134"
       },
       "html": {
         "href": "https://localhost/the_repo_url/pull/134"
       },
       "issue": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/issues/134"
+        "href": "https://github.com/the_repo_url/issues/134"
       },
       "comments": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/issues/134/comments"
+        "href": "https://github.com/the_repo_url/issues/134/comments"
       },
       "review_comments": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134/comments"
+        "href": "https://github.com/the_repo_url/pulls/134/comments"
       },
       "review_comment": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/comments{/number}"
+        "href": "https://github.com/the_repo_url/pulls/comments{/number}"
       },
       "commits": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/134/commits"
+        "href": "https://github.com/the_repo_url/pulls/134/commits"
       },
       "statuses": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/statuses/toad_mergeref"
+        "href": "https://github.com/the_repo_url/statuses/toad_mergeref"
       }
     },
     "author_association": "OWNER",
@@ -221,13 +221,13 @@ forge_responses = {
   },
 
   {
-    "url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91",
+    "url": "https://github.com/the_repo_url/pulls/91",
     "id": 365427238,
     "node_id": "MDExOlB1bGxSZXF1ZXN0MzY1NDI3MjM5",
     "html_url": "https://localhost/the_repo_url/pull/91",
     "diff_url": "https://localhost/the_repo_url/pull/91.diff",
     "patch_url": "https://localhost/the_repo_url/pull/91.patch",
-    "issue_url": "https://github.com/the_repo_url/repos/the_repo_url/issues/91",
+    "issue_url": "https://github.com/the_repo_url/issues/91",
     "number": 91,
     "state": "open",
     "locked": false,
@@ -259,11 +259,11 @@ forge_responses = {
     ],
     "milestone": null,
     "draft": false,
-    "commits_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91/commits",
-    "review_comments_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91/comments",
-    "review_comment_url": "https://github.com/the_repo_url/repos/the_repo_url/pulls/comments{/number}",
-    "comments_url": "https://github.com/the_repo_url/repos/the_repo_url/issues/91/comments",
-    "statuses_url": "https://github.com/the_repo_url/repos/the_repo_url/statuses/toad_mergeref",
+    "commits_url": "https://github.com/the_repo_url/pulls/91/commits",
+    "review_comments_url": "https://github.com/the_repo_url/pulls/91/comments",
+    "review_comment_url": "https://github.com/the_repo_url/pulls/comments{/number}",
+    "comments_url": "https://github.com/the_repo_url/issues/91/comments",
+    "statuses_url": "https://github.com/the_repo_url/statuses/toad_mergeref",
     "head": {
       "label": "frog_repo:frog",
       "ref": "frog",
@@ -365,28 +365,28 @@ forge_responses = {
     },
     "_links": {
       "self": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91"
+        "href": "https://github.com/the_repo_url/pulls/91"
       },
       "html": {
         "href": "https://localhost/the_repo_url/pull/91"
       },
       "issue": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/issues/91"
+        "href": "https://github.com/the_repo_url/issues/91"
       },
       "comments": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/issues/91/comments"
+        "href": "https://github.com/the_repo_url/issues/91/comments"
       },
       "review_comments": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91/comments"
+        "href": "https://github.com/the_repo_url/pulls/91/comments"
       },
       "review_comment": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/comments{/number}"
+        "href": "https://github.com/the_repo_url/pulls/comments{/number}"
       },
       "commits": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/pulls/91/commits"
+        "href": "https://github.com/the_repo_url/pulls/91/commits"
       },
       "statuses": {
-        "href": "https://github.com/the_repo_url/repos/the_repo_url/statuses/toad_mergeref"
+        "href": "https://github.com/the_repo_url/statuses/toad_mergeref"
       }
     },
     "author_association": "OWNER",
@@ -422,8 +422,8 @@ forge_responses = {
   "created_at": "2011-05-14T06:20:56Z",
   "updated_at": "2020-05-21T14:26:57Z"
 }
-
     ''',
+
 
     '/users/frog' : b'''
 {
