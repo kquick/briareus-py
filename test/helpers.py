@@ -25,3 +25,23 @@ def assert_eqlist(a, b):
                                    max(map(len,b))) < 50
                      else '')
     )
+
+def assert_eqdict(a, b, a_name='L', b_name='R'):
+    keys = sorted(list(set(a.keys()).union(set(b.keys()))))
+    c = KVITable({'key':keys,
+                  'fail':[],
+                  'From':[a_name, b_name],
+    })
+    for k in keys:
+        fail = '!' if k not in a or k not in b or a[k] != b[k] else ' '
+        c.add(a.get(k,' '), key=k, From=a_name, fail=fail)
+        c.add(b.get(k,' '), key=k, From=b_name, fail=fail)
+    assert a == b, '\n'+c.render(
+        row_group=['key'],
+        row_repeat=False,
+        colstack_at=(
+            'From'
+            if max(max(list(map(len,map(str,a.values()))) or [0]),
+                   max(list(map(len,map(str,b.values()))) or [0])) < 50
+            else '')
+    )
