@@ -112,7 +112,7 @@ class HasBranch(Repo__ReqMsg):          #           --> BranchPresent
 @attr.s(auto_attribs=True)
 class BranchPresent(Repo__RspMsg):      # HasBranch -->
     branch_name: str
-    branch_present: Optional[Union[bool,str]] = attr.ib(default=False)  # either False or the current branch head ref (SHA)
+    branch_present: Union[bool,str] = attr.ib(default=False)  # either False or the current branch head ref (SHA)
     known_branches: List[Tuple[str,str]] = attr.ib(factory=list)  # list of tuples: (name,head_ref)
 
 

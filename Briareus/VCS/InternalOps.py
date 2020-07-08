@@ -382,7 +382,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         return False
 
 
-    def receiveMsg_BranchPresent(self, msg, sender):
+    def receiveMsg_BranchPresent(self, msg: BranchPresent, sender):
         "Response message from the GetGitInfo actor to a HasBranch message"
         if msg.branch_present:
             self.branches_check[(msg.reponame, msg.branch_name)] = False  # no longer pending
