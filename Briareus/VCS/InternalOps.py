@@ -1,6 +1,6 @@
 # Internal functionality for managing VCS Repo interactions.
 
-from thespian.actors import ActorTypeDispatcher
+from thespian.actors import (ActorTypeDispatcher, ChildActorExited)
 from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
@@ -95,10 +95,12 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                  branches=self.branches  # [ Types.BranchRef ]
                     )))
 
-    def receiveMsg_ChildActorExited(self, msg, sender):
+    def receiveMsg_ChildActorExited(self, msg: ChildActorExited, sender):
         if msg.childAddress == self._get_git_info:
             self._get_git_info = None
-            self.respond_to_requestor(self.prepareReply(GatheredInfo(None, 'GitInfo actor exited')))
+            self.respond_to_requestor(
+                self.prepareReply(
+                    GatheredInfo([], [], [], [], error='GitInfo actor exited')))
 
     def receiveMsg_InvalidRepo(self, msg: InvalidRepo, sender):
         self.respond_to_requestor(
