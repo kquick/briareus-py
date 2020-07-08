@@ -5,19 +5,20 @@ def assert_eq(a, b):
     assert a == b, '%s != %s' % (str(a), str(b))
 def assert_in(a, b):
     assert a in b, '%s not in %s' % (str(a), str(b))
-def assert_eqlist(a, b):
+
+def assert_eqlist(a, b, a_name='L', b_name='R'):
     c = KVITable({'idx':list(range(max(len(a),len(b)))),
                   'fail':[],
-                  'From':['L','R'],
+                  'From':[a_name, b_name],
     })
     alst = sorted(list(a))
     blst = sorted(list(b))
     fails = [' ' if i < len(alst) and i < len(blst) and alst[i] == blst[i] else '!'
              for i in range(max(len(a),len(b)))]
     for i,(av,f) in enumerate(zip(alst,fails)):
-        c.add(av, idx=i, From='L', fail=f)
+        c.add(av, idx=i, From=a_name, fail=f)
     for i,(bv,f) in enumerate(zip(blst,fails)):
-        c.add(bv, idx=i, From='R', fail=f)
+        c.add(bv, idx=i, From=b_name, fail=f)
     assert alst == blst, '\n'+c.render(
         row_group=['idx'],
         row_repeat=False,
