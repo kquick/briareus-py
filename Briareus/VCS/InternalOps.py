@@ -4,7 +4,7 @@ from thespian.actors import (ActorTypeDispatcher, ActorExitRequest, ChildActorEx
 from thespian.initmsgs import initializing_messages
 from Briareus.VCS_API import RepoSite, PRSts_Closed, PRSts_Merged, PRSts_Active, SSH_URL, UserURL
 from Briareus.VCS.InternalMessages import *
-from Briareus.VCS.GitRepo import GitRepoInfo
+from Briareus.VCS.GitRepo import GitRepoInfo, SAME_URL, DIFFERENT_URL, BOGUS_URL
 from Briareus.VCS.ForgeAccess import to_http_url, to_access_url
 from urllib.parse import urlparse, urlunparse
 from collections import defaultdict

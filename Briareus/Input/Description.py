@@ -1,7 +1,7 @@
 # Static Data Description of the Briareus Input Specifications
 
 import attr
-from Briareus.VCS.ForgeAccess import UserURL
+from Briareus.VCS_API import UserURL
 from typing import (Dict, List)
 
 

@@ -3,7 +3,7 @@
 import attr
 import json
 from Briareus.VCS_API import *
-from .ForgeAccess import (RepoAPI_Location, API_URL, SAME_URL, DIFFERENT_URL, BOGUS_URL)
+from .ForgeAccess import (RepoAPI_Location, API_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 
@@ -32,6 +32,26 @@ def fromJSON(jstr: str):
             return eval(objtype)(**objdict)
         return objdict
     return json.loads(jstr, object_hook=objFromJSON)
+
+
+class SAME_URL(object):
+    "Same URL as referencing URL, but latter isn't known when this is set."
+
+@attr.s(auto_attribs=True, frozen=True)
+class DIFFERENT_URL(object):
+    """URL is different than the current URL, but there is not enough
+       information to get an actual URL.  This can happen for gitforge
+       merge request source URLs.
+    """
+    reponame: str
+    urltype: str = 'DURL'
+
+@attr.s(auto_attribs=True, frozen=True)
+class BOGUS_URL(object):
+    """Not an actual URL but something that was synthesized internally as
+       a placeholder.  The placeholder should never actually be used."""
+    reason: str
+    urltype: str = 'BOGUS'
 
 
 @attr.s(auto_attribs=True)

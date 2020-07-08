@@ -7,25 +7,6 @@ from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 class HTTPS_URL(str): 'Form: https://github.com/project/repo'
 class API_URL(str): 'URL for accessing the API interface'
-class SAME_URL(object):
-    "Same URL as referencing URL, but latter isn't known when this is set."
-
-@attr.s(auto_attribs=True, frozen=True)
-class DIFFERENT_URL(object):
-    """URL is different than the current URL, but there is not enough
-       information to get an actual URL.  This can happen for gitforge
-       merge request source URLs.
-    """
-    reponame: str
-    urltype: str = 'DURL'
-
-@attr.s(auto_attribs=True, frozen=True)
-class BOGUS_URL(object):
-    """Not an actual URL but something that was synthesized internally as
-       a placeholder.  The placeholder should never actually be used."""
-    reason: str
-    urltype: str = 'BOGUS'
-
 
 # Note that only the SSH_URL can contain an alternate hostname that is
 # translated by the RX translations.
