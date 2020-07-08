@@ -1,7 +1,14 @@
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
+from typing import (Any, Callable, DefaultDict, Dict, Generic, List,
+                    NewType, Optional, Tuple, TypeVar, Union)
 
-class RateLimiter(object):
+
+TargetType = TypeVar('TargetType')
+ActionType = TypeVar('ActionType')
+ActionTimeType = Tuple[datetime, ActionType]
+
+class RateLimiter(Generic[TargetType, ActionType]):
     """For an action to a set of target, keep track of how often that
        action was performed for each target (for the last 24 hours).
        The initialization can specify a maximum number of actions that
@@ -20,18 +27,24 @@ class RateLimiter(object):
        last 24 hours).
 
     """
-    def __init__(self, hourly=None, daily=None, unlimited=None):
+    def __init__(self,
+                 hourly: int = None,  # maximum count per hour (None=unlimited)
+                 daily: int = None,   # maximum count per day (None=unlimited)
+                 unlimited: List[TargetType] = None) -> None:  # unlimited targets
         self._hourly = hourly
         self._daily = daily
         self._unlimited = unlimited or []
 
-        self._recent = defaultdict(list) # { target/str: [(datetime, actIdent)] }
-        self._suppressed = defaultdict(list) # same format as recent, only suppressions
+        # _recent is the memory of recent target: [(datetime, actIdent)]
+        self._recent: DefaultDict[TargetType, List[ActionTimeType]] = defaultdict(list)
+        # _suppressed is like _recent but for suppressed targets
+        self._suppressed: DefaultDict[TargetType, List[ActionTimeType]] = defaultdict(list)
 
-        self._allowed_history = defaultdict(list)  # { target/str: [datetime] }
-        self._suppressed_history = defaultdict(list)  # { target/str: [datetime] }
+        self._allowed_history: DefaultDict[TargetType,List[datetime]] = defaultdict(list)
+        self._suppressed_history: DefaultDict[TargetType,List[datetime]] = defaultdict(list)
 
-    def allowed(self, actionIdent, targets):
+    def allowed(self, actionIdent: ActionType,
+                targets: List[TargetType]) -> List[TargetType]:
         ret = []
         now = datetime.now()
         for each in targets:
@@ -55,12 +68,12 @@ class RateLimiter(object):
 
         return ret
 
-    def bookkeeping(self):
+    def bookkeeping(self) -> None:
         now = datetime.now()
         for each in self._recent:
             self.bookkeeping_for(now, each)
 
-    def bookkeeping_for(self, now, target):
+    def bookkeeping_for(self, now: datetime, target: TargetType) -> None:
         self._allowed_history[target] = [e for e in self._allowed_history[target]
                                          if now - e < timedelta(days=30)]
         self._suppressed_history[target] = [e for e in self._suppressed_history[target]
@@ -74,13 +87,13 @@ class RateLimiter(object):
         self._suppressed[target] = [e for e in self._suppressed[target]
                                     if now - e[0] < timedelta(hours=24)]
 
-    def status(self):
+    def status(self) -> Dict[str, Any]:
         self.bookkeeping()
 
         # Somewhat expensive calculations of the frequencies for the last 30 days
         now = datetime.now()
-        month_allowed = defaultdict(Counter)
-        month_suppressed = defaultdict(Counter)
+        month_allowed: DefaultDict[TargetType,Counter] = defaultdict(Counter)
+        month_suppressed: DefaultDict[TargetType,Counter] = defaultdict(Counter)
         for each in self._allowed_history:
             for days in range(0, 30):
                 on_day = lambda d: ((now - d) >= timedelta(days=days) and

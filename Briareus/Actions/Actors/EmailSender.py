@@ -49,7 +49,9 @@ class EmailSender(ActorTypeDispatcher):
         except Exception:
             dlimit = 10
         unlimited = os.getenv('BRIAREUS_SMTP_UNLIMITED', '').split(',')
-        self._delivered = RateLimiter(hourly=hlimit, daily=dlimit, unlimited=unlimited)
+        self._delivered: RateLimiter[str,str] = RateLimiter(hourly=hlimit,
+                                                            daily=dlimit,
+                                                            unlimited=unlimited)
 
     def receiveMsg_str(self, msg: str, sender) -> None:
         if msg == 'Start':
@@ -71,8 +73,10 @@ class EmailSender(ActorTypeDispatcher):
             try:
                 hlimit = int(hval)
                 dlimit = int(dval)
-                unlimited = '' if unlimval == '-' else unlimval
-                self._delivered = RateLimiter(hourly=hlimit, daily=dlimit, unlimited=unlimited)
+                unlimited = None if unlimval == '-' else unlimval.split(',')
+                self._delivered = RateLimiter(hourly=hlimit,
+                                              daily=dlimit,
+                                              unlimited=unlimited)
             except Exception:
                 logging.error('Error reconfiguring EmailSender RateLimiter; previous rates still apply',
                               show_exc=True)
