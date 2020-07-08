@@ -1,5 +1,22 @@
-{ stdenv, fetchFromGitHub, python3Packages, swiProlog, thespian, setproctitle, attrs, requests }:
+{ stdenv, fetchFromGitHub, python3Packages
+# , swiProlog
+, thespian, setproctitle, attrs, requests
+, openssl_1_1, pkgs
+}:
 
+let
+  # prolog = swiProlog.overrideAttrs (oldAttrs: {
+  #   openssl = openssl_1_1;
+  # });
+  # The above doesn't remove dependency on openssl_1_0_2, so use the following:
+
+  prolog = let l = <nixpkgs/pkgs/development/compilers/swi-prolog>;
+           in pkgs.callPackage l {
+             openssl = openssl_1_1;
+             Security = null;
+           };
+
+in
 python3Packages.buildPythonApplication rec {
   pname = "briareus";
   version = "0.1";
@@ -15,14 +32,16 @@ python3Packages.buildPythonApplication rec {
   #   sha256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   # };
 
-  propagatedBuildInputs =
-    let ppkgs = [
-          thespian
-          setproctitle
-          attrs
-          requests
-        ];
-    in [swiProlog] ++ ppkgs;
+  propagatedBuildInputs = [
+    thespian
+    setproctitle
+    attrs
+    requests
+  ];
+
+  buildInputs = [
+    prolog
+  ];
 
   checkInputs = propagatedBuildInputs;
   doCheck = false;
