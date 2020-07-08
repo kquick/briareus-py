@@ -67,13 +67,13 @@ r2_gitmodules_master = base64.b64encode(b'''[submodule "r3_sub"]
 ''').decode('utf-8')
 
 
-r10_gitmodules_master = base64.b64encode(b'''[submodule "r3-submod"]
+r10_gitmodules_master = b'''[submodule "r3-submod"]
 	path = sub/r3
 	url = https://github.com/r3_url
 [submodule "r4-sub"]
 	path = deps/r4
 	url = https://github.com/r4_url
-''').decode('utf-8')
+'''
 
 
 r10_gitmodules_devtest = r10_gitmodules_master
@@ -238,15 +238,32 @@ forge_responses = {
 ]
     ''',
 
-    '/repos/r10_url/branches': b'''
+    '/api/v4/projects/r10_url/repository/branches': b'''
 [
   {
     "name": "master",
     "commit": {
-      "sha": "R10-master-ref",
-      "url": "https://github.com/r10_url/commits/R10-master-ref"
+      "id": "R10-master-ref",
+      "short_id": "R10-master-shortref",
+      "created_at": "2020-01-29T10:58:29.000-08:00",
+      "parent_ids": null,
+      "title": "Latest commit",
+      "message": "Latest commit",
+      "author_name": "Doctor Who",
+      "author_email": "drwho@tardis.out",
+      "authored_date": "2020-01-29T10:58:29.000-08:00",
+      "committer_name": "Doctor Who",
+      "committer_email": "drwho@tardis.out",
+      "committed_date": "2020-01-29T10:58:29.000-08:00",
+      "web_url": "https://gitlab.com/dalek/disabler/-/commit/R10-master-ref"
     },
-    "protected": false
+    "merged": false,
+    "protected": true,
+    "developers_can_push": false,
+    "developers_can_merge": false,
+    "can_push": true,
+    "default": true,
+    "web_url": "https://gitlab.com/dalek/disabler/-/tree/master"
   }
 ]
     ''',
@@ -1675,10 +1692,13 @@ forge_responses = {
 ]
     ''',
 
-        '/repos/r7_url/pulls?state=all': b'''
+    '/repos/r7_url/pulls?state=all': b'''
 [
 ]
         ''',
+
+    '/api/v4/projects/r10_url/merge_requests?scope=all&state=all': b'[]',
+
 
     # ############################################################
 
@@ -1848,43 +1868,19 @@ forge_responses = {
             "content": r1_gitmodules_blah,
         }).encode('utf-8'),
 
-    '/repos/r1_url/contents/.gitmodules?ref=feat1' : json.dumps(
-        {
-            "name": ".gitmodules",
-            "path": ".gitmodules",
-            "sha": "9ec4b3415097850f9f9ec3fa50cb03367c473c36",
-            "size": len(r1_gitmodules_feat1),
-            "url": "https://api.github.com/repos/r1_repo/contents/.gitmodules?ref=feat1",
-            "html_url": "https://github.com/r1_repo/blob/feat1/.gitmodules",
-            "git_url": "https://api.github.com/repos/r1_repo/git/blobs/9ec4b3415097850f9f9ec3fa50cb03367c473c36",
-            "download_url": "https://raw.githubusercontent.com/r1_repo/feat1/.gitmodules",
-            "type": "file",
-            "encoding": "base64",
-            "content": r1_gitmodules_feat1,
-        }).encode('utf-8'),
+    '/repos/r1_url/contents/.gitmodules?ref=feat1' :
+        github_gitmodules_contents('https://github.com/r1_repo', 'feat1',
+                                   r1_gitmodules_feat1),
 
-    '/repos/r2_url/contents/.gitmodules?ref=master' : json.dumps(
-        {
-            "name": ".gitmodules",
-            "path": ".gitmodules",
-            "sha": "9ec4b3415097850f9f9ec3fa50cb03367c473c66",
-            "size": len(r2_gitmodules_master),
-            "url": "https://api.github.com/repos/r2_repo/contents/.gitmodules?ref=master",
-            "html_url": "https://github.com/r2_repo/blob/master/.gitmodules",
-            "git_url": "https://api.github.com/repos/r2_repo/git/blobs/9ec4b3415097850f9f9ec3fa50cb03367c473c66",
-            "download_url": "https://raw.githubusercontent.com/r2_repo/master/.gitmodules",
-            "type": "file",
-            "encoding": "base64",
-            "content": r2_gitmodules_master,
-        }).encode('utf-8'),
+    '/repos/r2_url/contents/.gitmodules?ref=master' :
+    github_gitmodules_contents('https://github.com/r2_repo', 'master',
+                               r2_gitmodules_master),
 
-    '/repos/r10_url/contents/.gitmodules?ref=master' :
-    github_gitmodules_contents('https://github.com/r10_repo', 'master',
-                               r10_gitmodules_master),
+    '/api/v4/projects/r10_url/repository/files/.gitmodules/raw?ref=master' :
+    r10_gitmodules_master,
 
-    '/repos/r10_url/contents/.gitmodules?ref=devtest' :
-    github_gitmodules_contents('https://github.com/r10_repo', 'devtest',
-                               r10_gitmodules_devtest),
+    '/api/v4/projects/r10_url/repository/files/.gitmodules/raw?ref=devtest' :
+    r10_gitmodules_devtest,
 
     ## deps/r2
 
@@ -2012,6 +2008,63 @@ forge_responses = {
 }
     ''',
 
+    ## deps/r10
+
+    '/api/v4/projects/r10_url/repository/files/sub%2Fr3?ref=master': b'''
+{
+  "blob_id": "r3_master_head^9",
+  "commit_id": "159a7f68667455291637d29afd4fa7a0f3255cf9",
+  "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "encoding": "base64",
+  "file_name": "R3",
+  "file_path": "sub/r3",
+  "last_commit_id": "c0de6174ade1dc0675076c7683781eed13371934",
+  "ref": "master",
+  "size": 0
+}
+    ''',
+
+    '/api/v4/projects/r10_url/repository/files/deps%2Fr4?ref=master': b'''
+{
+  "blob_id": "r4_master_head^1",
+  "commit_id": "159a7f68667455291637d29afd4fa7a0f3255cf9",
+  "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "encoding": "base64",
+  "file_name": "R4",
+  "file_path": "deps/r4",
+  "last_commit_id": "c0de6174ade1dc0675076c7683781eed13371934",
+  "ref": "master",
+  "size": 0
+}
+    ''',
+
+    '/api/v4/projects/r10_url/repository/files/sub%2Fr3?ref=devtest': b'''
+{
+  "blob_id": "r3_master_head^7",
+  "commit_id": "159a7f68667455291637d29afd4fa7a0f3255cfa",
+  "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427af41e4649b934ca495991b7852b855",
+  "encoding": "base64",
+  "file_name": "R3",
+  "file_path": "sub/r3",
+  "last_commit_id": "c0de6174ade1dc0675076c7683781eed1337193b",
+  "ref": "master",
+  "size": 0
+}
+    ''',
+
+    '/api/v4/projects/r10_url/repository/files/deps%2Fr4?ref=devtest': b'''
+{
+  "blob_id": "r4_master_head^11",
+  "commit_id": "159a7f68667455291637d29afd4fa7a0f3255cfc",
+  "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4449b934ca495991b7852b855",
+  "encoding": "base64",
+  "file_name": "R4",
+  "file_path": "deps/r4",
+  "last_commit_id": "c0de6174ade1dc0675076c7683781eed1337193d",
+  "ref": "master",
+  "size": 0
+}
+    ''',
 
     # ------------------------------------------------------------
 

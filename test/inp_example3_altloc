@@ -1,9 +1,9 @@
 {
-  "Repos" : [ ("R10", "git@r10_git_url:path/portion"),
-              ("R3", "foo@r3_inp_url:foo/bar"),
+  "Repos" : [ ("R10", "git@r10_git_url:r10_url"),
+              ("R3", "git@r3_inp_url:r3_url"),
             ]
-, "RepoLoc" : [ ("r10_git_url", "r10_xlated_url"),
-                ("r3_inp_url", "r3_direct_url"),
+, "RepoLoc" : [ ("r10_git_url", "gitlab.com"),
+                ("r3_inp_url", "github.com"),
               ]
 , "Branches" : [ "master", "feat1", "dev" ]
 , "Variables" : {

@@ -1,5 +1,5 @@
 {
-  "Repos" : [ ("R10", "r10_url"),
+  "Repos" : [ ("R10", "https://gitlab.com/r10_url"),
             ]
 , "Branches" : [ "master", "feat1", "dev" ]
 , "Variables" : {

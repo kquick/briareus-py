@@ -241,7 +241,7 @@ def test_example_hydra_master_submodules(example_hydra_jobsets):
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head^9"
+                    "value": "https://github.com/r3_url r3_master_head^9"
                 },
                 "R4-src": {
                     "emailresponsible": False,
@@ -288,7 +288,7 @@ def test_example_hydra_master_heads(example_hydra_jobsets):
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r3_url master"
+                     "value": "https://github.com/r3_url master"
                  },
                  "R4-src": {
                      "emailresponsible": False,
@@ -335,7 +335,7 @@ def test_example_hydra_feat1_heads(example_hydra_jobsets):
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "R4-src": {
                     "emailresponsible": False,
@@ -382,7 +382,7 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "R4-src": {
                     "emailresponsible": False,
@@ -429,12 +429,12 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head^9"
+                    "value": "https://github.com/r3_url r3_master_head^9"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_R4_y bugfix9"
+                    "value": "https://github.com/remote_R4_y bugfix9"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -476,12 +476,12 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r3_url master"
+                     "value": "https://github.com/r3_url master"
                  },
                  "R4-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_R4_y bugfix9"
+                     "value": "https://github.com/remote_R4_y bugfix9"
                  },
                  "ghcver": {
                      "emailresponsible": False,
