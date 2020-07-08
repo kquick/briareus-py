@@ -3,7 +3,7 @@
 from thespian.actors import ActorSystem
 from Briareus.VCS.InternalOps import *
 from datetime import timedelta
-from typing import (Any, Dict, List, Type, TypeVar)
+from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 
 
 REPO_INFO_TIMEOUT = timedelta(seconds=600)
@@ -27,7 +27,7 @@ def gather_repo_info(RL: List[RepoDesc],
 
 def get_updated_file(repourl: UserURL,
                      filepath: str,
-                     repolocs: List[RepoLoc],
+                     repolocs: Sequence[RepoLoc],
                      branch: str,
                      actor_system: Any = None) -> FileReadData:
     "Reads a specific file from the repository at the specified url"
