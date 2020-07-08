@@ -8,6 +8,7 @@ from FakeForge import fake_forge, get_github_api_url_local
 
 input_spec = open('test/inp_single').read()
 
+fakeforge_port = 4234
 
 @patch.object(Briareus.VCS.GitForge.GitHubInfo, 'get_api_url')
 def test_gitinfo(get_api_url, actor_system, fake_forge):
@@ -15,7 +16,7 @@ def test_gitinfo(get_api_url, actor_system, fake_forge):
        returned information is translated into the proper repo
        information for Briareus to use.
     """
-    get_api_url.side_effect = get_github_api_url_local
+    get_api_url.side_effect = get_github_api_url_local(fakeforge_port)
 
     input_desc, repo_info = input_desc_and_VCS_info(input_spec, actor_system=actor_system)
     assert repo_info == expected_repo_info

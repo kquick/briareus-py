@@ -6,7 +6,6 @@ import pytest
 import json
 
 
-local_github_port = 4234
 server_done = False
 
 class FakeGitHub(http.server.BaseHTTPRequestHandler):
@@ -42,16 +41,27 @@ def run_server(server):
 def fake_forge(request):
     global server_done
     server_done = threading.Event()
-    server = http.server.HTTPServer(('', local_github_port), FakeGitHub)
+    server = http.server.HTTPServer(('', request.module.fakeforge_port), FakeGitHub)
     server.response_data = request.module.forge_responses
     srun = threading.Thread(target=run_server(server))
     srun.start()
     yield srun
-    r = requests.get('http://localhost:%d/shutdown'%local_github_port)
+    r = requests.get('http://localhost:%d/shutdown'%request.module.fakeforge_port)
     srun.join(5)
 
-def get_github_api_url_local(url):
-    parsed = urlparse(url)
-    return urlunparse(parsed._replace(netloc='localhost:%d'%local_github_port,
-                                      scheme='http',
-                                      path = 'repos' + parsed.path))
+def get_github_api_url_local(fakeforge_port):
+    def g(url):
+        parsed = urlparse(url)
+        return urlunparse(parsed._replace(netloc='localhost:%d'%fakeforge_port,
+                                          scheme='http',
+                                          path = 'repos' + parsed.path))
+    return g
+
+def get_gitlab_api_url_local(fakeforge_port):
+    def g(url):
+        parsed = urlparse(url)
+        return urlunparse(parsed._replace(
+            netloc='localhost:%d'%fakeforge_port,
+            scheme='http',
+            path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
+    return g
