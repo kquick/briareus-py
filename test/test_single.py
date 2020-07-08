@@ -3,7 +3,6 @@
 import json
 import pytest
 from thespian.actors import *
-from git_single import GitTestSingle
 from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grouped
 from Briareus.VCS.InternalMessages import *
 
@@ -17,10 +16,10 @@ expected_repo_info = {
         BranchRef(reponame='TheRepo', branchname='master', branchref='master-ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='frog_repo_url', pr_branch='frog',
+        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='https://github.com/frog_repo_url', pr_branch='frog',
                pr_revision='frog_mergeref', pr_ident='91', pr_status=PRSts_Active(),
                pr_title='Croaking frogs', pr_user='frog', pr_email='frog@lilypond.pad'),
-        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='toad_repo_url', pr_branch='toad',
+        PRInfo(pr_target_repo='TheRepo', pr_srcrepo_url='https://github.com/toad_repo_url', pr_branch='toad',
                pr_revision='toad_mergeref', pr_ident='134', pr_status=PRSts_Active(),
                pr_title='Hoppy toads', pr_user='hoppy', pr_email=''),
     ]),
@@ -63,33 +62,33 @@ pullreq("TheRepo", "91", "frog", "frog_mergeref", prsts_active, "frog", "frog@li
 '''.split('\n')))
 
 
-def skiptest_single_raw_build_config():
-    # n.b. neither simpleSystemBase nor multiprocQueueBase support
-    # ThespianWatch, so the swipl run takes the full PROLOG_TIMEOUT
-    # for both; the multiprocTCPBase or multiprocUDPBase will support
-    # ThespianWatch and are therefore much faster.
-    import Briareus.BCGen.Operations as BCGen
-    import Briareus.Input.Operations as BInput
-    import Briareus.BCGen.Generator as Generator
-    import Briareus.BuildSys.Hydra as BldSys
-    asys = ActorSystem('multiprocTCPBase', transientUnique=True)
-    try:
-        # Generate canned info instead of actually doing git operations
-        asys.createActor(GitTestSingle, globalName="GetGitInfo")
-        gen = Generator.Generator(actor_system = asys)
-        (rtype, cfgs) = gen.generate_build_configs(
-            *BInput.input_desc_and_VCS_info(input_spec,
-                                            actor_system=asys,
-                                            verbose=True),
-            up_to="raw_logic_output")
-        # Note that this compares simple strings; the logic evaluation
-        # is not stable for ordering and will cause false negatives
-        # here.
-        assert 'raw_logic_output' == rtype
-        print('CFG',cfgs)
-        assert expected_raw_build_config == cfgs
-    finally:
-        asys.shutdown()
+# def skiptest_single_raw_build_config():
+#     # n.b. neither simpleSystemBase nor multiprocQueueBase support
+#     # ThespianWatch, so the swipl run takes the full PROLOG_TIMEOUT
+#     # for both; the multiprocTCPBase or multiprocUDPBase will support
+#     # ThespianWatch and are therefore much faster.
+#     import Briareus.BCGen.Operations as BCGen
+#     import Briareus.Input.Operations as BInput
+#     import Briareus.BCGen.Generator as Generator
+#     import Briareus.BuildSys.Hydra as BldSys
+#     asys = ActorSystem('multiprocTCPBase', transientUnique=True)
+#     try:
+#         # Generate canned info instead of actually doing git operations
+#         asys.createActor(GitTestSingle, globalName="GetGitInfo")
+#         gen = Generator.Generator(actor_system = asys)
+#         (rtype, cfgs) = gen.generate_build_configs(
+#             *BInput.input_desc_and_VCS_info(input_spec,
+#                                             actor_system=asys,
+#                                             verbose=True),
+#             up_to="raw_logic_output")
+#         # Note that this compares simple strings; the logic evaluation
+#         # is not stable for ordering and will cause false negatives
+#         # here.
+#         assert 'raw_logic_output' == rtype
+#         print('CFG',cfgs)
+#         assert expected_raw_build_config == cfgs
+#     finally:
+#         asys.shutdown()
 
 expected_raw_build_config = '''[
 bldcfg("TheRepo",pullreq,"frog",standard,[bld("TheRepo","frog",brr(3))],[]),

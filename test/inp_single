@@ -1,5 +1,5 @@
 {
-  "Repos" : [ ("TheRepo", "the_repo_url") ]
+  "Repos" : [ ("TheRepo", "https://github.com/the_repo_url") ]
 , "Branches" : [ "feat1", "dev" ]
 }
 # n.b. "master" is not listed in Branches, but a configuration for
