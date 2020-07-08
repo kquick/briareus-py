@@ -13,12 +13,12 @@ expected_repo_info = {
         BranchRef(reponame='TopRepo', branchname='master', branchref='TopRepo-master-ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='SubRepo1', pr_srcrepo_url='subrepo1_pr312_loc', pr_branch='subfix',
-               pr_revision='sr1pr312sf3', pr_ident='pr312', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='SubRepo1', pr_srcrepo_url='https://github.com/subrepo1_pr312_loc', pr_branch='subfix',
+               pr_revision='sr1pr312sf3', pr_ident='312', pr_status=PRSts_Active(),
                pr_title='better', pr_user='dev', pr_email='dev@soft.ware'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='SubRepo1', repo_url='subrepo_loc', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='SubRepo1', repo_url='https://github.com/subrepo_loc', main_branch='master', project_repo=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='TopRepo', sm_branch='master', sm_pullreq_id=None, sm_sub_name='SubRepo1', sm_sub_vers='subrepo_master_head'),
@@ -48,7 +48,7 @@ subrepo("TopRepo", "SubRepo1").
 branch("SubRepo1", "master").
 branch_ref("SubRepo1", "master", "SubRepo1-master-ref").
 submodule("TopRepo", project_primary, "master", "SubRepo1", "subrepo_master_head").
-pullreq("SubRepo1", "pr312", "subfix", "sr1pr312sf3", prsts_active, "dev", "dev@soft.ware").
+pullreq("SubRepo1", "312", "subfix", "sr1pr312sf3", prsts_active, "dev", "dev@soft.ware").
 '''.split('\n')))
 
 
@@ -99,7 +99,7 @@ def test_bldcfg_subfix(generated_bldconfigs):
                             # identical for HEADs and submodules for
                             # this project.
                             blds=[BldRepoRev("TopRepo", "master", "project_primary"),
-                                  BldRepoRev('SubRepo1', 'subfix', 'pr312'),
+                                  BldRepoRev('SubRepo1', 'subfix', '312'),
                             ],
                             bldvars=[])
                   for S in [ "HEADs", "submodules" ] ]:

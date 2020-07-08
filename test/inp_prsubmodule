@@ -1,5 +1,5 @@
 {
     "Name" : "prsubtest",
-    "Repos" : [ ("TopRepo", "toprepo_loc"),
+    "Repos" : [ ("TopRepo", "https://github.com/toprepo_loc"),
               ]
 }
