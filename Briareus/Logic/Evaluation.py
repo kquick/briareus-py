@@ -1,27 +1,29 @@
 import attr
-from thespian.actors import *
+from thespian.actors import ActorSystem, ActorExitRequest
 from thespian.runcommand import Command, RunCommand, CommandResult
 from datetime import timedelta
 import tempfile
 import os
 import sys
 import subprocess
+from typing import Iterable, List, NewType, Union
+
 
 local_path = os.path.dirname(os.path.abspath(sys.modules['Briareus.Logic'].__file__))
 
 PROLOG_TIMEOUT = timedelta(minutes=2,seconds=61)
 
-@attr.s(str=False, frozen=True)
+@attr.s(auto_attribs=True, str=False, frozen=True)
 class Fact(object):
-    fact = attr.ib()
+    fact: str
 
     # Specific str representation for prolog consumption
     def __str__(self): return self.fact + '.'
 
 
-@attr.s(str=False, frozen=True)
+@attr.s(auto_attribs=True, str=False, frozen=True)
 class DeclareFact(object):
-    fact_and_arity = attr.ib()
+    fact_and_arity: str
 
     # Specific str representation for prolog consumption
     def __str__(self):
@@ -32,7 +34,16 @@ class DeclareFact(object):
                           ]])
 
 
-def run_logic_analysis(analysis_fname, facts, raw_logic='', actor_system=None, verbose=False):
+FactList = List[Union[Fact, DeclareFact]]
+
+LogicOutput = NewType('LogicOutput', str)
+
+
+def run_logic_analysis(analysis_fname: str,
+                       facts: Iterable[Union[Fact, DeclareFact]],
+                       raw_logic: str = '',
+                       actor_system=None,
+                       verbose: bool = False) -> LogicOutput:
     """Runs the prolog logic specification in analysis_fname (which should
        be either an absolute address or relative to the Briareus.Logic
        directory), passing the specified facts (as an array of Fact or
@@ -97,7 +108,7 @@ def run_logic_analysis(analysis_fname, facts, raw_logic='', actor_system=None, v
                                timeout=PROLOG_TIMEOUT.total_seconds(),
                                text=True,
                                check=True)
-            return r.stdout.strip()
+            return LogicOutput(r.stdout.strip())
 
     finally:
         os.unlink(factfile)

@@ -1,7 +1,14 @@
-from Briareus.Logic.Evaluation import DeclareFact, Fact
+from Briareus.Logic.Evaluation import DeclareFact, Fact, FactList
+from Briareus.VCS_API import RepoInfoTy, BranchRef, SubModuleInfo, PRInfo, RepoSite
+from Briareus.Input.Description import BranchDesc, RepoDesc, VariableDesc
+from typing import List, Union
 
 
-def get_input_facts(PNAME, RL, BL, VAR, repo_info):
+def get_input_facts(PNAME: str,
+                    RL: List[RepoDesc],
+                    BL: List[BranchDesc],
+                    VAR: List[VariableDesc],
+                    repo_info: RepoInfoTy) -> FactList:
 
     if not RL:
         return []  # dummy run, build nothing
@@ -13,7 +20,7 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     project_repo = projects[0] if projects else None
     project_name = PNAME
 
-    declare_facts = [
+    declare_facts: FactList = [
 
         # ----------------------------------------------------------------------
         # Facts used for build configuration generation
@@ -105,29 +112,40 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
 
     ]
 
-    repo_facts    = ([ Fact('default_main_branch("master")') ] +
-                     # ^^ note: for a multi-project config, possibly
-                     # involving other repos, this isn't necessarily
-                     # globally true.  When this varied support is
-                     # necesary, this fact might need a projectname
-                     # addition.
-                     [ Fact('repo("%s", "%s")'    % (project_name, r.repo_name))   for r in RL ] +
-                     [ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch))
-                       for r in RL if r.main_branch != "master" ])
-    project_facts = ([ Fact('project("%s", "%s")' % (project_name, r.repo_name))
-                       for r in projects ] +
-                     [ Fact('project("%s")' % project_name) for r in projects ])
-    branch_facts  = [ Fact('branchreq("%s", "%s")'  % (project_name, b.branch_name))
-                      for r in projects for b in BL ]
-    subrepo_facts = [ Fact('subrepo("%s", "%s")'
-                           % (project_repo.repo_name, r.repo_name))
-                      for r in repo_info['subrepos'] ]
+    repo_facts: FactList = [ Fact('default_main_branch("master")') ]
+                             # ^^ note: for a multi-project config,
+                             # possibly involving other repos, this
+                             # isn't necessarily globally true.  When
+                             # this varied support is necesary, this
+                             # fact might need a projectname addition.
+    repo_facts.extend([ Fact('repo("%s", "%s")'    % (project_name, r.repo_name))   for r in RL ])
+    repo_facts.extend([ Fact('main_branch("%s", "%s")' % (r.repo_name, r.main_branch))
+                        for r in RL if r.main_branch != "master" ])
+
+    project_facts: FactList = [ Fact('project("%s", "%s")' % (project_name, r.repo_name))
+                                for r in projects ]
+    project_facts.extend([ Fact('project("%s")' % project_name) for r in projects ])
+
+    branch_facts: FactList = [
+        Fact('branchreq("%s", "%s")'  % (project_name, b.branch_name))
+        for r in projects for b in BL
+    ]
+
+    subrepo_facts: FactList = [
+        Fact('subrepo("%s", "%s")'
+             % (project_repo.repo_name, r.repo_name))
+        for r in repo_info['subrepos']
+        if isinstance(r, RepoSite)  # KWQ: can remove when structured
+    ] if project_repo is not None else []
 
     # n.b. repo_info['pullreqs'] are of type PRInfo from InternalOps;
     # the actual definition is not imported here because Python is
     # duck-typed.
-    pullreqs = repo_info['pullreqs']
-    pullreq_facts = [
+
+    pullreqs = [p for p in repo_info['pullreqs'] if isinstance(p, PRInfo)]
+    # pullreqs = repo_info['pullreqs']
+
+    pullreq_facts : FactList = [
         Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s",'
              ' "%(pr_revision)s", %%(pr_status)s, "%(pr_user)s", "%(pr_email)s")'
              % p.__dict__
@@ -142,44 +160,54 @@ def get_input_facts(PNAME, RL, BL, VAR, repo_info):
     # will cause a check on all other repositories (including
     # other projects sharing this repository) for the branch.
 
-    repos_without_branches = [r.repo_name for r in RL] + [r.repo_name for r in repo_info['subrepos']]
+    repos_without_branches = [r.repo_name for r in RL] + [
+        r.repo_name for r in repo_info['subrepos']
+        if isinstance(r, RepoSite)  # KWQ: can remove when structured
+    ]
     for rb in repo_info['branches']:  # VCS.InternalMessages.BranchRef
-        while rb.reponame in repos_without_branches:
-            repos_without_branches.remove(rb.reponame)
+        if isinstance(rb, BranchRef):  # KWQ: can remove when structured
+            while rb.reponame in repos_without_branches:
+                repos_without_branches.remove(rb.reponame)
     if repos_without_branches:
         raise RuntimeError("The following repos have no available branches: %s"
                            % str(repos_without_branches))
 
-    repobranch_facts = [ Fact('branch("%s", "%s")' % (rb.reponame, rb.branchname))
-                         for rb in repo_info['branches']
-                       ] + [ Fact('branch_ref("%s", "%s", "%s")'
-                                  % (rb.reponame, rb.branchname, rb.branchref))
-                             for rb in repo_info['branches']
-                       ]
+    repobranch_facts: FactList = [ Fact('branch("%s", "%s")' % (rb.reponame, rb.branchname))
+                                   for rb in repo_info['branches']
+                                   if isinstance(rb, BranchRef)  # KWQ: can remove when structured
+    ]
+    repobranch_facts.extend([ Fact('branch_ref("%s", "%s", "%s")'
+                                   % (rb.reponame, rb.branchname, rb.branchref))
+                              for rb in repo_info['branches']
+                              if isinstance(rb, BranchRef)  # KWQ: can remove when structured
+    ])
 
-    submodules_facts = []
+    submodules_facts: FactList = []
     # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;
     # the actual definition is not imported here because Python is
     # duck-typed.
     submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)
-                                          for e in repo_info['submodules']
-                                          if (e.sm_repo_name == project_repo.repo_name
-                                              and e.sm_branch == bname
-                                              and e.sm_pullreq_id == pr_id
-                                             )]
-    for bn in set([b.branch_name for b in BL] + [project_repo.main_branch]):
-        for repover in submods_data(bn, None):
-            submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
-                                          % (project_repo.repo_name, bn) % repover) )
-    for p in pullreqs:
-        if p.pr_target_repo == project_repo.repo_name:
-            for repover in submods_data(p.pr_branch, p.pr_ident):
-                submodules_facts.append(
-                    Fact('submodule("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%%s", "%%s")'
-                         % p.__dict__ % repover) )
+                                                    for e in repo_info['submodules']
+                                                    if isinstance(e, SubModuleInfo)  # KWQ: can remove when structured
+                                                    if project_repo is not None
+                                                    if (e.sm_repo_name == project_repo.repo_name
+                                                        and e.sm_branch == bname
+                                                        and e.sm_pullreq_id == pr_id
+                                                    )]
+    if project_repo is not None:
+        for bn in set([b.branch_name for b in BL] + [project_repo.main_branch]):
+            for repover in submods_data(bn, None):
+                submodules_facts.append( Fact('submodule("%s", project_primary, "%s", "%%s", "%%s")'
+                                              % (project_repo.repo_name, bn) % repover) )
+        for p in pullreqs:
+            if p.pr_target_repo == project_repo.repo_name:
+                for repover in submods_data(p.pr_branch, p.pr_ident):
+                    submodules_facts.append(
+                        Fact('submodule("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s", "%%s", "%%s")'
+                             % p.__dict__ % repover) )
 
-    varname_facts = []
-    varval_facts = []
+    varname_facts: FactList = []
+    varval_facts: FactList = []
     for var in VAR:
         varname_facts.append( Fact('varname("%s", "%s")' % (project_name, var.variable_name)) )
         varval_facts.extend( [ Fact('varvalue("%s", "%s", "%s", %d)' %
