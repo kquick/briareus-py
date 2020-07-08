@@ -76,7 +76,7 @@ class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw) -> None:
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo: Optional[Union[GitHubInfo, GitLabInfo]] = None
-        self.repospec = RepoRemoteSpec(RepoAPI_Location(API_URL("no-url"), None))
+        self.repospec = RepoRemoteSpec(RepoAPI_Location(HTTPS_URL("no-url"), None))
 
     def receiveMsg_RepoRemoteSpec(self, msg: RepoRemoteSpec, sender) -> None:
         self._ghinfo = (GitHubInfo(msg.repo_api_loc)

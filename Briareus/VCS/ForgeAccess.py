@@ -1,26 +1,19 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
-from Briareus.VCS_API import RepoSite, SSHHostName, UserURL, SSH_URL
+from Briareus.VCS_API import RepoSite, SSHHostName, UserURL, SSH_URL, HTTPS_URL
 from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
-
-
-class HTTPS_URL(str): 'Form: https://github.com/project/repo'
-class API_URL(str): 'URL for accessing the API interface'
-
-# Note that only the SSH_URL can contain an alternate hostname that is
-# translated by the RX translations.
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class RepoAPI_Location(object):
-    apiloc: API_URL  # HTTP API URL base used internally to get
-                     # information.  This may not yet be a valid API
-                     # reference because there is often path or URL
-                     # adjustments based on that, but this should be an
-                     # http reference to an API server (e.g. a git forge)
-                     # instead of an ssh or http reference to a
-                     # repository.
+    apiloc: HTTPS_URL  # HTTP API URL base used internally to get
+                       # information.  This may not yet be a valid API
+                       # reference because there is often path or URL
+                       # adjustments based on that, but this should be an
+                       # http reference to an API server (e.g. a git forge)
+                       # instead of an ssh or http reference to a
+                       # repository.
     apitoken: Optional[str]  # Token used to access the API URL (or None if no token)
 
 
@@ -30,12 +23,12 @@ def _remove_trailer(path: str, trailer: str) -> str:
 
 
 def _changeloc(url: str,
-               repolocs: List[SSHHostName]) -> Tuple[API_URL, str, str]: # unchanged
+               repolocs: List[SSHHostName]) -> Tuple[HTTPS_URL, str, str]: # unchanged
     parsed = urlparse(url)
     for each in repolocs:
         if parsed.netloc == each.ssh_hostname:
-            return API_URL(urlunparse(parsed._replace(netloc=each.https_hostname))), each.https_hostname, parsed.netloc
-    return API_URL(url), parsed.netloc, parsed.netloc
+            return HTTPS_URL(urlunparse(parsed._replace(netloc=each.https_hostname))), each.https_hostname, parsed.netloc
+    return HTTPS_URL(url), parsed.netloc, parsed.netloc
 
 
 def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],

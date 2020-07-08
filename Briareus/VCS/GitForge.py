@@ -10,10 +10,12 @@ from urllib.parse import urlparse, urlunparse
 from .ForgeAccess import *
 from Briareus.VCS_API import UserURL, PRSts_Closed, PRSts_Merged, PRSts_Active
 from Briareus.VCS.InternalMessages import *
-from typing import (Any, Dict, List, NoReturn, Optional, Tuple, Type, TypeVar, Union)
+from typing import (Any, Dict, List, NewType, NoReturn, Optional, Tuple, Type, TypeVar, Union)
 
 LocalCachePeriod = datetime.timedelta(minutes=1, seconds=35)
 
+
+API_URL = NewType('API_URL', str)  # 'URL for accessing the API interface'
 
 ResponseTy = Union[int,   # http error code, usually NotFound
                    Dict[str,Any],   # if JSON, parsed into a python dict, OR
@@ -24,7 +26,7 @@ ResponseTy = Union[int,   # http error code, usually NotFound
 
 class RemoteGit__Info(object):
     """Common functionality for remote Git retrieval (Github or Gitlab)."""
-    def __init__(self, api_url: str) -> None:
+    def __init__(self, api_url: API_URL) -> None:
         self._url = api_url
         self._request_session = requests.Session()
         self._rsp_cache: Dict[str, Union[int, requests.Response]] = {}   # requrl:response
@@ -261,10 +263,11 @@ class GitLabInfo(RemoteGit__Info):
         if repo_api_location.apitoken:
             self._request_session.headers.update({'Private-Token': repo_api_location.apitoken})
 
-    def get_api_url(self, url: str) -> str:
+    def get_api_url(self, url: HTTPS_URL) -> API_URL:
         parsed = urlparse(url)
-        return urlunparse(
-            parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
+        return API_URL(
+            urlunparse(
+                parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F'))))
 
     def _root_api_url(self, path: str) -> API_URL:
         parsed = urlparse(self._url)
@@ -452,16 +455,17 @@ class GitHubInfo(RemoteGit__Info):
             self._request_session.auth = requests.auth.HTTPBasicAuth(
                 *tuple(repo_api_location.apitoken.split(':')))
 
-    def get_api_url(self, url: str) -> str:
+    def get_api_url(self, url: HTTPS_URL) -> API_URL:
         """Converts a remote repository URL into a form that is useable for
            the Github API (https://developer.github.com/v3) to allow
            API-related requests.
         """
         parsed = urlparse(url)
         if parsed.netloc == 'github.com':
-            return urlunparse(
-                parsed._replace(netloc = 'api.github.com',
-                                path = 'repos' + parsed.path))
+            return API_URL(
+                urlunparse(
+                    parsed._replace(netloc = 'api.github.com',
+                                    path = 'repos' + parsed.path)))
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
 
     def _root_api_url(self, path: str) -> API_URL:

@@ -3,7 +3,7 @@
 import attr
 import json
 from Briareus.VCS_API import *
-from .ForgeAccess import (RepoAPI_Location, API_URL)
+from .ForgeAccess import RepoAPI_Location
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 

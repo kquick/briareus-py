@@ -4,6 +4,10 @@ from typing import Dict, List, NewType, Optional, Union
 
 class UserURL(str): 'URL specified by a user, can be any form'
 class SSH_URL(str): 'Form: git@github.com:project/repo'
+# Note that only the SSH_URL can contain an alternate hostname that is
+# translated by the RX translations.
+
+HTTPS_URL = NewType('HTTPS_URL', str)  # Normalized Form: https://github.com/project/repo
 
 
 @attr.s(auto_attribs=True, frozen=True)
