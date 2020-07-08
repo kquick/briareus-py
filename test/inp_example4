@@ -1,6 +1,6 @@
 {
-  "Repos" : [ ("R10", "r10_url", "develop"),
-              ("R4", "r4_explicit_default_url", "primary"),
+  "Repos" : [ ("R10", "https://gitlab.com/r10_url", "develop"),
+              ("R4", "https://github.com/r4_explicit_default_url", "primary"),
             ]
 , "Branches" : [ "feat1", "dev" ]
 , "Variables" : {

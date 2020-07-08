@@ -8,7 +8,9 @@ from unittest.mock import patch
 from FakeForge import (fake_forge, get_github_api_url_local,
                        get_gitlab_api_url_local,
                        github_gitmodules_contents,
-                       github_submodule_contents)
+                       github_submodule_contents,
+                       github_branch,
+                       gitlab_branch)
 
 
 input_spec = open('test/inp_example').read()
@@ -83,147 +85,44 @@ forge_responses = {
 
     ## R1 branches
 
-    '/repos/r1_url/branches': b'''
-[
-  {
-    "name": "feat1",
-    "commit": {
-      "sha": "r1-feat1-ref",
-      "url": "https://github.com/r1_url/commits/r1-feat1-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R1-master-ref",
-      "url": "https://github.com/r1_url/commits/R1-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
+    '/repos/r1_url/branches':
+    json.dumps([
+        github_branch('r1', 'https://github.com/r1_url', 'feat1'),
+        github_branch('R1', 'https://github.com/r1_url', 'master'),
+    ]).encode('utf-8'),
 
-    '/repos/r2_url/branches': b'''
-[
-  {
-    "name": "bugfix9",
-    "commit": {
-      "sha": "r2-bugfix9-ref",
-      "url": "https://github.com/r2_url/commits/r2-bugfix9-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R2-master-ref",
-      "url": "https://github.com/r2_url/commits/R2-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
+    '/repos/r2_url/branches':
+    json.dumps([
+        github_branch('r2', 'https://github.com/r2_url', 'bugfix9'),
+        github_branch('R2', 'https://github.com/r2_url', 'master'),
+    ]).encode('utf-8'),
 
-    '/repos/r3_url/branches': b'''
-[
-  {
-    "name": "blah",
-    "commit": {
-      "sha": "r3-blah-ref",
-      "url": "https://github.com/r3_url/commits/r3-blah-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R3-master-ref",
-      "url": "https://github.com/r3_url/commits/R3-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
+    '/repos/r3_url/branches':
+    json.dumps([
+        github_branch('r3', 'https://github.com/r3_url', 'blah'),
+        github_branch('R3', 'https://github.com/r3_url', 'master'),
+    ]).encode('utf-8'),
 
-    '/repos/r4_url/branches': b'''
-[
-  {
-    "name": "feat1",
-    "commit": {
-      "sha": "r4-feat1-ref",
-      "url": "https://github.com/r4_url/commits/r4-feat1-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R4-master-ref",
-      "url": "https://github.com/r4_url/commits/R4-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
+    '/repos/r4_url/branches':
+    json.dumps([
+        github_branch('r4', 'https://github.com/r4_url', 'feat1'),
+        github_branch('R4', 'https://github.com/r4_url', 'master'),
+    ]).encode('utf-8'),
 
-    '/repos/r5_url/branches': b'''
-[
-  {
-    "name": "blah",
-    "commit": {
-      "sha": "r5-blah-ref",
-      "url": "https://github.com/r5_url/commits/r5-blah-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "dev",
-    "commit": {
-      "sha": "r5-dev-ref",
-      "url": "https://github.com/r5_url/commits/r5-dev-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "bugfix9",
-    "commit": {
-      "sha": "r5-bugfix9-ref",
-      "url": "https://github.com/r5_url/commits/r5-bugfix9-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R5-master-ref",
-      "url": "https://github.com/r5_url/commits/R5-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
 
-    '/repos/r6_url/branches': b'''
-[
-  {
-    "name": "feat1",
-    "commit": {
-      "sha": "r6-feat1-ref",
-      "url": "https://github.com/r6_url/commits/r6-feat1-ref"
-    },
-    "protected": false
-  },
-  {
-    "name": "master",
-    "commit": {
-      "sha": "R6-master-ref",
-      "url": "https://github.com/r6_url/commits/R6-master-ref"
-    },
-    "protected": false
-  }
-]
-    ''',
+    '/repos/r5_url/branches':
+    json.dumps([
+        github_branch('r5', 'https://github.com/r5_url', 'blah'),
+        github_branch('r5', 'https://github.com/r5_url', 'dev'),
+        github_branch('r5', 'https://github.com/r5_url', 'bugfix9'),
+        github_branch('R5', 'https://github.com/r5_url', 'master'),
+    ]).encode('utf-8'),
+
+    '/repos/r6_url/branches':
+    json.dumps([
+        github_branch('r6', 'https://github.com/r6_url', 'feat1'),
+        github_branch('R6', 'https://github.com/r6_url', 'master'),
+    ]).encode('utf-8'),
 
     '/repos/r7_url/branches': b'''
 [
@@ -238,35 +137,12 @@ forge_responses = {
 ]
     ''',
 
-    '/api/v4/projects/r10_url/repository/branches': b'''
-[
-  {
-    "name": "master",
-    "commit": {
-      "id": "R10-master-ref",
-      "short_id": "R10-master-shortref",
-      "created_at": "2020-01-29T10:58:29.000-08:00",
-      "parent_ids": null,
-      "title": "Latest commit",
-      "message": "Latest commit",
-      "author_name": "Doctor Who",
-      "author_email": "drwho@tardis.out",
-      "authored_date": "2020-01-29T10:58:29.000-08:00",
-      "committer_name": "Doctor Who",
-      "committer_email": "drwho@tardis.out",
-      "committed_date": "2020-01-29T10:58:29.000-08:00",
-      "web_url": "https://gitlab.com/dalek/disabler/-/commit/R10-master-ref"
-    },
-    "merged": false,
-    "protected": true,
-    "developers_can_push": false,
-    "developers_can_merge": false,
-    "can_push": true,
-    "default": true,
-    "web_url": "https://gitlab.com/dalek/disabler/-/tree/master"
-  }
-]
-    ''',
+    '/api/v4/projects/r10_url/repository/branches':
+    json.dumps([
+        gitlab_branch("R10", "https://gitlab.com/r10_url", "master"),
+    ]).encode('utf-8'),
+
+
 
     # ############################################################
 

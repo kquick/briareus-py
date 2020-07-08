@@ -132,3 +132,42 @@ def github_submodule_contents(primary_repo_url, branch,
             'submodule_git_url': subrepo_url,
         }
     ).encode('utf-8')
+
+def gitlab_branch(reponame, repourl, branch, refbase=None):
+    ref = '-'.join([reponame, refbase or branch, "ref"])
+    return {
+        "name": branch,
+        "commit": {
+            "id": ref,
+            "short_id": '-'.join([reponame, branch, "shortref"]),
+            "created_at": "2020-01-29T10:58:29.000-08:00",
+            "parent_ids": None,
+            "title": "Latest commit",
+            "message": "Latest commit",
+            "author_name": "Doctor Who",
+            "author_email": "drwho@tardis.out",
+            "authored_date": "2020-01-29T10:58:29.000-08:00",
+            "committer_name": "Doctor Who",
+            "committer_email": "drwho@tardis.out",
+            "committed_date": "2020-01-29T10:58:29.000-08:00",
+            "web_url": repourl + "/-/commit/" + ref,
+        },
+        "merged": False,
+        "protected": True,
+        "developers_can_push": False,
+        "developers_can_merge": False,
+        "can_push": True,
+        "default": True,
+        "web_url": "https://gitlab.com/dalek/disabler/-/tree/" + branch,
+    }
+
+def github_branch(reponame, repourl, branch, refbase=None):
+    ref = '-'.join([reponame, refbase or branch, "ref"])
+    return {
+        "name": branch,
+        "commit": {
+            "sha": ref,
+            "url": repourl + "/commits/" + ref,
+        },
+        "protected": False,
+    }
