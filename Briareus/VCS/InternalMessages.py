@@ -3,8 +3,9 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from .ForgeAccess import RepoAPI_Location
+from .ForgeAccess import RepoAPI_Location, UserURL, SSH_URL, SAME_URL, DIFFERENT_URL
 from typing import (Any, Dict, List, Optional, Tuple, Union)
+
 
 def toJSON(obj) -> str:
     class objToJSON(json.JSONEncoder):
@@ -94,7 +95,7 @@ class PullReqInfo(object):
     pullreq_number: str
     pullreq_status: PullReqStatus__Base # derivation
     pullreq_title: str
-    pullreq_srcurl: str
+    pullreq_srcurl: Union[UserURL, SSH_URL, SAME_URL, DIFFERENT_URL]
     pullreq_branch: str
     pullreq_ref: str
     pullreq_user: str   # name of user on forge
@@ -156,7 +157,7 @@ class RepoRemoteSpec(object):
 @attr.s(auto_attribs=True, frozen=True)
 class PRInfo(object):
     pr_target_repo: str
-    pr_srcrepo_url: str
+    pr_srcrepo_url: Union[UserURL, SSH_URL]
     pr_branch: str
     pr_revision: str
     pr_ident: str  # unique identifier string, required

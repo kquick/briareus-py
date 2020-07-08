@@ -272,22 +272,25 @@ class GitLabInfo(RemoteGit__Info):
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
 
 
-    def _src_repo_url(self, mergereq: Dict[str, Any]) -> Union[str, int, Tuple[str, str]]:
+    def _src_repo_url(self, mergereq: Dict[str, Any]) -> Union[int,   # error code
+                                                               UserURL,
+                                                               SAME_URL,
+                                                               DIFFERENT_URL]:
         if 'source_project_url' in mergereq:
-            return mergereq['source_project_url']
+            return UserURL(mergereq['source_project_url'])
         # It's a source_project_id, but since it's on this gitlab
         # forge, it's in this repo as a local branch.  The proper URL
         # is not known here, only the forge API url, so defer the
         # actual URL to the caller who does have that information.
         if mergereq.get('source_project_id', "no_spid") == \
            mergereq.get('target_project_id', "no_tpid"):
-            return "SameProject"
+            return SAME_URL()
         rsp = self.api_req('//projects/%d' % mergereq.get('source_project_id', "no_spid"),
                            notFoundOK=True)
         if isinstance(rsp, int):
             return rsp
         assert isinstance(rsp, dict)
-        return ("DifferentProject", rsp['name'])
+        return DIFFERENT_URL(rsp['name'])
 
     def get_pullreqs(self, reponame: str) -> PullReqsData:
         rsp = self.api_req('/merge_requests?scope=all&state=all')
@@ -324,10 +327,10 @@ class GitLabInfo(RemoteGit__Info):
                 # logging.warning('Inaccessible source repo for gitlab repo %s PR #%d "%s"; ignoring',
                 #                 reponame, pr['iid'], pr['title'])
 
-                src_repo_url = "SameProject"
+                src_repo_url = SAME_URL()
                 src_branch = 'refs/merge-requests/' + str(pr["iid"]) + '/head'
 
-            assert isinstance(src_repo_url, str)
+            assert not isinstance(src_repo_url, int)
 
             prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
                                  pullreq_status = { "closed": PRSts_Closed,
@@ -477,7 +480,7 @@ class GitHubInfo(RemoteGit__Info):
                                               else (PRSts_Closed() if pr["state"] == "closed"
                                                     else PRSts_Active())),
                               pullreq_title=pr["title"],    # for user reference
-                              pullreq_srcurl=(lambda r: r["html_url"] if r else '')(
+                              pullreq_srcurl=(lambda r: UserURL(r["html_url"] if r else ''))(
                                   pr["head"]["repo"]),  # source repo URL might be gone if old
                               pullreq_branch=pr["head"]["ref"],          # source repo branch
                               pullreq_ref=pr["head"]["sha"],         # for github, can also use branch ^

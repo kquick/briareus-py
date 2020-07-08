@@ -215,7 +215,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             # Sometimes this is known, but sometimes the reference
             # must be translated (e.g. GitLab sometimes just provides
             # 'source_project_id').
-            if p.pullreq_srcurl == "SameProject":
+            if isinstance(p.pullreq_srcurl, SAME_URL):
                 # This is likely a GitLab repo, where the merge
                 # request has a source_project_id instead of a
                 # source_project_url, and the source_project_id is the
@@ -223,39 +223,21 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # in the original repo).  The GitLabInfo information
                 # collection didn't have the URL, so it couldn't
                 # generate an actual URL.
-                p.pullreq_srcurl = [ r.repo_url
-                                     for r in self._all_repos()
-                                     if r.repo_name == msg.reponame ][0] # must exist if we got to here
-            elif isinstance(p.pullreq_srcurl, tuple) and \
-                 p.pullreq_srcurl[0] == 'DifferentProject':
+                p.pullreq_srcurl = UserURL([ r.repo_url
+                                             for r in self._all_repos()
+                                             if r.repo_name == msg.reponame ][0]) # must exist if we got to here
+            elif isinstance(p.pullreq_srcurl, DIFFERENT_URL):
                 # This is likely a GitLab repo, where the merge
                 # request has a source_project_id instead of a
                 # source_rpoject_url and the source_project_id is
                 # different than the target_project_id.  The
                 # GitLabInfo information collection didn't have the
                 # URL, so it couldn't generate an actual URL.
-                src_reponame = p.pullreq_srcurl[1]
-                p.pullreq_srcurl = ([ r.repo_url
-                                      for r in self.RL if r.repo_name == src_reponame ]
-                                    + [None])[0]
-            elif p.pullreq_srcurl is None:
-                # Debug vvv Hypothesis: this occurs during the small
-                # window where the pull request was identified and
-                # then it is merged and then additional data is
-                # attempted to be collected for it.
-                #
-                # Alternative (verified): gitlab is kinda broken
-                # because a private fork of a private repo doesn't
-                # inherit the permissions from the original repo and
-                # therefore is not visible to users that can access
-                # the original repo.  This manifests in 404 when
-                # attempting to follow the link to the merge source,
-                # and from the API perspective it causes the
-                # pullreq_srcurl to be None.  Since not much
-                # information can be gathered about these PR's they
-                # are ignored.
-                logging.critical('ERR: srcurl is None for pullreq %s in msg %s', p, msg)
-                # Debug ^^^
+                src_reponame = p.pullreq_srcurl.reponame
+                p.pullreq_srcurl = UserURL(([ r.repo_url
+                                              for r in self.RL
+                                              if r.repo_name == src_reponame ]
+                                            + [None])[0])
 
             # If this is a new pull request branch, and that branch
             # has not already been probed for the target repo, check
@@ -277,6 +259,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
                     # check various repos for this branch now.
                     for repo in self._all_repos():
                         self.check_for_branch(repo.repo_name, p.pullreq_branch)
+
+            assert isinstance(p.pullreq_srcurl, (UserURL, SSH_URL)), \
+                '::'.join([str(p.pullreq_srcurl), str(type(p.pullreq_srcurl))])
 
             # If this PR is for the project repo, check the gitmodules
             # in the source because the PR might be changing the
@@ -314,22 +299,21 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                                              p.pullreq_ref or
                                                              p.pullreq_branch))
 
-        self.pullreqs.update(set([
-            PRInfo(pr_target_repo=msg.reponame,
-                   pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,
-                                                 ([r for r in self.RL
-                                                   if r.repo_name == msg.reponame] + [None])[0],
-                                                 self.RX) or
-                                   self._url_for_repo(msg.reponame)),
-                   pr_branch=p.pullreq_branch,
-                   pr_revision=p.pullreq_ref,
-                   pr_ident=str(p.pullreq_number),  # PR idents must be strings
-                   pr_status=p.pullreq_status,
-                   pr_title=p.pullreq_title,
-                   pr_user=p.pullreq_user,
-                   pr_email=p.pullreq_email)
-            for p in msg.pullreqs
-            if p.pullreq_srcurl is not None]))
+            if p.pullreq_srcurl is not None:
+                self.pullreqs.add(
+                    PRInfo(pr_target_repo=msg.reponame,
+                           pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,
+                                                         ([r for r in self.RL
+                                                           if r.repo_name == msg.reponame] + [None])[0],
+                                                         self.RX) or
+                                           self._url_for_repo(msg.reponame)),
+                           pr_branch=p.pullreq_branch,
+                           pr_revision=p.pullreq_ref,
+                           pr_ident=str(p.pullreq_number),  # PR idents must be strings
+                           pr_status=p.pullreq_status,
+                           pr_title=p.pullreq_title,
+                           pr_user=p.pullreq_user,
+                           pr_email=p.pullreq_email))
         self.got_response(response_name='pull_reqs_data')
 
     def _url_for_repo(self, repo_name):

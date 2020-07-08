@@ -9,6 +9,17 @@ class UserURL(str): urltype='User'     # URL specified by a user, can be any for
 class SSH_URL(str): urltype='SSH'      # Form: git@github.com:project/repo
 class HTTPS_URL(str): urltype='HTTPS'  # Form: https://github.com/project/repo
 class API_URL(str): urltype='API'      # URL for accessing the API interface
+class SAME_URL(object): urltype='Same' # Same URL as referencing URL,
+                                       # but latter isn't known when
+                                       # this is set.
+@attr.s(auto_attribs=True, frozen=True)
+class DIFFERENT_URL(object):
+    """URL is different than the current URL, but there is not enough
+information to get an actual URL.  This can happen for gitforge merge
+request source URLs."""
+    reponame: str
+    urltype: str = 'DURL'
+
 
 # Note that only the SSH_URL can contain an alternate hostname that is
 # translated by the RX translations.
@@ -85,9 +96,10 @@ def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:
 
     return RepoAPI_Location(returl, None)
 
+
 def to_access_url(url: str,
                   for_repo: RepoDesc,
-                  repolocs: List[RepoLoc]) -> str:  # KWQ: use for_repo to get "git@" portion instead of https portion...
+                  repolocs: List[RepoLoc]) -> Union[UserURL, SSH_URL]:
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that
        an SSH deploy key is being used by the Builder (e.g. Hydra) to
@@ -105,12 +117,12 @@ def to_access_url(url: str,
         # URL is not for a primary input repo.  It is probably a
         # subrepo.  Because it is not a primary, there is no
         # translation information available.
-        return url
+        return UserURL(url)
 
     if not for_repo.repo_url.startswith('git@'):
         # Primary input repo doesn't use SSH access, so presumably
         # repo is publicly accessible and the URL will work
-        return url
+        return UserURL(url)
 
     # The for_repo specification indicates that SSH access is needed,
     # so extract the hostname so that the same hostname can be used in
@@ -144,6 +156,6 @@ def to_access_url(url: str,
         # The input path does not match the for_path, so this is
         # assumed to be a source repo for a PR; don't assume the
         # ssh translation holds for it.
-        return url
+        return UserURL(url)
 
-    return "git@" + ssh_host + ":" + url_path
+    return SSH_URL("git@" + ssh_host + ":" + url_path)
