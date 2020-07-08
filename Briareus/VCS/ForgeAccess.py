@@ -5,15 +5,24 @@ from Briareus.Input.Description import *
 from typing import (List, Optional, Tuple, Type, TypeVar, Union)
 
 
+class UserURL(str): urltype='User'     # URL specified by a user, can be any form
+class SSH_URL(str): urltype='SSH'      # Form: git@github.com:project/repo
+class HTTPS_URL(str): urltype='HTTPS'  # Form: https://github.com/project/repo
+class API_URL(str): urltype='API'      # URL for accessing the API interface
+
+# Note that only the SSH_URL can contain an alternate hostname that is
+# translated by the RX translations.
+
+
 @attr.s(auto_attribs=True, frozen=True)
 class RepoAPI_Location(object):
-    apiloc: str   # HTTP API URL base used internally to get
-                  # information.  This may not yet be a valid API
-                  # reference because there is often path or URL
-                  # adjustments based on that, but this should be an
-                  # http reference to an API server (e.g. a git forge)
-                  # instead of an ssh or http reference to a
-                  # repository.
+    apiloc: API_URL  # HTTP API URL base used internally to get
+                     # information.  This may not yet be a valid API
+                     # reference because there is often path or URL
+                     # adjustments based on that, but this should be an
+                     # http reference to an API server (e.g. a git forge)
+                     # instead of an ssh or http reference to a
+                     # repository.
     apitoken: Optional[str]  # Token used to access the API URL (or None if no token)
 
 
@@ -23,13 +32,12 @@ def _remove_trailer(path: str, trailer: str) -> str:
 
 
 def _changeloc(url: str,
-               repolocs: List[RepoLoc]) -> Union[str,  # changed
-                                                 Tuple[str, str, str]]: # unchanged
+               repolocs: List[RepoLoc]) -> Tuple[API_URL, str, str]: # unchanged
     parsed = urlparse(url)
     for each in repolocs:
         if parsed.netloc == each.repo_loc:
-            return urlunparse(parsed._replace(netloc=each.api_host)), each.api_host, parsed.netloc
-    return url, parsed.netloc, parsed.netloc
+            return API_URL(urlunparse(parsed._replace(netloc=each.api_host))), each.api_host, parsed.netloc
+    return API_URL(url), parsed.netloc, parsed.netloc
 
 
 def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:

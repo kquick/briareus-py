@@ -42,6 +42,7 @@ import requests
 import json
 from thespian.actors import (ActorTypeDispatcher, ActorSystemMessage, WakeupMessage)
 from thespian.initmsgs import initializing_messages
+from .ForgeAccess import *
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitForge import RepoAPI_Location, GitLabInfo, GitHubInfo
 import datetime
@@ -74,7 +75,7 @@ class GitRepoInfo(ActorTypeDispatcher):
     def __init__(self, *args, **kw) -> None:
         super(GitRepoInfo, self).__init__(*args, **kw)
         self._ghinfo: Optional[Union[GitHubInfo, GitLabInfo]] = None
-        self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None))
+        self.repospec = RepoRemoteSpec(RepoAPI_Location(API_URL("no-url"), None))
 
     def receiveMsg_RepoRemoteSpec(self, msg: RepoRemoteSpec, sender) -> None:
         self._ghinfo = (GitHubInfo(msg.repo_api_loc)
