@@ -25,6 +25,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.responses_pending = 0
         self.pending_requests = []
         self.pullreqs: Set[PRInfo] = set()
+        self.submodules: Set[SubModuleInfo] = set()
+        self.branches: Set[BranchRef] = set()
+        self.subrepos: Set[RepoDesc] = set()
 
     def receiveMsg_str(self, msg: str, sender):
         if msg == "status":
@@ -144,25 +147,25 @@ class GatherRepoInfo(ActorTypeDispatcher):
         """
         self._gatherInfo(msg, sender)
 
-    def _gatherInfo(self, msg, sender, jsonReply=False):
+    def _gatherInfo(self, msg: GatherInfo, sender, jsonReply=False) -> None:
         if not self.is_idle(msg, sender, jsonReply):
             return
         self.top_requestor = sender
         self.prepareReply = toJSON if jsonReply else (lambda x: x)
         self.responses_pending = 0
 
-        self.pullreqs: Set[PRInfo] = set()
+        self.pullreqs = set()
         self.submodules = set()
         self.subrepos = set()
         self.branches = set()
-        self.known_branches = defaultdict(set)
-        self.branches_check = {}
-        self._pending_info = {}
+        self.known_branches: Dict[str, Set[BranchRef]] = defaultdict(set)  # reponame:set(BranchRef)
+        self.branches_check: Dict[Tuple[str, str], bool] = {}  # (reponame,branchname):bool
+        self._pending_info: Dict[str, RepoDesc] = {}  # reponame:RepoDesc
 
         self.RL = msg.repolist
         self.RX = msg.repolocs
         self.BL = msg.branchlist
-        self.BL_queried = []
+        self.BL_queried: List[str] = []  # list of reponames
         for repo in self.RL:
             self.get_info_for_a_repo(repo)
         # In case there were no repos, this is the "I am done" check:
@@ -419,7 +422,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='branch_present')
 
 
-    def receiveMsg_GitmodulesRepoVers(self, msg: GitmodulesRepoVers, sender):
+    def receiveMsg_GitmodulesRepoVers(self, msg: GitmodulesRepoVers, sender) -> None:
         "Response message from the GetGitInfo actor to a GitmodulesData message"
         for each in msg.gitmodules_repovers:
             named_submod_repo = ([r for r in self._all_repos()
