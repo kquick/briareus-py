@@ -1,9 +1,9 @@
 {
-  "Repos" : [ ("R1", "r1_url"),
-              ("R2", "r2_url"),
-              ("R3", "r3_url"),
-              ("R5", "r5_url"),
-              ("R6", "r6_url") ]
+  "Repos" : [ ("R1", "https://github.com/r1_url"),
+              ("R2", "https://github.com/r2_url"),
+              ("R3", "https://github.com/r3_url"),
+              ("R5", "https://github.com/r5_url"),
+              ("R6", "https://github.com/r6_url") ]
 , "Name" : "Project #1"
 , "Branches" : [ "master", "feat1", "dev" ]
 , "Variables" : {

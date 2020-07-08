@@ -528,8 +528,8 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
                               params=bugfix9_prfaildata),
                           updated=["R2", "R4"]) in reps
 
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     gitforge().set_commit_status.assert_has_calls(
         [
             call('failure',
@@ -575,8 +575,8 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
                           updated=["R2", "R4"]) in reps
 
     # print(gitforge.call_args_list)
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # print(gitforge().set_commit_status.call_args_list)
     gitforge().set_commit_status.assert_has_calls(
         [
@@ -639,8 +639,8 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
                               params=bugfix9_prfaildata),
                           updated=["R2", "R4"]) in reps
 
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     gitforge().set_commit_status.assert_has_calls(
         [
             call('failure',
@@ -682,8 +682,8 @@ def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate
                               params=PRData(bugfix9_prtype, bugfix9_prcfg)),
                           updated=["R2", "R4"]) in reps
 
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # print(gitforge().set_commit_status.call_args_list)
     gitforge().set_commit_status.assert_has_calls(
         [
@@ -721,8 +721,8 @@ def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate
                               params=PRData(bugfix9_prtype, bugfix9_prcfg)),
                           updated=["R2", "R4"]) in reps
 
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r2_url", apitoken=None))
-    gitforge.assert_any_call(RepoAPI_Location(apiloc="r4_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
+    gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # Ensure the pending status is not re-asserted, even if the number pending changes
     assert gitforge().set_commit_status.call_args_list == []
 

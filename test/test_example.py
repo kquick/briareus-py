@@ -26,28 +26,28 @@ expected_repo_info = {
         BranchRef(reponame='R7', branchname='master', branchref='R7-master-ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='R1', pr_srcrepo_url='remote_R1_b', pr_branch='blah',
+        PRInfo(pr_target_repo='R1', pr_srcrepo_url='https://github.com/remote_R1_b', pr_branch='blah',
                pr_revision='r1_blah_mergeref', pr_ident='1', pr_status=PRSts_Active(),
                pr_title='pr#19', pr_user='nick', pr_email='nick@bad.seeds'),
-        PRInfo(pr_target_repo='R2', pr_srcrepo_url='remote_r2_a', pr_branch='bugfix9',
+        PRInfo(pr_target_repo='R2', pr_srcrepo_url='https://github.com/remote_r2_a', pr_branch='bugfix9',
                pr_revision='r2_b9_mergeref', pr_ident='23', pr_status=PRSts_Active(),
                pr_title='add fantasticness', pr_user='banana', pr_email=''),
-        PRInfo(pr_target_repo='R2', pr_srcrepo_url='remote_r2_pr1111_url', pr_branch='blah',
+        PRInfo(pr_target_repo='R2', pr_srcrepo_url='https://github.com/remote_r2_pr1111_url', pr_branch='blah',
                pr_revision='r2_blah_mergeref', pr_ident='1111', pr_status=PRSts_Active(),
                pr_title='blah also', pr_user='not_nick', pr_email='not_nick@bad.seeds'),
-        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_CLOSED_url', pr_branch='closed_pr',
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='https://github.com/remote_r3_CLOSED_url', pr_branch='closed_pr',
                pr_revision='r3_CLOSED_mergeref', pr_ident='22', pr_status=PRSts_Closed(),
                pr_title='ignored because closed', pr_user='done', pr_email='done@already.yo'),
-        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_MERGED_url', pr_branch='merged_pr',
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='https://github.com/remote_r3_MERGED_url', pr_branch='merged_pr',
                pr_revision='r3_MERGED_mergeref', pr_ident='33', pr_status=PRSts_Merged(),
                pr_title='ignored because merged', pr_user='done', pr_email='done@already.yo'),
-        PRInfo(pr_target_repo='R3', pr_srcrepo_url='remote_r3_pr11_url', pr_branch='blah',
+        PRInfo(pr_target_repo='R3', pr_srcrepo_url='https://github.com/remote_r3_pr11_url', pr_branch='blah',
                pr_revision='r3_blah_mergeref', pr_ident='11', pr_status=PRSts_Active(),
                pr_title='blah started', pr_user='nick', pr_email='nick@bad.seeds'),
-        PRInfo(pr_target_repo='R4', pr_srcrepo_url='remote_R4_y', pr_branch='bugfix9',
-               pr_revision='r1_bf9_mergeref', pr_ident='8192', pr_status=PRSts_New(),
+        PRInfo(pr_target_repo='R4', pr_srcrepo_url='https://github.com/remote_R4_y', pr_branch='bugfix9',
+               pr_revision='r4_bf9_mergeref', pr_ident='8192', pr_status=PRSts_Active(),
                pr_title='fix ninth bug!', pr_user='ozzie', pr_email='ozzie@crazy.train'),
-        PRInfo(pr_target_repo='R6', pr_srcrepo_url='remote_r6_pr111_url', pr_branch='blah',
+        PRInfo(pr_target_repo='R6', pr_srcrepo_url='https://github.com/remote_r6_pr111_url', pr_branch='blah',
                pr_revision='r6_blah_mergeref', pr_ident='111', pr_status=PRSts_Active(),
                pr_title='blah match', pr_user='nick', pr_email='nick@bad.seeds'),
     ]),
@@ -63,10 +63,10 @@ expected_repo_info = {
         SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='R2', repo_url='r2_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R3', repo_url='r3_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R4', repo_url='r4_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R7', repo_url='r7_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R2', repo_url='https://github.com/r2_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R4', repo_url='https://github.com/r4_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='R7', repo_url='https://github.com/r7_url', main_branch='master', project_repo=False),
     ]),
 }
 
@@ -332,32 +332,32 @@ def test_example_hydra_master_submodules(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url r2_master_head"
+                    "value": "https://github.com/r2_url r2_master_head"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head^3"
+                    "value": "https://github.com/r3_url r3_master_head^3"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url master"
+                    "value": "https://github.com/r5_url master"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url master"
+                    "value": "https://github.com/r6_url master"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r4_url r4_master_head^1"
+                    "value": "https://github.com/r4_url r4_master_head^1"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -401,32 +401,32 @@ def test_example_hydra_master_heads(example_hydra_jobsets):
                  "R1-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r1_url master"
+                     "value": "https://github.com/r1_url master"
                  },
                  "R2-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r2_url master"
+                     "value": "https://github.com/r2_url master"
                  },
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r3_url master"
+                     "value": "https://github.com/r3_url master"
                  },
                  "R5-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r5_url master"
+                     "value": "https://github.com/r5_url master"
                  },
                  "R6-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r6_url master"
+                     "value": "https://github.com/r6_url master"
                  },
                  "R4-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r4_url master"
+                     "value": "https://github.com/r4_url master"
                  },
                  "ghcver": {
                      "emailresponsible": False,
@@ -470,32 +470,32 @@ def test_example_hydra_feat1_submodules(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url feat1"
+                    "value": "https://github.com/r1_url feat1"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url r2_master_head^1"
+                    "value": "https://github.com/r2_url r2_master_head^1"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head"
+                    "value": "https://github.com/r3_url r3_master_head"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url master"
+                    "value": "https://github.com/r5_url master"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url feat1"
+                    "value": "https://github.com/r6_url feat1"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r4_url r4_feat1_head^2"
+                    "value": "https://github.com/r4_url r4_feat1_head^2"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -539,32 +539,32 @@ def test_example_hydra_feat1_heads(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url feat1"
+                    "value": "https://github.com/r1_url feat1"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url master"
+                    "value": "https://github.com/r5_url master"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url feat1"
+                    "value": "https://github.com/r6_url feat1"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r4_url feat1"
+                    "value": "https://github.com/r4_url feat1"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -608,32 +608,32 @@ def test_example_hydra_dev_submodules(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url r2_master_head"
+                    "value": "https://github.com/r2_url r2_master_head"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head^3"
+                    "value": "https://github.com/r3_url r3_master_head^3"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url dev"
+                    "value": "https://github.com/r5_url dev"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url master"
+                    "value": "https://github.com/r6_url master"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r4_url r4_master_head^1"
+                    "value": "https://github.com/r4_url r4_master_head^1"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -677,32 +677,32 @@ def test_example_hydra_dev_heads(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url dev"
+                    "value": "https://github.com/r5_url dev"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url master"
+                    "value": "https://github.com/r6_url master"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r4_url master"
+                    "value": "https://github.com/r4_url master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -746,32 +746,32 @@ def test_example_hydra_blah_submodules(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_R1_b blah"
+                    "value": "https://github.com/remote_R1_b blah"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url r2_master_head^22"
+                    "value": "https://github.com/r2_url r2_master_head^22"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head"
+                    "value": "https://github.com/r3_url r3_master_head"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url blah"
+                    "value": "https://github.com/r5_url blah"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_r6_pr111_url blah"
+                    "value": "https://github.com/remote_r6_pr111_url blah"
                 },
                 "R7-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r7_url r7_master_head^4"
+                    "value": "https://github.com/r7_url r7_master_head^4"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -820,32 +820,32 @@ def test_example_hydra_blah_heads(example_hydra_jobsets):
                  "R1-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_R1_b blah"
+                     "value": "https://github.com/remote_R1_b blah"
                  },
                  "R2-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_r2_pr1111_url blah"
+                     "value": "https://github.com/remote_r2_pr1111_url blah"
                  },
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_r3_pr11_url blah"
+                     "value": "https://github.com/remote_r3_pr11_url blah"
                  },
                  "R5-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r5_url blah"
+                     "value": "https://github.com/r5_url blah"
                  },
                  "R6-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_r6_pr111_url blah"
+                     "value": "https://github.com/remote_r6_pr111_url blah"
                  },
                  "R7-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r7_url master"
+                     "value": "https://github.com/r7_url master"
                  },
                  "ghcver": {
                      "emailresponsible": False,
@@ -889,32 +889,32 @@ def test_example_hydra_master_bugfix9_submodules(example_hydra_jobsets):
                 "R1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "R2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_r2_a bugfix9"
+                    "value": "https://github.com/remote_r2_a bugfix9"
                 },
                 "R3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url r3_master_head^3"
+                    "value": "https://github.com/r3_url r3_master_head^3"
                 },
                 "R4-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_R4_y bugfix9"
+                    "value": "https://github.com/remote_R4_y bugfix9"
                 },
                 "R5-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r5_url bugfix9"
+                    "value": "https://github.com/r5_url bugfix9"
                 },
                 "R6-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r6_url master"
+                    "value": "https://github.com/r6_url master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -958,32 +958,32 @@ def test_example_hydra_master_bugfix9_heads(example_hydra_jobsets):
                  "R1-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r1_url master"
+                     "value": "https://github.com/r1_url master"
                  },
                  "R2-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_r2_a bugfix9"
+                     "value": "https://github.com/remote_r2_a bugfix9"
                  },
                  "R3-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r3_url master"
+                     "value": "https://github.com/r3_url master"
                  },
                  "R4-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "remote_R4_y bugfix9"
+                     "value": "https://github.com/remote_R4_y bugfix9"
                  },
                  "R5-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r5_url bugfix9"
+                     "value": "https://github.com/r5_url bugfix9"
                  },
                  "R6-src": {
                      "emailresponsible": False,
                      "type": "git",
-                     "value": "r6_url master"
+                     "value": "https://github.com/r6_url master"
                  },
                  "ghcver": {
                      "emailresponsible": False,

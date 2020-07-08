@@ -16,11 +16,11 @@ def test_example_facts(generated_facts):
 
 expected_inp = D.InputDesc(
     PNAME="Project #1",
-    RL = sorted([ D.RepoDesc(repo_name="R1", repo_url="r1_url", project_repo=True),
-                  D.RepoDesc(repo_name="R2", repo_url="r2_url"),
-                  D.RepoDesc(repo_name="R3", repo_url="r3_url"),
-                  D.RepoDesc(repo_name="R5", repo_url="r5_url"),
-                  D.RepoDesc(repo_name="R6", repo_url="r6_url"),
+    RL = sorted([ D.RepoDesc(repo_name="R1", repo_url="https://github.com/r1_url", project_repo=True),
+                  D.RepoDesc(repo_name="R2", repo_url="https://github.com/r2_url"),
+                  D.RepoDesc(repo_name="R3", repo_url="https://github.com/r3_url"),
+                  D.RepoDesc(repo_name="R5", repo_url="https://github.com/r5_url"),
+                  D.RepoDesc(repo_name="R6", repo_url="https://github.com/r6_url"),
     ]),
     BL = sorted([ D.BranchDesc(branch_name="master"),
                   D.BranchDesc(branch_name="feat1"),
