@@ -208,7 +208,7 @@ class RemoteGit__Info(object):
                     # invalid repository.  Have to assume the name is
                     # the last component of the path.
                     ret.append(SubRepoVers(os.path.split(gitmod_cfg[remote]['path'])[-1],
-                                           UserURL('invalid_remote_repo'),
+                                           BOGUS_URL('invalid_remote_repo'),
                                            'unknownRemoteRefForPullReq'))
                 else:
                     # The submodule was added to .gitmodules, but no

@@ -3,7 +3,8 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from .ForgeAccess import RepoAPI_Location, UserURL, SSH_URL, SAME_URL, DIFFERENT_URL
+from .ForgeAccess import (RepoAPI_Location, UserURL, SSH_URL, SAME_URL,
+                          DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 
@@ -128,7 +129,7 @@ class BranchRef(object):
 @attr.s(auto_attribs=True)
 class SubRepoVers(object):
     subrepo_name: str
-    subrepo_url: UserURL
+    subrepo_url: Union[UserURL, BOGUS_URL]
     subrepo_vers: str
 
 @attr.s(auto_attribs=True)

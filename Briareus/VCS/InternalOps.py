@@ -424,6 +424,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # If that's the case, need to associate this project
                 # repo branch with the corresponding changed subrepo
                 # url.
+                assert not isinstance(each.subrepo_url, BOGUS_URL)
                 named_submod_repo = RepoDesc(each.subrepo_name, each.subrepo_url)
                 self.get_info_for_a_repo(named_submod_repo)
             self.subrepos.add(named_submod_repo)

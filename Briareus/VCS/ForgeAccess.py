@@ -19,6 +19,12 @@ request source URLs."""
     reponame: str
     urltype: str = 'DURL'
 
+@attr.s(auto_attribs=True, frozen=True)
+class BOGUS_URL(object):
+    """Not an actual URL but something that was synthesized internally as a placeholder.  The placeholder should never actually be used."""
+    reason: str
+    urltype: str = 'BOGUS'
+
 
 # Note that only the SSH_URL can contain an alternate hostname that is
 # translated by the RX translations.
