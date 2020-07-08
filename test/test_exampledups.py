@@ -40,25 +40,25 @@ expected_repo_info = {
         BranchRef(reponame='Repo3', branchname='master', branchref='Repo3-master-ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='Repo1_Remote8', pr_branch='dog',
-               pr_revision='r1_r8_f32', pr_ident='Req8', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='https://github.com/Repo1_Remote8', pr_branch='dog',
+               pr_revision='r1_r8_f32', pr_ident='8', pr_status=PRSts_Active(),
                pr_title='pr8 is great', pr_user='r.user', pr_email=''),
-        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='remote_Repo1', pr_branch='master',
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='https://github.com/remote_Repo1', pr_branch='master',
                pr_revision='r1_master_maskref', pr_ident='1', pr_status=PRSts_Active(),
                pr_title='pr#mastermask', pr_user='jdoe', pr_email='jdoe@nocompany.com'),
-        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='remote_Repo1_pr2', pr_branch='master',
+        PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='https://github.com/remote_Repo1_pr2', pr_branch='master',
                pr_revision='r1_master_p2^head', pr_ident='2', pr_status=PRSts_Active(),
                pr_title='pr numero dos', pr_user='jdoe', pr_email='jdoe@nocompany.com'),
-        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='Repo3_r3', pr_branch='dog',
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='https://github.com/Repo3_r3', pr_branch='dog',
                pr_revision='r3_r3^7', pr_ident='101', pr_status=PRSts_Active(),
                pr_title='start changes', pr_user='fido', pr_email='fido@woof.grr'),
-        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_Repo3', pr_branch='develop',
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='https://github.com/remote_Repo3', pr_branch='develop',
                pr_revision='r3_develop_pr2', pr_ident='2', pr_status=PRSts_Active(),
                pr_title='pr#develop', pr_user='frank', pr_email='frank@stein.co'),
-        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_Repo3_2', pr_branch='foo',
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='https://github.com/remote_Repo3_2', pr_branch='foo',
                pr_revision='r3_foo_pr3', pr_ident='1', pr_status=PRSts_Active(),
                pr_title='pr#foo', pr_user='earl', pr_email='earl@king.wild'),
-        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='remote_repo3_other', pr_branch='master',
+        PRInfo(pr_target_repo='Repo3', pr_srcrepo_url='https://github.com/remote_repo3_other', pr_branch='master',
                pr_revision='r3_master_2', pr_ident='9', pr_status=PRSts_Active(),
                pr_title='pr#master3', pr_user='frank', pr_email='frank@stein.co'),
     ]),
@@ -235,7 +235,7 @@ top_level = [
     "pullreq [2] R3 develop",
     "pullreq R3 foo",
     "pullreq R3 master",
-    "pullreq [101 Req8] dog",
+    "pullreq [101 8] dog",
 ]
 
 def test_example_facts(generated_facts):
@@ -268,7 +268,7 @@ pullreq("Repo1", "2", "master", "r1_master_p2^head", prsts_active, "jdoe", "jdoe
 pullreq("Repo3", "2", "develop", "r3_develop_pr2", prsts_active, "frank", "frank@stein.co").
 pullreq("Repo3", "1", "foo", "r3_foo_pr3", prsts_active, "earl", "earl@king.wild").
 pullreq("Repo3", "9", "master", "r3_master_2", prsts_active, "frank", "frank@stein.co").
-pullreq("Repo1", "Req8", "dog", "r1_r8_f32", prsts_active, "r.user", "").
+pullreq("Repo1", "8", "dog", "r1_r8_f32", prsts_active, "r.user", "").
 pullreq("Repo3", "101", "dog", "r3_r3^7", prsts_active, "fido", "fido@woof.grr").
 branch("Repo3", "develop").
 branch("Repo1", "develop").
@@ -401,7 +401,7 @@ def test_example_internal_pr101r3_prReq8r1_standard(generated_bldconfigs):
                             branchname="dog",
                             strategy="standard",
                             description=PR_Grouped("dog"),
-                            blds=[BldRepoRev("Repo1", "dog", "Req8"),
+                            blds=[BldRepoRev("Repo1", "dog", "8"),
                                   BldRepoRev("Repo2", "master", "project_primary"),
                                   BldRepoRev("Repo3", "dog", "101"),
                             ],
@@ -428,17 +428,17 @@ def test_example_hydra_master(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -475,17 +475,17 @@ def test_example_hydra_develop(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url develop"
+                    "value": "https://github.com/r1_url develop"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url develop"
+                    "value": "https://github.com/r2_url develop"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url develop"
+                    "value": "https://github.com/r3_url develop"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -522,17 +522,17 @@ def test_example_hydra_R1PR1(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_Repo1 master"
+                    "value": "https://github.com/remote_Repo1 master"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -569,17 +569,17 @@ def test_example_hydra_R1PR2(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_Repo1_pr2 master"
+                    "value": "https://github.com/remote_Repo1_pr2 master"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r3_url master"
+                    "value": "https://github.com/r3_url master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -616,17 +616,17 @@ def test_example_hydra_R3PR1(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url foo"
+                    "value": "https://github.com/r2_url foo"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_Repo3_2 foo"
+                    "value": "https://github.com/remote_Repo3_2 foo"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -663,17 +663,17 @@ def test_example_hydra_R3PR2(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url develop"
+                    "value": "https://github.com/r1_url develop"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url develop"
+                    "value": "https://github.com/r2_url develop"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_Repo3 develop"
+                    "value": "https://github.com/remote_Repo3 develop"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -710,17 +710,17 @@ def test_example_hydra_R3PR9(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r1_url master"
+                    "value": "https://github.com/r1_url master"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "remote_repo3_other master"
+                    "value": "https://github.com/remote_repo3_other master"
                 },
                 "ghcver": {
                     "emailresponsible": False,
@@ -748,7 +748,7 @@ def test_example_hydra_R3PR101_R1_PRReq8(example_hydra_jobsets):
     expected = dict([
         ( "PR-dog.standard-%s" % (G), {
             "checkinterval": 600,
-            "description": "Build configuration: PRReq8-brr31:Repo1, brr33:Repo2, PR101-brr31:Repo3, ghcver=%s" % (G),
+            "description": "Build configuration: PR8-brr31:Repo1, brr33:Repo2, PR101-brr31:Repo3, ghcver=%s" % (G),
             "emailoverride": "",
             "enabled": 1,
             "enableemail": False,
@@ -757,17 +757,17 @@ def test_example_hydra_R3PR101_R1_PRReq8(example_hydra_jobsets):
                 "Repo1-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "Repo1_Remote8 dog"
+                    "value": "https://github.com/Repo1_Remote8 dog"
                 },
                 "Repo2-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "r2_url master"
+                    "value": "https://github.com/r2_url master"
                 },
                 "Repo3-src": {
                     "emailresponsible": False,
                     "type": "git",
-                    "value": "Repo3_r3 dog"
+                    "value": "https://github.com/Repo3_r3 dog"
                 },
                 "ghcver": {
                     "emailresponsible": False,

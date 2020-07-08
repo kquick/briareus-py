@@ -1,7 +1,7 @@
 {
-  "Repos" : [ ("Repo1", "r1_url"),
-              ("Repo2", "r2_url"),
-              ("Repo3", "r3_url"),
+  "Repos" : [ ("Repo1", "https://github.com/r1_url"),
+              ("Repo2", "https://github.com/r2_url"),
+              ("Repo3", "https://github.com/r3_url"),
             ]
 , "Branches" : [ "master", "develop" ]
 , "Variables" : {
