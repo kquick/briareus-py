@@ -28,12 +28,12 @@ class EmailSender(ActorTypeDispatcher):
 
     """
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         super(EmailSender, self).__init__(*args, **kw)
         self.server = os.getenv('BRIAREUS_SMTP_SERVER', 'localhost')
-        port = os.getenv('BRIAREUS_SMTP_PORT', '0')
+        portstr = os.getenv('BRIAREUS_SMTP_PORT', '0')
         try:
-            port = int(port)
+            port = int(portstr)
         except Exception:
             logging.error('Unable to identify EmailSender SMTP port: using 0 (default)',
                           show_exc=True)
@@ -51,7 +51,7 @@ class EmailSender(ActorTypeDispatcher):
         unlimited = os.getenv('BRIAREUS_SMTP_UNLIMITED', '').split(',')
         self._delivered = RateLimiter(hourly=hlimit, daily=dlimit, unlimited=unlimited)
 
-    def receiveMsg_str(self, msg, sender):
+    def receiveMsg_str(self, msg: str, sender) -> None:
         if msg == 'Start':
             # Sent by Thespian Director based on the TLI file; this
             # is intended only to ensure this Actor is instantiated.
@@ -94,17 +94,17 @@ class EmailSender(ActorTypeDispatcher):
             else:
                 self._dispatch(objmsg, sender, jsonReply=True)
 
-    def _dispatch(self, objmsg, sender, jsonReply=False):
+    def _dispatch(self, objmsg, sender, jsonReply: bool = False) -> None:
         if isinstance(objmsg, EmailEnvelope):
             self._do_send(objmsg, sender, jsonReply=jsonReply)
         else:
-            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
+            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), objmsg)
 
 
-    def receiveMsg_EmailEnvelope(self, envelope, sender):
+    def receiveMsg_EmailEnvelope(self, envelope: EmailEnvelope, sender) -> None:
         self._do_send(envelope, sender, False)
 
-    def _do_send(self, envelope, sender, jsonReply):
+    def _do_send(self, envelope: EmailEnvelope, sender, jsonReply: bool) -> None:
         fmtReply = toJSON if jsonReply else lambda x: x
         send_to = self._delivered.allowed(envelope.subject, envelope.recipients)
         message = envelope.message
