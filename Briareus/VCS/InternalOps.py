@@ -48,13 +48,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
             objmsg = fromJSON(msg)
             self._dispatch(objmsg, sender, jsonReply=True)
 
-    def _dispatch(self, objmsg, sender, jsonReply=False):
+    def _dispatch(self, objmsg, sender, jsonReply=False) -> None:
         if isinstance(objmsg, GatherInfo):
             self._gatherInfo(objmsg, sender, jsonReply=jsonReply)
         elif isinstance(objmsg, ReadFileFromVCS):
             self.read_vcs_file(objmsg, sender, jsonReply=jsonReply)
         else:
-            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
+            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), objmsg)
 
 
     def _incr_stat(self, stat_name):
