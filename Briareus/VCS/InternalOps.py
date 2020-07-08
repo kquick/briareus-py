@@ -5,7 +5,7 @@ from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
-from Briareus.VCS.GitForge import to_http_url, to_access_url
+from Briareus.VCS.ForgeAccess import to_http_url, to_access_url
 from urllib.parse import urlparse, urlunparse
 from collections import defaultdict
 import attr

@@ -28,6 +28,7 @@ python -m thespian.director gensrc \
     ../../Briareus/__init__.py \
     ../../Briareus/Actions/__init__.py \
     ../../Briareus/VCS/__init__.py \
+    ../../Briareus/VCS/ForgeAccess.py \
     ../../Briareus/VCS/GitForge.py \
     ../../Briareus/VCS/InternalMessages.py \
     ../../Briareus/Input/__init__.py \

@@ -17,7 +17,7 @@ from thespian.actors import *
 from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Content import gen_content
 from Briareus.Types import SetForgeStatus, PRCfg
-from Briareus.VCS.GitForge import to_http_url
+from Briareus.VCS.ForgeAccess import to_http_url
 
 
 SET_FORGE_STATUS_TIMEOUT = timedelta(seconds=20)
