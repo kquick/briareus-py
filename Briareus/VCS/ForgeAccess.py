@@ -1,8 +1,7 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
-from Briareus.Input.Description import *
-from typing import (List, Optional, Tuple, Type, TypeVar, Union)
+from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 
 class UserURL(str): urltype='User'     # URL specified by a user, can be any form
@@ -35,6 +34,21 @@ class RepoAPI_Location(object):
                      # instead of an ssh or http reference to a
                      # repository.
     apitoken: Optional[str]  # Token used to access the API URL (or None if no token)
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class RepoLoc(object):
+    """These entries are used to translate the SSH repo access patterns
+       (needed by Hydra) into the corresponding API host for the
+       repository.  This is commonly needed for private repositories
+       that Hydra must use an SSH Hostname config override to access
+       (e.g. "git@projFoo-github:team/repo") but for which Briareus
+       needs to access the forge API
+       (e.g. "https://github.com/team/repo"), often using the
+       BRIAREUS_PAT token.
+    """
+    repo_loc: str  # string specified in netloc position for RL
+    api_host: str  # API forge access hostname
 
 
 def _remove_trailer(path: str, trailer: str) -> str:
@@ -98,7 +112,7 @@ def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:
 
 
 def to_access_url(url: str,
-                  for_repo: RepoDesc,
+                  for_repo: Any, # acutally a RepoDesc (circular imports)
                   repolocs: List[RepoLoc]) -> Union[UserURL, SSH_URL]:
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that
