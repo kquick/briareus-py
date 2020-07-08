@@ -49,14 +49,15 @@ class RemoteGit__Info(object):
     def api_req(self, reqtype: str, notFoundOK=False, raw=False) -> ResponseTy:
         self._get_count += 1
         if reqtype.startswith('//'):
-            # Drop the owner/repo at the tail of the url
-            parsed = urlparse(self._url)
-            req_url = urlunparse(parsed._replace(path='/'.join(parsed.path.split('/')[:-2] + [reqtype[2:]])))
+            req_url = self._root_api_url(reqtype[2:])
         else:
-            req_url = self._url + reqtype
+            req_url = API_URL(self._url + reqtype)
         return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
 
-    def _get_cached_links_pageable_url(self, req_url: str,
+    def _root_api_url(self, path: str) -> API_URL:
+        raise NotImplementedError('Subclass must implement a root API URL convertion method')
+
+    def _get_cached_links_pageable_url(self, req_url: API_URL,
                                        notFoundOK: bool,
                                        raw: bool) -> ResponseTy:
         rsp = self._get_cached_url(req_url, notFoundOK=notFoundOK, raw=raw)
@@ -75,7 +76,7 @@ class RemoteGit__Info(object):
         # Used by both github and gitlab APIs.  Supported easily by
         # requests
         # https://2.python-requests.org/en/master/user/advanced/#link-headers
-        nextrsp = self._get_cached_links_pageable_url(rsp.links['next']['url'],
+        nextrsp = self._get_cached_links_pageable_url(API_URL(rsp.links['next']['url']),
                                                       notFoundOK=notFoundOK, raw=raw)
         if isinstance(nextrsp, int):
             return nextrsp
@@ -263,6 +264,10 @@ class GitLabInfo(RemoteGit__Info):
         parsed = urlparse(url)
         return urlunparse(
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
+
+    def _root_api_url(self, path: str) -> API_URL:
+        parsed = urlparse(self._url)
+        return API_URL(urlunparse(parsed._replace(path='api/v4/' + path)))
 
 
     def _src_repo_url(self, mergereq: Dict[str, Any]) -> Union[int,   # error code
@@ -457,6 +462,10 @@ class GitHubInfo(RemoteGit__Info):
                 parsed._replace(netloc = 'api.github.com',
                                 path = 'repos' + parsed.path))
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
+
+    def _root_api_url(self, path: str) -> API_URL:
+        parsed = urlparse(self._url)
+        return API_URL(urlunparse(parsed._replace(path=path)))
 
     def get_pullreqs(self, reponame: str) -> PullReqsData:
         # Need closed PR's as well as open: when a PR is closed or
