@@ -122,7 +122,7 @@ def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
 
 
 def to_access_url(url: str,
-                  for_repo: Any, # actually a RepoDesc (circular imports)
+                  for_repo: Optional[Any], # actually a RepoDesc (circular imports)
                   repolocs: List[RepoLoc]) -> Union[UserURL, SSH_URL]:
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that
