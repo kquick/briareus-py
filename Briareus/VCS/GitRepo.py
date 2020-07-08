@@ -85,8 +85,9 @@ class GitRepoInfo(ActorTypeDispatcher):
                          if 'gitlab' in self.repospec.repo_api_loc.apiloc else
                          None))
         if not self._ghinfo:
-            raise ValueError('Cannot determine type of remote repo at %s'
-                             % self.repospec.repo_api_loc.apiloc)
+            raise ValueError('Cannot determine type of remote repo at %s / %s'
+                             % (self.repospec.repo_api_loc.apiloc,
+                                msg.repo_api_loc))
 
     def receiveMsg_GetPullReqs(self, msg: GetPullReqs, sender) -> None:
         # typing ignored because orig_sender dynamically added
