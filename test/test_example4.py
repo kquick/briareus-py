@@ -32,7 +32,7 @@ expected_repo_info = {
         BranchRef(reponame='R3', branchname='blah', branchref='r3-blah-ref'),
         BranchRef(reponame='R3', branchname='master', branchref='R3-master-ref'),
         BranchRef(reponame='R4', branchname='feat1', branchref='r4-feat1-ref'),
-        BranchRef(reponame='R4', branchname='primary', branchref='R4-master-ref'),
+        BranchRef(reponame='R4', branchname='primary', branchref='R4-primary-ref'),
     ]),
     'pullreqs': set([
         PRInfo(pr_target_repo='R3', pr_srcrepo_url='https://github.com/remote_r3_CLOSED_url', pr_branch='closed_pr',
@@ -104,7 +104,7 @@ branch("R3", "blah").
 branch("R4", "feat1").
 branch("R3", "master").
 branch("R10", "develop").
-branch_ref("R4", "primary", "R4-master-ref").
+branch_ref("R4", "primary", "R4-primary-ref").
 branch_ref("R3", "blah", "r3-blah-ref").
 branch_ref("R4", "feat1", "r4-feat1-ref").
 branch_ref("R3", "master", "R3-master-ref").

@@ -28,6 +28,11 @@ forge_responses[r10_key('/branches')] = json.dumps([
     gitlab_branch("R10", "https://gitlab.com/r10_url", "develop",
                   refbase='master'),
 ]).encode('utf-8')
+forge_responses[r10_key('/files/.gitmodules/raw?ref=master')] = \
+    forge_responses[r10_key('/files/.gitmodules/raw?ref=master')] \
+    .decode('utf-8') \
+    .replace('/r4_url', '/r4_explicit_default_url') \
+    .encode('utf-8')
 forge_responses[r10_key('/files/.gitmodules/raw?ref=develop')] = \
     forge_responses[r10_key('/files/.gitmodules/raw?ref=master')]
 forge_responses[r10_key('/files/sub%2Fr3?ref=develop')] = \
@@ -35,7 +40,7 @@ forge_responses[r10_key('/files/sub%2Fr3?ref=develop')] = \
 forge_responses[r10_key('/files/deps%2Fr4?ref=develop')] = \
     forge_responses[r10_key('/files/deps%2Fr4?ref=master')]
 forge_responses[r4_key('/branches')] = json.dumps([
-    github_branch("R4", r4_key(''), "primary", refbase='master'),
+    github_branch("R4", r4_key(''), "primary"),  # refbase='master'),
     github_branch("r4", r4_key(''), "feat1"),
 ]).encode('utf-8')
 forge_responses[r4_key('/pulls?state=all')] = \
