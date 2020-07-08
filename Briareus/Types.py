@@ -384,13 +384,16 @@ logic_result_expr = {
 # ----------------------------------------------------------------------
 # Information accumulated and managed internally to Briareus
 
+
+ReportType = List[Any]
+
 @attr.s(auto_attribs=True)
 class RunContext(object):
     "Stores the result of one or more generated build configurations"
 
     actor_system: Any
     result_sets: List["ResultSet"] = attr.ib(factory=list)
-    report: List[Any] = attr.ib(factory=list)  # list of report-generated items
+    report: ReportType = attr.ib(factory=list)  # list of report-generated items
 
     def add_results(self, builder, inp_desc, repo_info, build_cfgs) -> None:
         self.result_sets.append(ResultSet(builder, inp_desc, repo_info, build_cfgs))

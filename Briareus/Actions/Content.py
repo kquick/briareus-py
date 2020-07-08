@@ -3,7 +3,11 @@
 import sys
 import os.path
 import Briareus.Actions
-from Briareus.Types import (PRFailedSubBlds, PRFailedStdBlds)
+from Briareus.Types import (RunContext, Notify, PRFailedSubBlds, PRFailedStdBlds)
+from typing import Optional, Tuple
+
+
+ContentReturnType = Tuple[Optional[str],Optional[str]]
 
 
 class FileContent(object):
@@ -15,7 +19,9 @@ class FileContent(object):
        {n} for format substitution.
 
     """
-    def __call__(self, action_type, notification, runctxt):
+    def __call__(self, action_type: str,
+                 notification: Notify,
+                 runctxt: RunContext) -> ContentReturnType:
         ntype = notification.what
         fromdir = os.path.dirname(sys.modules['Briareus.Actions'].__file__)
         content_fname = os.path.join(fromdir, '{' + action_type + '}' + ntype + '.txt')
@@ -41,7 +47,9 @@ class FileContent(object):
         return tagline, content
 
 class PR_ProjStatus_Fail(object):
-    def __call__(self, action_type, notification, runctxt):
+    def __call__(self, action_type: str,
+                 notification: Notify,
+                 runctxt: RunContext) -> ContentReturnType:
         if action_type == 'forge_status':
 
             project = notification.subject
@@ -107,7 +115,9 @@ notify_generators = {
     'pr_projstatus_fail': PR_ProjStatus_Fail(),
 }
 
-def gen_content(action_type, notification, runctxt):
+def gen_content(action_type: Briareus.Actions.ActionType,
+                notification: Notify,
+                runctxt) -> Tuple[str, str]:
     """Generates a tagline and content for the specified Notify
        notification.  The action_type can be used to adjust the
        message to be appropriate to the action type.
@@ -121,4 +131,4 @@ def gen_content(action_type, notification, runctxt):
     gen = notify_generators.get(notification.what, FileContent())
     if not gen:
         return 'Build Issue', str(notification)
-    return gen(action_type, notification, runctxt)
+    return gen(action_type, notification, runctxt) # type: ignore

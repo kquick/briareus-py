@@ -15,15 +15,19 @@ recipients); this is intended for testing mode.
 import os
 import sys
 from datetime import timedelta
-from thespian.actors import *
+from thespian.actors import ActorSystem
 from Briareus.Actions.Content import gen_content
 from Briareus.Actions.Actors.Msgs import *
-from Briareus.Types import SendEmail
+from Briareus.Types import SendEmail, RunContext
+from typing import Any, Dict
 
 SEND_EMAIL_TIMEOUT = timedelta(seconds=20)
 
 
-def do_send_email_action(email_action, inpcfg, run_context, report_supplement):
+def do_send_email_action(email_action: SendEmail,
+                         inpcfg,
+                         run_context: RunContext,
+                         report_supplement: Dict[str, Any]) -> SendEmail:
     "Sends email, where email_action is Briareus.Types.SendEmail"
     rec = email_action.recipients
     done = email_action.sent_to
@@ -41,7 +45,10 @@ def do_send_email_action(email_action, inpcfg, run_context, report_supplement):
     return email_action
 
 
-def send_email(recipients, subject, message, run_context):
+def send_email(recipients: List[str],
+               subject: str,
+               message: str,
+               run_context: RunContext) -> List[str]:
     if not run_context.actor_system:
         run_context.actor_system = ActorSystem('multiprocTCPBase')
     asys = run_context.actor_system
