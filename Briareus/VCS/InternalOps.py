@@ -100,13 +100,13 @@ class GatherRepoInfo(ActorTypeDispatcher):
             self._get_git_info = None
             self.respond_to_requestor(self.prepareReply(GatheredInfo(None, 'GitInfo actor exited')))
 
-    def receiveMsg_InvalidRepo(self, msg, sender):
+    def receiveMsg_InvalidRepo(self, msg: InvalidRepo, sender):
         self.respond_to_requestor(
             self.prepareReply(
-                GatheredInfo(None, 'Invalid %s repo "%s", remote %s (@ %s): %s' %
+                GatheredInfo([], [], [], [],
+                             error='Invalid %s repo "%s", (@ %s): %s' %
                              (msg.repo_type,
-                              msg.reponame,
-                              msg.repo_remote,
+                              msg.repo_name,
                               msg.repo_api_url,
                               msg.errorstr))))
 
