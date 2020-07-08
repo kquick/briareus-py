@@ -255,7 +255,6 @@ class PRFailedStdBlds(PRData):
     def as_fact(self):
         return ('prfailedblds(' +
                 ', '.join([super()._as_fact_fields(),
-                           self.pr_subs.as_fact(),
                            self.pr_blds.as_fact(),
                            self.main_blds.as_fact(),
                 ]) +
