@@ -73,9 +73,13 @@ let
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
-             cat ${briareus}/html/status_hdr.html \
-                 <(${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr) \
-                 ${briareus}/html/status_footer.html > $htmlout
+             ${briareus}/bin/hh_status -f html -U ${builder_URL} ${name}.hhr > $htmlout.new
+             if [ -s $htmlout.new ] ; then
+               cat ${briareus}/html/status_hdr.html \
+                   $htmlout.new \
+                   ${briareus}/html/status_footer.html > $htmlout
+             fi
+             rm -f $htmlout.new
              set +x
       '';
 
@@ -171,10 +175,14 @@ let
 
              mkdir -p ${briareus_rundir}/html;
              htmlout="${briareus_rundir}/html/${name}_sts.html";
-             cat ${briareus}/html/status_hdr.html \
-               <(${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr) \
-               <(echo "<br><hr><p><i>Updated: $(date)</i></p>") \
-               ${briareus}/html/status_footer.html > $htmlout
+             ${briareus}/bin/hh_status -f html -U ${project.builderURL} ${name}.hhr > $htmlout.new
+             if [ -s $htmlout.new ] ; then
+               cat ${briareus}/html/status_hdr.html \
+                   $htmlout.new \
+                   <(echo "<br><hr><p><i>Updated: $(date)</i></p>") \
+                   ${briareus}/html/status_footer.html > $htmlout
+             fi
+             rm -f $htmlout.new
 
 	     set +x
              '';
