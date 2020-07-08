@@ -27,6 +27,11 @@ def g_(srcdict, *keys, defval=NoDefault()):
     return here
 
 
+def _remove_trailer(trailer):
+    trailer_len = len(trailer)
+    return lambda path: path[:-trailer_len] if path[-trailer_len:] == trailer else path
+
+
 class GitForge__BASE(object):
     "Common functionality for remote Git forge access (Github or Gitlab)."
     def __init__(self, name, api_url, owner, repo):
@@ -82,7 +87,8 @@ class GitHub(GitForge__BASE):
         if parsed.netloc == 'github.com':
             return (urlunparse(
                 parsed._replace(netloc = 'api.github.com',
-                                path = 'graphql')),) + tuple(parsed.path.split('/')[1:3])
+                                path = 'graphql')),
+            ) + tuple(map(_remove_trailer('.git'), parsed.path.split('/')[1:3]))
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
 
     def get_VCS_info(self, get_submodules=list()):
@@ -188,23 +194,7 @@ class GitHub(GitForge__BASE):
 
             if 'submodules' in rjr:
                 # note: these submodules do use Connections edges
-                submods = [
-                    # Note: uses the last component of the submodule name as the
-                    # repo name.  This is under the user's control and might not
-                    # match the actual repo name.  This might result in two
-                    # references to the same repo with different names if the
-                    # input_desc already specified this repo with a different
-                    # name, but that should be benign.
-                    SubRepoVers(subrepo_name=g_(sub, 'node', 'name').split('/')[-1],
-                                subrepo_url=g_(sub, 'node', 'gitUrl'),
-                                subrepo_vers=g_(sub, 'node', 'subprojectCommitOid'))
-                    for sub in g_(rjr, 'submodules', 'edges')]
-                ret['submodules'].append(
-                    GitmodulesRepoVers(
-                        reponame=self._name,
-                        branch_name=None,
-                        pullreq_id=None,
-                        gitmodules_repovers = submods))
+                self._handle_subrepos(ret, None, None, g_(rjr, 'submodules', 'edges'), 'node')
 
             if 'refs' in rjr:
                 ret['branches'].extend(
@@ -215,19 +205,7 @@ class GitHub(GitForge__BASE):
                     # does not use Connections edges for submodules; assumes no
                     # more than 100 submodules, so no pagination support here
                     submods = g_(each, 'node', 'target', 'submodules', 'nodes', defval=list())
-                    subs = [
-                        # See subrepo_name note above.
-                        SubRepoVers(subrepo_name=g_(sub, 'name').split('/')[-1],
-                                    subrepo_url=g_(sub, 'gitUrl'),
-                                    subrepo_vers=g_(sub, 'subprojectCommitOid'))
-                        for sub in submods]
-
-                    ret['submodules'].append(
-                        GitmodulesRepoVers(
-                            reponame=self._name,
-                            branch_name=g_(each, 'node', 'name'),
-                            pullreq_id=None,
-                            gitmodules_repovers=subs))
+                    self._handle_subrepos(ret, g_(each, 'node', 'name'), None, submods)
 
             if 'pullRequests' in rjr:
 
@@ -236,20 +214,7 @@ class GitHub(GitForge__BASE):
                     # more than 100 submodules, so no pagination support here
                     submods = g_(g_(each, 'node', 'commits', 'nodes')[0],
                                  'commit', 'submodules', 'nodes', defval=list())
-                    subs = [
-                        # See subrepo_name note above.
-                        SubRepoVers(subrepo_name=g_(sub, 'name').split('/')[-1],
-                                    subrepo_url=g_(sub, 'gitUrl'),
-                                    subrepo_vers=g_(sub, 'subprojectCommitOid'))
-                        for sub in submods]
-
-                    ret['submodules'].append(
-                        GitmodulesRepoVers(
-                            reponame=self._name,
-                            branch_name=g_(each, 'node', 'headRefName'),
-                            pullreq_id=str(g_(each, 'node', 'number')),
-                            gitmodules_repovers=subs))
-
+                    self._handle_subrepos(ret, g_(each, 'node', 'headRefName'), str(g_(each, 'node', 'number')), submods)
 
                 ret['pullreqs'].extend(
                     [ PullReqInfo(str(g_(p, 'node', 'number')),
@@ -257,7 +222,7 @@ class GitHub(GitForge__BASE):
                                                   'MERGED' : PRSts_Merged(),
                                                   'OPEN'   : PRSts_Active() }[g_(p, 'node', 'state')],
                                   pullreq_title=g_(p, 'node', 'title'),
-                                  pullreq_srcurl=g_(p, 'node', 'headRepository', 'url', defval=''),
+                                  pullreq_srcurl=_remove_trailer('.git')(g_(p, 'node', 'headRepository', 'url', defval='')),
                                   pullreq_branch=g_(p, 'node', 'headRefName'),
                                   pullreq_ref=g_(p, 'node', 'headRefOid'),
                                   # n.b. the "author" of a pull request only has the login, not the
@@ -295,6 +260,38 @@ class GitHub(GitForge__BASE):
                     next[category]['at'] = rjr[idx]['edges'][-1]['cursor']
 
         return ret
+
+    def _handle_subrepos(self, ret, branch_name, pullreq_id, submods, *extra_path):
+        # Note: uses the last component of the submodule name as the
+        # repo name.  This is under the user's control and might not
+        # match the actual repo name.  This might result in two
+        # references to the same repo with different names if the
+        # input_desc already specified this repo with a different
+        # name, but that should be benign.
+        subrepo_name=lambda sr: g_(sr, *extra_path, 'name').split('/')[-1]
+        t_ = _remove_trailer('.git')
+        subs = [
+            # See subrepo_name note above.
+            SubRepoVers(subrepo_name=subrepo_name(sub),
+                        subrepo_url=t_(g_(sub, *extra_path, 'gitUrl')),
+                        subrepo_vers=g_(sub, *extra_path, 'subprojectCommitOid'))
+            for sub in submods]
+
+        ret['submodules'].append(
+            GitmodulesRepoVers(
+                reponame=self._name,
+                branch_name=branch_name,
+                pullreq_id=pullreq_id,
+                gitmodules_repovers=subs))
+        ret['subrepos'].extend([
+            RepoDesc(repo_name=subrepo_name(sub),
+                     repo_url=t_(g_(sub, *extra_path, 'gitUrl')),
+                     main_branch='master', # assumption
+                     project_repo=False)
+            for sub in submods
+            if not any([sr.repo_url == t_(g_(sub, *extra_path, 'gitUrl')) for sr in ret['subrepos']])
+        ])
+
 
     # Rate Limiting Notes
     # -------------------
