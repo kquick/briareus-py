@@ -2,7 +2,6 @@
 
 import attr
 import json
-from Briareus.Input.Description import *
 from Briareus.VCS_API import *
 from .ForgeAccess import (RepoAPI_Location, API_URL, SAME_URL, DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)

@@ -45,7 +45,7 @@ from thespian.actors import (ActorTypeDispatcher, ActorSystemMessage, WakeupMess
 from thespian.initmsgs import initializing_messages
 from .ForgeAccess import *
 from Briareus.VCS.InternalMessages import *
-from Briareus.VCS.GitForge import RepoAPI_Location, GitLabInfo, GitHubInfo
+from Briareus.VCS.GitForge import GitLabInfo, GitHubInfo
 import datetime
 from typing import (Optional, Union)
 
