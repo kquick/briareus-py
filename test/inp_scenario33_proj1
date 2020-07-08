@@ -1,6 +1,6 @@
 {
     "Name" : "proj1",
-    "Repos" : [ ("repo1", "repo1_loc"),
+    "Repos" : [ ("repo1", "https://github.com/repo1_loc"),
               ],
     "Reporting": {
       "logic": """

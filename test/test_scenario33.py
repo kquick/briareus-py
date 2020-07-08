@@ -64,23 +64,23 @@ expected_repo_proj1_info = {
         BranchRef(reponame='repo1', branchname='master', branchref='r1_master_ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='RepoA_prfoo_loc', pr_branch='master',
-               pr_revision='rAprFooref', pr_ident='pr-fooA', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='master',
+               pr_revision='rAprFooref', pr_ident='2200', pr_status=PRSts_Active(),
                pr_title='Foo Do 2', pr_user='bar', pr_email='bar@brown.cow'),
-        PRInfo(pr_target_repo='repo1', pr_srcrepo_url='Repo1_prbar_loc', pr_branch='master',
-               pr_revision='r1prBarref', pr_ident='pr-bar', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='repo1', pr_srcrepo_url='https://github.com/Repo1_prbar_loc', pr_branch='master',
+               pr_revision='r1prBarref', pr_ident='3333', pr_status=PRSts_Active(),
                pr_title='Bar Do Not', pr_user='bar', pr_email='bar@brown.cow'),
-        PRInfo(pr_target_repo='repo1', pr_srcrepo_url='Repo1_prfoo_loc', pr_branch='master',
-               pr_revision='r1prFooref', pr_ident='pr-foo', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='repo1', pr_srcrepo_url='https://github.com/Repo1_prfoo_loc', pr_branch='master',
+               pr_revision='r1prFooref', pr_ident='2222', pr_status=PRSts_Active(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='repoA_loc', main_branch='master', project_repo=False)
+        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False)
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
-        SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='pr-bar', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
-        SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='pr-foo', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
+        SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='3333', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
+        SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='2222', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
     ]),
 }
 
@@ -93,23 +93,23 @@ expected_repo_proj2_info = {
         BranchRef(reponame='repo2sub', branchname='master', branchref='r2_master_ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='RepoA_prfoo_loc', pr_branch='master',
-               pr_revision='rAprFooref', pr_ident='pr-fooA', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='master',
+               pr_revision='rAprFooref', pr_ident='2200', pr_status=PRSts_Active(),
                pr_title='Foo Do 2', pr_user='bar', pr_email='bar@brown.cow'),
-        PRInfo(pr_target_repo='repo2', pr_srcrepo_url='Repo2_prquux_loc', pr_branch='master',
-               pr_revision='r2prquuxref', pr_ident='pr-quux', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='repo2', pr_srcrepo_url='https://github.com/Repo2_prquux_loc', pr_branch='master',
+               pr_revision='r2prquuxref', pr_ident='4444', pr_status=PRSts_Active(),
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
 
-        PRInfo(pr_target_repo='repo2sub', pr_srcrepo_url='Repo2_prquux_loc', pr_branch='master',
-               pr_revision='r2prquuxref', pr_ident='pr-quux', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='repo2sub', pr_srcrepo_url='https://github.com/Repo2_prquux_loc', pr_branch='master',
+               pr_revision='r2prquuxref', pr_ident='4444', pr_status=PRSts_Active(),
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='repoA_loc', main_branch='master', project_repo=False)
+        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False)
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
-        SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id='pr-quux', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
+        SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id='4444', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
     ]),
 }
 
@@ -119,8 +119,8 @@ expected_repo_proj3_info = {
         BranchRef(reponame='repo2sub', branchname='master', branchref='r2_master_ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='repo2sub', pr_srcrepo_url='Repo2_prquux_loc', pr_branch='master',
-               pr_revision='r2prquuxref', pr_ident='pr-quux', pr_status=PRSts_Active(),
+        PRInfo(pr_target_repo='repo2sub', pr_srcrepo_url='https://github.com/Repo2_prquux_loc', pr_branch='master',
+               pr_revision='r2prquuxref', pr_ident='4444', pr_status=PRSts_Active(),
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
     ]),
     'subrepos': set([
@@ -153,11 +153,11 @@ repo("proj1", "repo1").
 subrepo("repo1", "RepoA").
 branch("RepoA", "master").
 submodule("repo1", project_primary, "master", "RepoA", "repoA_master_head").
-submodule("repo1", "pr-foo", "master", "RepoA", "repoA_master_head").
-submodule("repo1", "pr-bar", "master", "RepoA", "repoA_master_head").
-pullreq("repo1", "pr-foo", "master", "r1prFooref", prsts_active, "bar", "bar@brown.cow").
-pullreq("repo1", "pr-bar", "master", "r1prBarref", prsts_active, "bar", "bar@brown.cow").
-pullreq("RepoA", "pr-fooA", "master", "rAprFooref", prsts_active, "bar", "bar@brown.cow").
+submodule("repo1", "2222", "master", "RepoA", "repoA_master_head").
+submodule("repo1", "3333", "master", "RepoA", "repoA_master_head").
+pullreq("repo1", "2222", "master", "r1prFooref", prsts_active, "bar", "bar@brown.cow").
+pullreq("repo1", "3333", "master", "r1prBarref", prsts_active, "bar", "bar@brown.cow").
+pullreq("RepoA", "2200", "master", "rAprFooref", prsts_active, "bar", "bar@brown.cow").
 '''.split('\n')
 
 
@@ -192,10 +192,10 @@ repo("proj2", "repo2sub").
 subrepo("repo2", "RepoA").
 branch("RepoA", "master").
 submodule("repo2", project_primary, "master", "RepoA", "repoA_master_head").
-submodule("repo2", "pr-quux", "master", "RepoA", "repoA_master_head").
-pullreq("RepoA", "pr-fooA", "master", "rAprFooref", prsts_active, "bar", "bar@brown.cow").
-pullreq("repo2", "pr-quux", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
-pullreq("repo2sub", "pr-quux", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
+submodule("repo2", "4444", "master", "RepoA", "repoA_master_head").
+pullreq("RepoA", "2200", "master", "rAprFooref", prsts_active, "bar", "bar@brown.cow").
+pullreq("repo2", "4444", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
+pullreq("repo2sub", "4444", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
 '''.split('\n')
 
 proj3_expected_facts = '''
@@ -220,7 +220,7 @@ branch_ref("repo3", "master", "r3_master_ref").
 branch_ref("repo2sub", "master", "r2_master_ref").
 repo("proj3", "repo3").
 repo("proj3", "repo2sub").
-pullreq("repo2sub", "pr-quux", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
+pullreq("repo2sub", "4444", "master", "r2prquuxref", prsts_active, "zeb", "zeb@barn.farm").
 '''.split('\n')
 
 proj1_top_level = [
@@ -364,7 +364,7 @@ def test_proj1_first_pr_master_repo1(generated_inp_config_bldconfigs):
                                  strategy=strategy,
                                  description=PR_Solo(projectname='proj1',
                                                      reponame='repo1',
-                                                     pullreq_id='pr-foo'),
+                                                     pullreq_id='2222'),
                                  blds=[
                                      BldRepoRev(reponame='RepoA',
                                                 repover={'HEADs':'master',
@@ -373,7 +373,7 @@ def test_proj1_first_pr_master_repo1(generated_inp_config_bldconfigs):
                                                 pullreq_id='project_primary'),
                                      BldRepoRev(reponame='repo1',
                                                 repover='master',
-                                                pullreq_id='pr-foo'),
+                                                pullreq_id='2222'),
                                  ],
                                  bldvars=[]) in bldcfgs
 
@@ -389,7 +389,7 @@ def test_proj1_second_pr_master_repo1(generated_inp_config_bldconfigs):
                                  strategy=strategy,
                                  description=PR_Solo(projectname='proj1',
                                                      reponame='repo1',
-                                                     pullreq_id='pr-bar'),
+                                                     pullreq_id='3333'),
                                  blds=[
                                      BldRepoRev(reponame='RepoA',
                                                 repover={'HEADs':'master',
@@ -398,7 +398,7 @@ def test_proj1_second_pr_master_repo1(generated_inp_config_bldconfigs):
                                                 pullreq_id='project_primary'),
                                      BldRepoRev(reponame='repo1',
                                                 repover='master',
-                                                pullreq_id='pr-bar'),
+                                                pullreq_id='3333'),
                                  ],
                                  bldvars=[]) in bldcfgs
 
@@ -416,11 +416,11 @@ def test_proj1_pr_master_repoA(generated_inp_config_bldconfigs):
                                  strategy=strategy,
                                  description=PR_Solo(projectname='proj1',
                                                      reponame='RepoA',
-                                                     pullreq_id='pr-fooA'),
+                                                     pullreq_id='2200'),
                                  blds=[
                                      BldRepoRev(reponame='RepoA',
                                                 repover='master',
-                                                pullreq_id='pr-fooA'),
+                                                pullreq_id='2200'),
                                      BldRepoRev(reponame='repo1',
                                                 repover='master',
                                                 pullreq_id='project_primary'),
@@ -470,11 +470,11 @@ def test_proj2_pr_master_repoA(generated_inp_config_bldconfigs):
                                  strategy=strategy,
                                  description=PR_Solo(projectname='proj2',
                                                      reponame='RepoA',
-                                                     pullreq_id='pr-fooA'),
+                                                     pullreq_id='2200'),
                                  blds=[
                                      BldRepoRev(reponame='RepoA',
                                                 repover='master',
-                                                pullreq_id='pr-fooA'),
+                                                pullreq_id='2200'),
                                      BldRepoRev(reponame='repo2',
                                                 repover='master',
                                                 pullreq_id='project_primary'),
@@ -498,7 +498,7 @@ def test_proj2_pr_master_repo2sub(generated_inp_config_bldconfigs):
                                  branchname='master',
                                  strategy=strategy,
                                  description=PR_Repogroup(projectname='proj2',
-                                                          pullreq_id='pr-quux',
+                                                          pullreq_id='4444',
                                                           reponames=['repo2',
                                                                      'repo2sub',
                                                           ],),
@@ -510,10 +510,10 @@ def test_proj2_pr_master_repo2sub(generated_inp_config_bldconfigs):
                                                 pullreq_id='project_primary'),
                                      BldRepoRev(reponame='repo2',
                                                 repover='master',
-                                                pullreq_id='pr-quux'),
+                                                pullreq_id='4444'),
                                      BldRepoRev(reponame='repo2sub',
                                                 repover='master',
-                                                pullreq_id='pr-quux'),
+                                                pullreq_id='4444'),
                                  ],
                                  bldvars=[]) in bldcfgs
 
@@ -553,14 +553,14 @@ def test_proj3_pr_master_repo2sub(generated_inp_config_bldconfigs):
                              strategy='standard',
                              description=PR_Solo(projectname='proj3',
                                                  reponame='repo2sub',
-                                                 pullreq_id='pr-quux'),
+                                                 pullreq_id='4444'),
                              blds=[
                                 BldRepoRev(reponame='repo3',
                                            repover='master',
                                            pullreq_id='project_primary'),
                                  BldRepoRev(reponame='repo2sub',
                                             repover='master',
-                                            pullreq_id='pr-quux'),
+                                            pullreq_id='4444'),
                              ],
                              bldvars=[]) in bldcfgs
 
@@ -578,12 +578,12 @@ proj1_build_results = [
     }
     for n in [ "master.HEADs",
                "master.submodules",
-               "PRpr-foo-master.HEADs",
-               "PRpr-foo-master.submodules",
-               "PRpr-bar-master.HEADs",
-               "PRpr-bar-master.submodules",
-               "PRpr-fooA-master.HEADs",
-               "PRpr-fooA-master.submodules",
+               "PR2222-master.HEADs",
+               "PR2222-master.submodules",
+               "PR3333-master.HEADs",
+               "PR3333-master.submodules",
+               "PR2200-master.HEADs",
+               "PR2200-master.submodules",
     ]
 ]
 
@@ -598,10 +598,10 @@ proj2_build_results = [
     }
     for n in [ "master.HEADs",
                "master.submodules",
-               "PRpr-fooA-master.HEADs",
-               "PRpr-fooA-master.submodules",
-               "PRpr-quux-master.HEADs",
-               "PRpr-quux-master.submodules",
+               "PR2200-master.HEADs",
+               "PR2200-master.submodules",
+               "PR4444-master.HEADs",
+               "PR4444-master.submodules",
                "dog.standard",
     ]
 ]
@@ -616,7 +616,7 @@ proj3_build_results = [
       "fetcherrormsg": '',
     }
     for n in [ "master.standard",
-               "PRpr-quux-master.standard",
+               "PR4444-master.standard",
     ]
 ]
 
@@ -702,15 +702,15 @@ def test_report_prstatus_proj1_present(builder_report):
                          project='proj1',
                          strategy=strategy,
                          prcfg=[PRCfg(reponame='repo1',
-                                      pr_id='pr-foo',
+                                      pr_id='2222',
                                       branch='foo',
                                       revision='r1prFooref',
                                       user='bar',
                                       email='bar@brows.cow'),
                          ],
                          prstatus_blds=PR_Status_Blds(
-                             passing=['PR-foo.HEADs',
-                                      'PR-foo.submodules',
+                             passing=['2222.HEADs',
+                                      '2222.submodules',
                              ],
                              failing=[],
                              pending=[],
@@ -725,7 +725,7 @@ def test_issue2_report_prstatus_proj2_not_present(builder_report):
                          project='proj2',
                          strategy=strategy,
                          prcfg=[PRCfg(reponame='repo2',
-                                      pr_id='pr-foo',
+                                      pr_id='2222',
                                       branch='foo',
                                       revision='somehash',
                                       user='bar',

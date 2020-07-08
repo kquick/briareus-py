@@ -1,7 +1,7 @@
 {
     "Name" : "proj2",
-    "Repos" : [ ("repo2", "repo2_loc"),
-                ("repo2sub", "repo2_loc"),
+    "Repos" : [ ("repo2", "https://github.com/repo2_loc"),
+                ("repo2sub", "https://github.com/repo2_loc"),
               ],
     "Branches" : [ 'dog' ],
     "Reporting": {
