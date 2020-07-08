@@ -14,6 +14,10 @@ from FakeForge import (fake_forge, get_github_api_url_local,
                        github_user)
 
 
+"""This test ensures that a PR that only exists in a submodule (not a
+declared module) is properly considered for build configurations."""
+
+
 input_spec = open('test/inp_prsubmodule').read()
 
 fakeforge_port=4343
