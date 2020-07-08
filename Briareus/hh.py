@@ -35,7 +35,8 @@ class InpConfig(object):
     def fixup(self):
         expand_filerefs = lambda v: os.path.normpath(os.path.expanduser(os.path.expandvars(v)))
         self.hhd = expand_filerefs(self.hhd)
-        self.builder_conf = expand_filerefs(self.builder_conf)
+        self.builder_conf = expand_filerefs(self.builder_conf) \
+            if self.builder_conf is not None else None
         self.output_file = expand_filerefs(self.output_file)
         return self
 
