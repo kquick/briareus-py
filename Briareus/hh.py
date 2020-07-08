@@ -9,6 +9,7 @@ from Briareus.BuildSys.BuilderBase import BuilderURL
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
+from Briareus.VCS.ForgeAccess import UserURL
 from Briareus.Types import SendEmail, RunContext
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
@@ -18,16 +19,18 @@ import os.path
 import sys
 from thespian.actors import ActorSystem
 import attr
+from typing import Optional
 
-@attr.s
+
+@attr.s(auto_attribs=True)
 class InpConfig(object):
-    hhd = attr.ib()  # Can be None to read from stdin
-    input_url = attr.ib(default=None)
-    input_path = attr.ib(default=None)
-    builder_type = attr.ib(default=None)
-    builder_conf = attr.ib(default=None)
-    builder_url  = attr.ib(default=None)
-    output_file = attr.ib(default=None)
+    hhd: Optional[str] = attr.ib(default=None) # None to read from stdin, else filepath
+    input_url: Optional[UserURL] = attr.ib(default=None)  # To fetch Briareus specifications
+    input_path: Optional[str] = attr.ib(default=None)     # path under input_url where found
+    builder_type: str = attr.ib(default="")
+    builder_conf: Optional[str] = attr.ib(default=None)   # builder configuration file
+    builder_url: Optional[BuilderURL] = attr.ib(default=None)  # URL for builder results
+    output_file: Optional[str] = attr.ib(default=None)    # output filepath (None is stdout)
 
     def fixup(self):
         expand_filerefs = lambda v: os.path.normpath(os.path.expanduser(os.path.expandvars(v)))
@@ -221,7 +224,7 @@ def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
                   % (fpath, src_url))
 
 
-def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
+def run_hh_on_inpcfg(inpcfg: InpConfig, params, prev_gen_result=None):
     if inpcfg.input_url is not None:
         params.timing_info('Updating inputs from %s' % inpcfg.input_url)
         asys = ((prev_gen_result.actor_system if prev_gen_result else None)
@@ -232,9 +235,11 @@ def run_hh_on_inpcfg(inpcfg, params, prev_gen_result=None):
         except:
             print('Warning: update from remote %s path %s failed (%s, %s)' %
                   (inpcfg.input_url, inpcfg.input_path, inpcfg.hhd, inpcfg.builder_conf))
-    ifile = (inpcfg.hhd if os.path.exists(inpcfg.hhd)
-                 else ((inpcfg.hhd + '.hhd') if os.path.exists(inpcfg.hhd + '.hhd')
-                       else None))
+    ifile = (inpcfg.hhd
+             if inpcfg.hhd is not None and os.path.exists(inpcfg.hhd)
+             else ((inpcfg.hhd + '.hhd')
+                   if inpcfg.hhd is not None and os.path.exists(inpcfg.hhd + '.hhd')
+                   else None))
     if not ifile:
         raise RuntimeError('Input specification not found (in %s): %s' %
                            (os.getcwd(), inpcfg.hhd))
@@ -482,7 +487,7 @@ def main():
     else:
         input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
         inpcfg = InpConfig(hhd=args.INPUT,
-                           input_url=input_url,
+                           input_url=UserURL(input_url),
                            input_path=input_path,
                            builder_type=args.builder,
                            builder_conf=args.builder_conf,
