@@ -24,6 +24,9 @@ python3Packages.buildPythonApplication rec {
         ];
     in [swiProlog] ++ ppkgs;
 
+  checkInputs = propagatedBuildInputs;
+  doCheck = false;
+
   meta = {
     description = "Build configuration generator";
     maintainers = [ stdenv.lib.maintainers.kquick ];
