@@ -6,7 +6,6 @@ from test_prsubmodule import expected_repo_info
 import pytest
 from unittest.mock import patch
 from FakeForge import (fake_forge, get_github_api_url_local,
-                       get_gitlab_api_url_local,
                        github_gitmodules_contents,
                        github_submodule_contents,
                        github_branch,
