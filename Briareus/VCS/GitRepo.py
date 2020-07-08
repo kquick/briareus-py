@@ -40,7 +40,8 @@ import hashlib
 import subprocess
 import requests
 import json
-from thespian.actors import (ActorTypeDispatcher, ActorSystemMessage, WakeupMessage)
+from thespian.actors import (ActorTypeDispatcher, ActorSystemMessage, WakeupMessage,
+                             ActorExitRequest)
 from thespian.initmsgs import initializing_messages
 from .ForgeAccess import *
 from Briareus.VCS.InternalMessages import *
