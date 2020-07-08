@@ -4,7 +4,7 @@ from thespian.actors import ActorSystem
 from Briareus.VCS.InternalMessages import (GatherInfo, GatheredInfo, ReadFileFromVCS, FileReadData,
                                            toJSON, fromJSON)
 from Briareus.Input.Description import RepoDesc, RepoLoc, BranchDesc
-from Briareus.VCS_API import BranchName, InfoReturnTy, RepoSite, SSHHostName, UserURL
+from Briareus.VCS_API import BranchName, RepoInfoTy, RepoSite, SSHHostName, UserURL
 from datetime import timedelta
 from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 
@@ -14,7 +14,7 @@ REPO_INFO_TIMEOUT = timedelta(seconds=600)
 def gather_repo_info(RL: List[RepoDesc],
                      RX: List[RepoLoc],
                      BL: List[BranchDesc],
-                     actor_system: Any = None) -> Dict[str, InfoReturnTy]:
+                     actor_system: Any = None) -> RepoInfoTy:
     """Gets the full set of information for the listed repositories, with
        location translations and branches of interest.
     """

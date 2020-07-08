@@ -1,5 +1,5 @@
 import attr
-from typing import List, NewType, Optional, Union
+from typing import Dict, List, NewType, Optional, Union
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
@@ -96,3 +96,5 @@ InfoReturnTy = Union[List[BranchRef],
                      List[SubModuleInfo],
                      List[RepoSite],
                      List[PRInfo]]
+
+RepoInfoTy = Dict[str, InfoReturnTy]
