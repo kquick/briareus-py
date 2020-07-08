@@ -4,13 +4,16 @@
 import Briareus.AnaRep.Operations as AnaRep
 from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
+from Briareus.BCGen.Generator import BuildConfigGenTy
 import Briareus.Input.Operations as BInput
+from Briareus.Input.Description import RepoLoc
 from Briareus.BuildSys.BuilderBase import BuilderURL
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
+from Briareus.Logic.Evaluation import FactList
 from Briareus.VCS.ManagedRepo import get_updated_file
 from Briareus.VCS_API import UserURL
-from Briareus.Types import SendEmail, RunContext, ReportType, UpTo
+from Briareus.Types import SendEmail, RunContext, ReportType, UpTo, ResultSet
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
 import datetime
@@ -19,7 +22,7 @@ import os.path
 import sys
 from thespian.actors import ActorSystem
 import attr
-from typing import Any, Callable, Dict, IO, Optional, Tuple
+from typing import Any, Callable, Dict, IO, Optional, Sequence, Tuple, Union
 
 
 @attr.s(auto_attribs=True)
@@ -80,11 +83,17 @@ def verbosely(params: Params, *msgargs) -> None:
 # ----------------------------------------------------------------------
 # Actual generation and reporting functions
 
+RunHHGenRetTy = Union[Tuple[RunContext, BCGen.BuilderConfigsTy],
+                      Union[BuildConfigGenTy,
+                            Tuple[BCGen.BuilderConfigsTy, BCGen.GeneratedConfigs]],  # up-to = build_configs
+                      RunContext,  # up-to = builder_configs
+                      FactList]  # up-to = facts
+
 def run_hh_gen(params: Params,
                inpcfg: InpConfig,
-               inp,
+               inp: str,
                bldcfg_fname: str,
-               prev_gen_result=None):
+               prev_gen_result: RunContext = None) -> RunHHGenRetTy:
     verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
     if not prev_gen_result:
         params.timing_info('Initializing Run Context and Actors')
@@ -129,7 +138,10 @@ def run_hh_gen(params: Params,
     return result, builder_cfgs
 
 
-def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
+def run_hh_report(params: Params,
+                  gen_result: RunContext,
+                  prior_report,
+                  reporting_logic_defs: str = ''):
     verbosely(params, 'Generating Analysis/Report')
     anarep = AnaRep.AnaRep(verbose=params.verbose,
                            up_to=params.up_to,
@@ -141,7 +153,7 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
         return None
 
     verbosely(params, 'Generated Analysis/Report: %d items' %
-              (len(ret[1].report)))
+              (len(ret[1].report) if isinstance(ret[1], RunContext) else 0))
 
     return ret[1]
 
@@ -157,11 +169,11 @@ def perform_hh_actions(inpcfg: InpConfig,
 
 # ----------------------------------------------------------------------
 
-def run_hh_gen_with_files(inp,
+def run_hh_gen_with_files(inp: str,
                           inpcfg: InpConfig,
                           outputfname: str,
                           params: Params,
-                          prev_gen_result=None):
+                          prev_gen_result: RunContext = None) -> Optional[RunHHGenRetTy]:
     r = run_hh_gen(params, inpcfg, inp,
                    bldcfg_fname=outputfname,
                    prev_gen_result=prev_gen_result)
@@ -176,7 +188,7 @@ def run_hh_gen_with_files(inp,
 def run_hh_gen_on_inpfile(inp_fname: str,
                           params: Params,
                           inpcfg: InpConfig,
-                          prev_gen_result=None):
+                          prev_gen_result: RunContext = None) -> Optional[Union[RunHHGenRetTy,RunContext]]:
     inp_parts = os.path.split(inp_fname)
     outfname = (inpcfg.output_file or
                 os.path.join(os.getcwd(),
@@ -198,7 +210,11 @@ def run_hh_gen_on_inpfile(inp_fname: str,
     verbosely(params, 'hh <',inp_fname,'>',outfname)
     params.timing_info('Writing outputs (%s)' % outfname)
     writings = FileWriterSession(params.tempdir or os.path.dirname(outfname))
-    for fname in r[1]:
+
+    assert isinstance(r, tuple)  # Tuple[RunContext, BCGen.BuilderConfigsTy]
+    assert isinstance(r[1], BCGen.BuilderConfigsTy)
+    bldrcfgs = r[1]
+    for fname in bldrcfgs:
         if fname:
             assert isinstance(inpcfg.output_file, str)
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
@@ -206,11 +222,11 @@ def run_hh_gen_on_inpfile(inp_fname: str,
             os.makedirs(os.path.dirname(target), exist_ok=True)
             writings.add_file(
                 target,
-                lambda of: of.write(r[1][fname]))
+                lambda of: of.write(bldrcfgs[fname]))
         else:
             writings.add_file(
                 outfname,
-                lambda of: of.write(r[1][fname]))
+                lambda of: of.write(bldrcfgs[fname]))
     writings.end_session()
 
     return r[0]
@@ -219,7 +235,7 @@ def run_hh_gen_on_inpfile(inp_fname: str,
 def upd_from_remote(src_url: UserURL,         # URL to fetch update from
                     src_path: Optional[str],  # path underneath url
                     fname: Optional[str],     # Output filename
-                    repolocs,
+                    repolocs: Sequence[RepoLoc],
                     actor_system=None) -> None:
     if fname is None: return
     fpath = os.path.join(src_path, os.path.basename(fname)) if src_path else fname
@@ -247,7 +263,9 @@ def upd_from_remote(src_url: UserURL,         # URL to fetch update from
                   % (fpath, src_url))
 
 
-def run_hh_on_inpcfg(inpcfg: InpConfig, params: Params, prev_gen_result=None):
+def run_hh_on_inpcfg(inpcfg: InpConfig,
+                     params: Params,
+                     prev_gen_result: RunContext = None) -> Optional[Union[RunHHGenRetTy,RunContext]]:
     if inpcfg.input_url is not None:
         params.timing_info('Updating inputs from %s' % inpcfg.input_url)
         asys = ((prev_gen_result.actor_system if prev_gen_result else None)
@@ -293,7 +311,7 @@ def run_hh_reporting_to(reportf,
                         params: Params,
                         inputArg=None,
                         inpcfg: Optional[InpConfig] = None,
-                        prior_report=None):
+                        prior_report=None) -> None:
     """Runs the Briareus operation, writing the output to reportf if not
        None. If inpcfg is set, then this is for that single
        configuration, otherwise the input configurations are read from
@@ -321,6 +339,7 @@ def run_hh_reporting_to(reportf,
     if reportf or (params.up_to and params.up_to.enough('built_facts')):
 
         params.timing_info('Generating report')
+        assert isinstance(gen_result, RunContext)
         upd_result = run_hh_report(params, gen_result, prior_report,
                                    reporting_logic_defs=(report_supplement
                                                          .get('logic', '')))
@@ -337,7 +356,8 @@ def run_hh_reporting_to(reportf,
             write_report_output(reportf, act_result.report)
 
 
-def atomic_write_to(outfname: str, gen_output: Callable[[IO], int]) -> int:
+def atomic_write_to(outfname: str,
+                    gen_output: Callable[[IO], Optional[int]]) -> Optional[int]:
     tryout = os.path.join(os.path.dirname(outfname),
                           '.' + os.path.basename(outfname) + '.new')
     with open(tryout, 'w') as outf:

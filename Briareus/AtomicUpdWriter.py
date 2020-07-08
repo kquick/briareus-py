@@ -6,6 +6,8 @@ been changed; if there is no update, nothing is written."""
 
 import os
 import tempfile
+from typing import Callable, TextIO, Union
+
 
 __all__ = [ 'FileWriterSession', 'AtomicUpdFileWriter' ]
 
@@ -16,12 +18,13 @@ __all__ = [ 'FileWriterSession', 'AtomicUpdFileWriter' ]
 # destination exists, but an OS rename will only work on the same
 # volume.
 
-def use_tempdir(tempdir=None):
+def use_tempdir(tempdir: Union[str,
+                               tempfile.TemporaryDirectory] = None) -> tempfile.TemporaryDirectory:
     if isinstance(tempdir, tempfile.TemporaryDirectory):
         return tempdir
     tempdir_name = tempdir or os.path.join(os.getcwd(), '.AUWFWS')
-    if not tempdir and not os.path.exists(self.tempdir_name):
-        os.mkdir(self.tempdir_name)
+    if not tempdir and not os.path.exists(tempdir_name):
+        os.mkdir(tempdir_name)
     if not os.path.exists(tempdir_name):
         raise RuntimeError('AtomicUpdWriter invalid tempdir: %s'
                            % tempdir_name)
@@ -51,14 +54,15 @@ class FileWriterSession(object):
         self.tempdir = use_tempdir(tempdir)
         self._ended = False
 
-    def add_file(self, fname, gen_contents):
+    def add_file(self, fname: str,
+                 gen_contents: Callable[[TextIO], int]) -> None:
         newfile = AtomicUpdFileWriter(fname, gen_contents,
                                       tempdir=self.tempdir,
                                       in_session=True)
         newfile.generate_new_tempfile()
         self.files.append(newfile)
 
-    def end_session(self):
+    def end_session(self) -> None:
         if not self._ended:
             for each in self.files:
                 each.atomic_update()
@@ -85,7 +89,10 @@ class AtomicUpdFileWriter(object):
        likely to occur when an absolute path is used).
 
     """
-    def __init__(self, fname, gen_contents, tempdir=None, in_session=False):
+    def __init__(self, fname: str,
+                 gen_contents: Callable[[TextIO], int],
+                 tempdir: tempfile.TemporaryDirectory = None,
+                 in_session: bool = False) -> None:
         self.tempdir = use_tempdir(tempdir)
         self.fname = fname
         # The tempdir might be the same directory where the output
@@ -100,17 +107,17 @@ class AtomicUpdFileWriter(object):
         if not in_session:
             self.do_atomic_upd_write()
 
-    def do_atomic_upd_write(self):
+    def do_atomic_upd_write(self) -> None:
         self.generate_new_tempfile()
         self.atomic_update()
 
-    def generate_new_tempfile(self):
+    def generate_new_tempfile(self) -> None:
         os.makedirs(os.path.dirname(self.temp_fname), exist_ok=True)
         with open(self.temp_fname, 'w') as outf:
             self.gen_contents(outf)
         self._generated = True
 
-    def atomic_update(self):
+    def atomic_update(self) -> None:
         assert self._generated
         if os.path.exists(self.fname):
             srcdata = open(self.temp_fname, 'r').read(8192000)
