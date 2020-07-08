@@ -2,7 +2,8 @@ import attr
 import json
 from typing import (List, TypeVar, Union)
 # Bring objects that might appear in the JSON messages into scope
-from Briareus.VCS.ForgeAccess import UserURL, RepoAPI_Location
+from Briareus.VCS.ForgeAccess import RepoAPI_Location
+from Briareus.VCS_API import UserURL
 
 
 def toJSON(obj) -> str:

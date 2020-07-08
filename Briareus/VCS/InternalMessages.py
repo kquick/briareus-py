@@ -3,8 +3,8 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from Briareus.VCS_API import SSHHostName
-from .ForgeAccess import (RepoAPI_Location, UserURL, API_URL, SSH_URL,
+from Briareus.VCS_API import SSHHostName, UserURL
+from .ForgeAccess import (RepoAPI_Location, API_URL, SSH_URL,
                           SAME_URL, DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 

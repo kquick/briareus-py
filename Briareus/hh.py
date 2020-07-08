@@ -9,7 +9,7 @@ from Briareus.BuildSys.BuilderBase import BuilderURL
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
-from Briareus.VCS.ForgeAccess import UserURL
+from Briareus.VCS_API import UserURL
 from Briareus.Types import SendEmail, RunContext, ReportType, UpTo
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse

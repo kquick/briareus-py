@@ -1,6 +1,9 @@
 import attr
 
 
+class UserURL(str): 'URL specified by a user, can be any form'
+
+
 @attr.s(auto_attribs=True)
 class SSHHostName(object):
     # Used to maintain the equivalence between the SSH host access
