@@ -5,8 +5,11 @@ import time
 import sys
 import errno
 from Briareus.Types import *
+from typing import Optional, TextIO, Tuple
 
-def get_prior_report(report_fname, with_lock=True):
+
+def get_prior_report(report_fname: str,
+                     with_lock: bool = True) -> Tuple[TextIO, Optional[ReportType]]:
     """Reads the prior report output and returns the open file descriptor
        along with a list of (Briareus.Types) objects.
 
@@ -51,7 +54,8 @@ def get_prior_report(report_fname, with_lock=True):
                     time.sleep(1)
     return repf, read_report_from(repf)
 
-def read_report_from(repf):
+
+def read_report_from(repf: TextIO) -> Optional[ReportType]:
     """Reads the contents of a report from the specified open file
        descriptor.  This entry point does not perform any locking and
        simply reads the current file and returns the report data.  If
@@ -68,7 +72,8 @@ def read_report_from(repf):
         print('Warning: unable to process prior report data:', str(e), file=sys.stderr)
     return None
 
-def write_report_output(reportf, report):
+
+def write_report_output(reportf: TextIO, report: ReportType) -> None:
     for each in report:
         pprint.pprint(each, stream=reportf)
         print('', file=reportf)

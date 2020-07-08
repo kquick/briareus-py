@@ -2,20 +2,24 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify, PR_Status, PRCfg, BranchCfg)
+from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify,
+                            PR_Status, PRCfg, BranchCfg, ReportType, BldDescTy)
 from Briareus.BuildSys import buildcfg_name
+from Briareus.BuildSys.BuilderBase import BuilderURL
 from Briareus.AnaRep.TextSummary import tbl_branch, tbl_branch_
 import datetime
+from typing import Callable, DefaultDict, Optional, Union
 
 
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
 
 class TCell_Bld(object):
+    ststype = "undef"
     def __init__(self, project, bldname):
         self._project = project
         self._bldname = bldname
-    def render(self, make_builder_url=None):
+    def render(self, make_builder_url: Callable[[str, TCell_Bld], str] = None) -> str:
         if make_builder_url:
             url = make_builder_url(self._project, self._bldname)
             return ('<a href="%(url)s" class="bldsts %(ststype)s">%(cell)s</a>'
@@ -25,7 +29,7 @@ class TCell_Bld(object):
                       'cell': str(self),
                     })
         return str(self)
-    def __call__(self, orig):
+    def __call__(self, orig: Optional[TCell_Bld]) -> Optional[TCell_Bld]:
         # Callable for combining with previous entry at this location in the table
         if orig is None:
             return self
@@ -48,34 +52,33 @@ class TCell_FailBld(TCell_Bld):
     def __init__(self, project, bldname, failcnt):
         super(TCell_FailBld, self).__init__(project, bldname)
         self._failcnt = int(failcnt)
-    def __call__(self, orig):
+    def __call__(self, orig: Optional[TCell_Bld]) -> Optional[TCell_Bld]:
         # Callable for combining with previous entry at this location in the table
         r = super(TCell_FailBld, self).__call__(orig)
         if r is not None:
             return r
-        if isinstance(orig, TCell_FailBld):
-            self._failcnt += orig.cnt()
-            return self
         if not isinstance(orig, TCell_FailBld):
             raise ValueError('Combine TCell_FailBld with old %s: unsupported' %
                              str(type(orig)))
-    def cnt(self):
+        self._failcnt += orig.cnt()
+        return self
+    def cnt(self) -> int:
         return self._failcnt
-    def __str__(self): return 'FAIL:%d' % self.cnt()
+    def __str__(self) -> str: return 'FAIL:%d' % self.cnt()
 
 class TCell_PendingBld(TCell_Bld):
     ststype = "pending"
-    def __init__(self, project, bldname):
+    def __init__(self, project: str, bldname: str) -> None:
         super(TCell_PendingBld, self).__init__(project, bldname)
-        self._prev = None
-    def set_prev(self, prev):
+        self._prev: Optional[TCell_Bld] = None
+    def set_prev(self, prev: TCell_Bld) -> None:
         self._prev = prev
-    def __str__(self):
+    def __str__(self) -> str:
         if self._prev:
             return '(' + str(self._prev) + ')?'
         return '??'
 
-def tcell_entshow(base_builder_url):
+def tcell_entshow(base_builder_url: Optional[BuilderURL]) -> Callable[[str,TCell_Bld], str]:
     def _t_es(path, ent):
         if isinstance(ent, TCell_Bld):
             if base_builder_url:
@@ -85,11 +88,11 @@ def tcell_entshow(base_builder_url):
         return str(ent)
     return _t_es
 
-def htbl_branch(sr, repdata):
+def htbl_branch(sr: Union[StatusReport, PendingStatus], repdata: ReportType) -> str:
     tblbranch = tbl_branch(sr)
     return htbl_branch_upd(tblbranch, sr.branchtype, sr.branch, sr.blddesc, repdata)
 
-def htbl_branch_(bldname, branch, newpending, repdata):
+def htbl_branch_(bldname: str, branch: str, newpending, repdata: ReportType) -> str:
     tblbranch = tbl_branch_(bldname, branch)
     return htbl_branch_upd(tblbranch,
                            newpending.bldcfg.branchtype,
@@ -97,7 +100,11 @@ def htbl_branch_(bldname, branch, newpending, repdata):
                            newpending.bldcfg.description,
                            repdata)
 
-def htbl_branch_upd(tblbranch, branchtype, branch, blddesc, repdata):
+def htbl_branch_upd(tblbranch: str,
+                    branchtype: str,
+                    branch: str,
+                    blddesc: BldDescTy,
+                    repdata: ReportType) -> str:
     if branchtype == 'pullreq':
         for sr2 in repdata:
             if isinstance(sr2, PR_Status) and \
@@ -121,7 +128,7 @@ def htbl_branch_upd(tblbranch, branchtype, branch, blddesc, repdata):
     return tblbranch
 
 
-def html_summary(repdata, base_builder_url=None):
+def html_summary(repdata: ReportType, base_builder_url: Optional[BuilderURL] = None) -> str:
     entshow_fun = tcell_entshow(base_builder_url)
 
     projects = set([ sr.project for sr in repdata if isinstance(sr, StatusReport) ])
@@ -161,7 +168,7 @@ def html_summary(repdata, base_builder_url=None):
                                      default_factory=lambda: None,
                                      keyval_factory=lambda key: 'x86_64-linux' if key == 'system' else '',
                                      kv_frozen=False)
-    detailtables = defaultdict(mkDetailTable)
+    detailtables: DefaultDict[str, KVITable] = defaultdict(mkDetailTable)
     projtable_sts = lambda s: { 'initial_success': 'ok',
                                 'succeeded': 'ok',
                                 # 'pending': 'pending',
@@ -226,7 +233,7 @@ def html_summary(repdata, base_builder_url=None):
                        'succeeded' : TCell_GoodBld,
                        'fixed' : TCell_GoodBld,
                        'bad_config' : TCell_BadCfgBld,
-            }.get(sr.status,
+            }.get(sr.status,  # type: ignore
                   lambda proj, name: TCell_FailBld(proj, name, sr.status)
             )(sr.project, sr.buildname)
 

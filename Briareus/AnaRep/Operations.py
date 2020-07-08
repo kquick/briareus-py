@@ -19,22 +19,30 @@
 import attr
 import functools
 from Briareus import print_each, print_titled
-from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary, ResultSet
+from Briareus.Types import (BuildResult, logic_result_expr,
+                            ProjectSummary, StatusReport, ResultSet,
+                            VarFailure, SendEmail, SetForgeStatus,
+                            UpTo, RunContext)
 from Briareus.Logic.InpFacts import get_input_facts
+from Briareus.Logic.Evaluation import FactList
 from Briareus.VCS_API import PRSts_Active
-from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
+from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis, LogicOutput
+from typing import List, Optional, Set, Tuple, Union
 
 
 class AnaRep(object):
     def __init__(self,
                  actor_system=None,
-                 verbose=False,
-                 up_to=None):
+                 verbose: bool = False,
+                 up_to: UpTo = None) -> None:
         self._actor_system = actor_system
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def report_on(self, run_context, prior_report, reporting_logic_defs=''):
+    def report_on(self, run_context: RunContext, prior_report,
+                  reporting_logic_defs: str = '') -> Tuple[str, Union[RunContext,
+                                                                      FactList,
+                                                                      LogicOutput]]:
 
         # result_sets is an array of ResultSet from hh.py, each containing:
         #   builder is the builder for the results
@@ -44,13 +52,17 @@ class AnaRep(object):
         result_sets = run_context.result_sets
 
         summary = ProjectSummary(
-            project_name='+'.join([e.inp_desc.PNAME for e in result_sets]),
-            bldcfg_count = sum([len(e.build_cfgs.cfg_build_configs) for e in result_sets]),
-            subrepo_count = sum([len(e.build_cfgs.cfg_subrepos) for e in result_sets]),
+            project_name='+'.join([e.inp_desc.PNAME for e in result_sets
+                                   if e.inp_desc is not None]),
+            bldcfg_count = sum([len(e.build_cfgs.cfg_build_configs) for e in result_sets
+                                if e.build_cfgs is not None]),
+            subrepo_count = sum([len(e.build_cfgs.cfg_subrepos) for e in result_sets
+                                if e.build_cfgs is not None]),
             pullreq_count = sum([len([p
                                       for p in e.build_cfgs.cfg_pullreqs
                                       if isinstance(p.pr_status, (PRSts_Active,))])
-                                 for e in result_sets]))
+                                 for e in result_sets
+                                if e.build_cfgs is not None]))
 
         if self.verbose:
             print('## AnaRep.report_on %d configs (%d subrepos, %d pullreqs)'
@@ -59,12 +71,15 @@ class AnaRep(object):
         for each in run_context.result_sets:
             each.build_results = self.get_build_results(each)
 
-        build_results = functools.reduce(lambda bres, e: bres + e.build_results, result_sets, [])
+        build_results: List[BuildResult] = functools.reduce(
+            lambda bres, e: bres + e.build_results,
+            result_sets,
+            [])
 
         if self.verbose:
             print_each('ACCUMULATED BUILD RESULTS', build_results, '**')
 
-        declared_facts = [
+        declared_facts: FactList = [
             # ----------------------------------------------------------------------
             # Facts used for analysis and reporting
 
@@ -77,12 +92,13 @@ class AnaRep(object):
             DeclareFact('project_owner/2'),
         ]
 
-        input_facts = functools.reduce(
-            lambda facts, e: facts.union(get_input_facts(e.inp_desc.PNAME,
+        input_facts: Set[Union[DeclareFact, Fact]] = functools.reduce(
+            lambda facts, e: (facts.union(get_input_facts(e.inp_desc.PNAME,
                                                          e.inp_desc.RL,
                                                          e.inp_desc.BL,
                                                          e.inp_desc.VAR,
-                                                         e.repo_info)),
+                                                         e.repo_info))
+                              if e.inp_desc is not None else facts),
             result_sets, set())
 
         prior_facts = mk_prior_facts(prior_report)
@@ -92,13 +108,14 @@ class AnaRep(object):
                  sorted(list(prior_facts), key=str) +
                  sorted(list(built_facts), key=str))
         raw = reporting_logic_defs + '\n'.join([each.inp_desc.REP.get('logic', '')
-                                                for each in result_sets])
+                                                for each in result_sets
+                                                if each.inp_desc is not None])
 
         if self.verbose or self._up_to == 'built_facts':
             print_each('BUILT FACTS', facts)
             print(raw)
         if self._up_to == 'built_facts':
-            return (self._up_to, facts)
+            return (str(self._up_to), facts)
 
         r = run_logic_analysis('built_analysis', facts,
                                raw_logic=raw,
@@ -107,39 +124,42 @@ class AnaRep(object):
         if self.verbose or self._up_to == 'raw_built_analysis':
             print_titled('RAW BUILT ANALYSIS', r)
         if self._up_to == 'raw_built_analysis':
-            return (self._up_to, r)
+            return (str(self._up_to), r)
 
         run_context.report = [summary] + (eval(r, globals(), logic_result_expr) if r else [])
 
         return ("report", run_context)
 
 
-    def get_build_results(self, result_set):
+    def get_build_results(self, result_set: ResultSet) -> List[BuildResult]:
         # Returns BuildSys-obtained BuildResult associated with
         # BuildCfg for each BuildCfg; BuildSys results not associated
         # with a BuildCfg are ignored.
+        if result_set.build_cfgs is None or result_set.builder is None:
+            return []
         return [ BuildResult(build, result_set.builder.get_build_result(build))
                  for build in result_set.build_cfgs.cfg_build_configs ]
 
 
-def mk_prior_facts(prior_report):
+def mk_prior_facts(prior_report: Optional[FactList]) -> Set[Union[DeclareFact, Fact]]:
     return set(
         [ DeclareFact('prior_status/8'),
           DeclareFact('prior_summary/4'),
         ] +
         list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
 
-def mk_built_facts(build_results):
-    return set(
-        [ DeclareFact('bldres/12'),
-          DeclareFact('report/1'),
-          DeclareFact('status_report/7'),
-          DeclareFact('succeeded/0'),
-          DeclareFact('failed/0'),
-          DeclareFact('initial_success/0'),
-          DeclareFact('fixed/0'),
-        ] +
-        list(filter(None, [ built_fact(r) for r in build_results ])))
+def mk_built_facts(build_results: List[BuildResult]) -> Set[Union[DeclareFact, Fact]]:
+    decls: FactList = [ DeclareFact('bldres/12'),
+                        DeclareFact('report/1'),
+                        DeclareFact('status_report/7'),
+                        DeclareFact('succeeded/0'),
+                        DeclareFact('failed/0'),
+                        DeclareFact('initial_success/0'),
+                        DeclareFact('fixed/0'),
+    ]
+    return set(decls +
+               [ f for f in [ built_fact(r) for r in build_results ]
+                 if f is not None])
 
 def prior_fact(prior):
     # Could be handled as the default for the .get() below, but
@@ -165,7 +185,7 @@ def prior_fact(prior):
              'PR_Status' : prior_ignored,
     }[prior.__class__.__name__](prior)
 
-def prior_fact_ProjectSummary(prior):
+def prior_fact_ProjectSummary(prior: ProjectSummary) -> Fact:
     return Fact(('prior_summary("{p.project_name}"'
                  ', {p.bldcfg_count}'
                  ', {p.subrepo_count}'
@@ -173,7 +193,7 @@ def prior_fact_ProjectSummary(prior):
                  ')'
     ).format(p=prior))
 
-def prior_fact_StatusReport(prior):
+def prior_fact_StatusReport(prior: StatusReport) -> Fact:
     vars = [ 'varvalue("{v.project}", "{v.varname}", "{v.varvalue}")'.format(v=v)
              for v in prior.bldvars ]
     return Fact(
@@ -188,38 +208,43 @@ def prior_fact_StatusReport(prior):
          ')'
          ).format(p=prior,
                   strategy=prior.strategy.lower(),
-                  blddesc=(prior.blddesc.as_fact()
-                           if hasattr(prior.blddesc, 'as_fact')
+                  blddesc=(prior.blddesc.as_fact()  # OK
+                           if (not isinstance(prior.blddesc, str) and
+                               hasattr(prior.blddesc, 'as_fact'))
                            else prior.blddesc),
                   vars='[ ' + ', '.join(vars) + ' ]'))
 
-def prior_fact_VarFailure(prior):
+def prior_fact_VarFailure(prior: VarFailure) -> None:
     return None
 
 toStrList = lambda l: '[' + ', '.join([ '"%s"'%e for e in l]) + ']'
 
-def prior_fact_SendEmail(prior):
+def prior_fact_SendEmail(prior: SendEmail) -> Fact:
     # Code to read text from the previous report and convert it to
     # Fact specification of prior data for the analysis logic
     # processing.
     targets = [ '"%s"' % A for A in prior.recipients ]
     sent = [ '"%s"' % A for A in prior.sent_to ]
     # n.b. asStrList and params_logic is a lambda to avoid the computation cost of *all* elements
-    asStrList = lambda: '[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']'
-    asStr = lambda: '"%s"' % prior.notification.params
+    asStr = lambda: (('[' + ', '.join([ '"%s"'%n for n in prior.notification.params ]) + ']')
+                     if isinstance(prior.notification.params, list)
+                     else '"%s"' % prior.notification.params)
+    asNum = lambda: ('%d' % prior.notification.params
+                     if isinstance(prior.notification.params, (int, float))
+                     else str(prior.notification.params))
     params_logic = {
         'variable_failing': lambda: ('varvalue('
                                      '      "{prior.notification.params.project}"'
                                      '    , "{prior.notification.params.varname}"'
                                      '    , "{prior.notification.params.varvalue}"'
                                      '  )'),
-        'main_submodules_broken': asStrList,
+        'main_submodules_broken': asStr,
         'main_submodules_good': asStr,
-        'main_broken': asStrList,
+        'main_broken': asStr,
         'main_good': asStr,
-        'completely_broken': lambda: '%d' % prior.notification.params,
+        'completely_broken': asNum,
     }.get(prior.notification.what,
-          lambda: (prior.notification.params.as_fact()
+          lambda: (prior.notification.params.as_fact()  # type: ignore
                    if hasattr(prior.notification.params, "as_fact")
                    else str(prior.notification.params)))
     return Fact(('email('
@@ -236,19 +261,21 @@ def prior_fact_SendEmail(prior):
                  ))
 
 
-def prior_fact_SetForgeStatus(prior):
+def prior_fact_SetForgeStatus(prior: SetForgeStatus) -> Fact:
     return Fact(('set_forge_status(' +
                  toStrList(prior.targetrepos) +
                  ', notify({prior.notification.what}'
                  '  , "{prior.notification.subject}"'
-                 '  , ' + prior.notification.params.as_fact() +
+                 '  , ' + (prior.notification.params.as_fact()  # type: ignore
+                           if hasattr(prior.notification.params, 'as_fact')
+                           else str(prior.notification.params)) +
                  ')'
                  ', ' + toStrList(prior.updated) +
                  ')'
                  ).format(prior=prior))
 
 
-def built_fact(result):
+def built_fact(result: BuildResult) -> Optional[Fact]:
     vars = [ 'varvalue("{r.bldconfig.projectname}", "{v.varname}", "{v.varvalue}")'.format(v=v, r=result)
              for v in result.bldconfig.bldvars ]
     if isinstance(result.results, str):
@@ -274,6 +301,8 @@ def built_fact(result):
                  strategy=result.bldconfig.strategy.lower(),
                  configStatus=('configError'
                                if result.results.cfgerror else 'configValid'),
-                 bldDescription=result.bldconfig.description.as_fact(),
+                 bldDescription=(result.bldconfig.description.as_fact() # type: ignore
+                                 if hasattr(result.bldconfig.description, 'as_fact')
+                                 else str(result.bldconfig.description)),
         )
     )

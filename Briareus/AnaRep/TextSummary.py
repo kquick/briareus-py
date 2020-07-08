@@ -2,8 +2,10 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify)
+from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify, ReportType)
 from Briareus.BuildSys import buildcfg_name
+from typing import DefaultDict, Union
+
 
 _inc = lambda n: n + 1
 _dec = lambda n: n - 1
@@ -48,7 +50,7 @@ def _show_with_fail(_path, v):
         return str(v)
     return v
 
-def tbl_branch(r):
+def tbl_branch(r: Union[StatusReport, PendingStatus]) -> str:
     # Don't necessarily want to just use the branch name
     # because it might be the main branch with multiple PR's
     # on that branch.  At this point, use the regularity of
@@ -61,7 +63,7 @@ def tbl_branch(r):
     # table entry.  KWQ KWQ: needs a better approach!
     return tbl_branch_(r.buildname, r.branch)
 
-def tbl_branch_(buildname, branch):
+def tbl_branch_(buildname: str, branch: str) -> str:
     buildname_fp = buildname.split(branch)[0]
     r =  (buildname.split('.')[0]
           if buildname_fp == buildname
@@ -72,7 +74,7 @@ def tbl_branch_(buildname, branch):
     return r if r.startswith('PR') else ' ' + r
 
 
-def text_summary(repdata):
+def text_summary(repdata: ReportType) -> str:
     sepline='='*60
     hashline='#'*60
     banner = '\n\n%(sepline)s\n%(hashline)s\n%(sepline)s\n\n'%locals()
@@ -119,7 +121,7 @@ def text_summary(repdata):
                                      default_factory=FailCount,
                                      keyval_factory=lambda key: 'x86_64-linux' if key == 'system' else '',
                                      kv_frozen=False)
-    detailtables = defaultdict(mkDetailTable)
+    detailtables: DefaultDict[str, KVITable]  = defaultdict(mkDetailTable)
     projtable_sts = lambda s: { 'initial_success': 'ok',
                                 'succeeded': 'ok',
                                 # 'pending': 'pending',
@@ -182,7 +184,7 @@ def text_summary(repdata):
                                    'succeeded': '+',
                                    'fixed': '+',
                                    'bad_config': '-CFG',
-            }.get(sr.status, sr.status))
+            }.get(sr.status, sr.status))  # type: ignore
             vars = tuple([ (v.varname, v.varvalue) for v in sr.bldvars ])
 
             fulltable.add(bldres, *vars,
