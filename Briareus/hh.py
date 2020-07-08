@@ -10,7 +10,7 @@ import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
 from Briareus.VCS.ForgeAccess import UserURL
-from Briareus.Types import SendEmail, RunContext
+from Briareus.Types import SendEmail, RunContext, ReportType
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
 import datetime
@@ -19,7 +19,7 @@ import os.path
 import sys
 from thespian.actors import ActorSystem
 import attr
-from typing import Optional
+from typing import Any, Callable, Dict, IO, Optional
 
 
 @attr.s(auto_attribs=True)
@@ -32,7 +32,7 @@ class InpConfig(object):
     builder_url: Optional[BuilderURL] = attr.ib(default=None)  # URL for builder results
     output_file: Optional[str] = attr.ib(default=None)    # output filepath (None is stdout)
 
-    def fixup(self):
+    def fixup(self) -> "InpConfig":
         expand_filerefs = lambda v: os.path.normpath(os.path.expanduser(os.path.expandvars(v)))
         self.hhd = expand_filerefs(self.hhd)
         self.builder_conf = expand_filerefs(self.builder_conf) \
@@ -64,23 +64,27 @@ class TimeReporter(object):
         self.phase = "finished"
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class Params(object):
-    verbose = attr.ib(default=False)
-    timing_info = attr.ib(default=TimeReporter(False))
-    up_to = attr.ib(default=None)  # class UpTo
-    report_file = attr.ib(default=None)
-    tempdir = attr.ib(default=None)
+    verbose: bool = attr.ib(default=False)
+    timing_info: TimeReporter = attr.ib(default=TimeReporter(False))
+    up_to: Optional["UpTo"] = attr.ib(default=None)  # class UpTo
+    report_file: Optional[str] = attr.ib(default=None)
+    tempdir: Optional[str] = attr.ib(default=None)
 
 
-def verbosely(params, *msgargs):
+def verbosely(params: Params, *msgargs) -> None:
     if params.verbose:
         print(*msgargs)
 
 # ----------------------------------------------------------------------
 # Actual generation and reporting functions
 
-def run_hh_gen(params, inpcfg, inp, bldcfg_fname, prev_gen_result=None):
+def run_hh_gen(params: Params,
+               inpcfg: InpConfig,
+               inp,
+               bldcfg_fname: str,
+               prev_gen_result=None):
     verbosely(params, 'Generating Build Configurations from %s' % inpcfg.hhd)
     if not prev_gen_result:
         params.timing_info('Initializing Run Context and Actors')
@@ -139,7 +143,10 @@ def run_hh_report(params, gen_result, prior_report, reporting_logic_defs=''):
     return ret[1]
 
 
-def perform_hh_actions(inpcfg, inp_report, run_context, report_supplement):
+def perform_hh_actions(inpcfg: InpConfig,
+                       inp_report: ReportType,
+                       run_context: RunContext,
+                       report_supplement: Dict[str, Any]):
     run_context.report = [ Actions.do_action(each, inp_report, run_context,
                                              report_supplement)
                            for each in run_context.report ]
@@ -147,7 +154,11 @@ def perform_hh_actions(inpcfg, inp_report, run_context, report_supplement):
 
 # ----------------------------------------------------------------------
 
-def run_hh_gen_with_files(inp, inpcfg, outputfname, params, prev_gen_result=None):
+def run_hh_gen_with_files(inp,
+                          inpcfg: InpConfig,
+                          outputfname: str,
+                          params: Params,
+                          prev_gen_result=None):
     r = run_hh_gen(params, inpcfg, inp,
                    bldcfg_fname=outputfname,
                    prev_gen_result=prev_gen_result)
@@ -159,7 +170,10 @@ def run_hh_gen_with_files(inp, inpcfg, outputfname, params, prev_gen_result=None
     return r
 
 
-def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
+def run_hh_gen_on_inpfile(inp_fname: str,
+                          params: Params,
+                          inpcfg: InpConfig,
+                          prev_gen_result=None):
     inp_parts = os.path.split(inp_fname)
     outfname = (inpcfg.output_file or
                 os.path.join(os.getcwd(),
@@ -183,6 +197,7 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
     writings = FileWriterSession(params.tempdir or os.path.dirname(outfname))
     for fname in r[1]:
         if fname:
+            assert isinstance(inpcfg.output_file, str)
             indir = os.path.dirname(inpcfg.output_file) or os.getcwd()
             target = fname if fname.startswith(indir) else os.path.join(indir, fname)
             os.makedirs(os.path.dirname(target), exist_ok=True)
@@ -229,7 +244,7 @@ def upd_from_remote(src_url: UserURL,         # URL to fetch update from
                   % (fpath, src_url))
 
 
-def run_hh_on_inpcfg(inpcfg: InpConfig, params, prev_gen_result=None):
+def run_hh_on_inpcfg(inpcfg: InpConfig, params: Params, prev_gen_result=None):
     if inpcfg.input_url is not None:
         params.timing_info('Updating inputs from %s' % inpcfg.input_url)
         asys = ((prev_gen_result.actor_system if prev_gen_result else None)
@@ -251,7 +266,7 @@ def run_hh_on_inpcfg(inpcfg: InpConfig, params, prev_gen_result=None):
     return run_hh_gen_on_inpfile(ifile, params=params, inpcfg=inpcfg, prev_gen_result=prev_gen_result)
 
 
-def read_inpcfgs_from(inputArg):
+def read_inpcfgs_from(inputArg: Optional[str]) -> Dict[str, Any]:
     """Reads the -C input configuration file.  The format is a python
        dictionary, with keys of 'InpConfigs' (value is a list of
        InpConfig objects) and 'Reporting' which is a dictionary with
@@ -271,7 +286,11 @@ def read_inpcfgs_from(inputArg):
     return inpParsed
 
 
-def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_report=None):
+def run_hh_reporting_to(reportf,
+                        params: Params,
+                        inputArg=None,
+                        inpcfg: Optional[InpConfig] = None,
+                        prior_report=None):
     """Runs the Briareus operation, writing the output to reportf if not
        None. If inpcfg is set, then this is for that single
        configuration, otherwise the input configurations are read from
@@ -315,7 +334,7 @@ def run_hh_reporting_to(reportf, params, inputArg=None, inpcfg=None, prior_repor
             write_report_output(reportf, act_result.report)
 
 
-def atomic_write_to(outfname, gen_output):
+def atomic_write_to(outfname: str, gen_output: Callable[[IO], int]) -> int:
     tryout = os.path.join(os.path.dirname(outfname),
                           '.' + os.path.basename(outfname) + '.new')
     with open(tryout, 'w') as outf:
@@ -324,7 +343,7 @@ def atomic_write_to(outfname, gen_output):
     return r
 
 
-def run_hh(params, inpcfg=None, inputArg=None):
+def run_hh(params: Params, inpcfg: Optional[InpConfig] = None, inputArg=None):
     verbosely(params, 'Running hh')
     if inpcfg is None:
         verbosely(params, 'multiple input configs from:', inputArg)
@@ -364,24 +383,25 @@ class UpTo(object):
                     "actions", "report" ]
 
     @staticmethod
-    def valid():
+    def valid() -> str:
         return ', '.join(UpTo.valid_up_to)
 
-    def __init__(self, arg):
+    def __init__(self, arg: str) -> None:
         if arg not in UpTo.valid_up_to:
             raise ValueError("The --up-to value must be one of: " + self.valid())
         self._up_to = arg
 
-    def __eq__(self, o):
+    def __eq__(self, o: object) -> bool:
         # Compare this object to a string to see if the string matches
         # the internal value. This is usually the indicator for the
         # checker to exit because the termination point has been
         # reached.
+        assert isinstance(o, str)
         return self._up_to == o
 
     def __str__(self): return self._up_to
 
-    def enough(self, point):
+    def enough(self, point: str) -> bool:
         """Returns true if the internal up_to value is one of the valid values
            at or after the point value; this indicates that enough
            processing has been performed and the code should simply
