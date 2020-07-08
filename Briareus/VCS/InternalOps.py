@@ -1,6 +1,6 @@
 # Internal functionality for managing VCS Repo interactions.
 
-from thespian.actors import (ActorTypeDispatcher, ChildActorExited)
+from thespian.actors import (ActorTypeDispatcher, ActorExitRequest, ChildActorExited)
 from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *
@@ -11,6 +11,7 @@ from collections import defaultdict
 import attr
 import logging
 import os
+from typing import List, Set
 
 
 class GatherRepoInfo(ActorTypeDispatcher):
@@ -23,8 +24,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self._stats = {}
         self.responses_pending = 0
         self.pending_requests = []
+        self.pullreqs: Set[PRInfo] = set()
 
-    def receiveMsg_str(self, msg, sender):
+    def receiveMsg_str(self, msg: str, sender):
         if msg == "status":
             self.send(sender, self._stats)
         elif msg == 'Deactivate' and self._get_git_info:
@@ -112,7 +114,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                               msg.repo_api_url,
                               msg.errorstr))))
 
-    def receiveMsg_ReadFileFromVCS(self, msg, sender):
+    def receiveMsg_ReadFileFromVCS(self, msg: ReadFileFromVCS, sender):
         """Main entrypoint to read a specific file from a repo at the
            specified URL
         """
@@ -127,10 +129,10 @@ class GatherRepoInfo(ActorTypeDispatcher):
                                                          readfile_msg.repolocs),
                                              readfile_msg))
 
-    def receiveMsg_FileReadData(self, msg, sender):
+    def receiveMsg_FileReadData(self, msg: FileReadData, sender):
         self.respond_to_requestor(self.prepareReply(msg))
 
-    def receiveMsg_GatherInfo(self, msg, sender):
+    def receiveMsg_GatherInfo(self, msg: GatherInfo, sender):
         """Main entrypoint to gather information for the list of repos and
            branches provided in the input GatherInfo message, sending
            the information back in the GatheredInfo response message.
@@ -149,7 +151,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.prepareReply = toJSON if jsonReply else (lambda x: x)
         self.responses_pending = 0
 
-        self.pullreqs = set()
+        self.pullreqs: Set[PRInfo] = set()
         self.submodules = set()
         self.subrepos = set()
         self.branches = set()
@@ -172,7 +174,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def _all_repos(self): return set(self.RL).union(set(self.subrepos))
 
-    def receiveMsg_RepoDeclared(self, msg, sender):
+    def receiveMsg_RepoDeclared(self, msg: RepoDeclared, sender):
         "Response message from the GetGitInfo actor to a DeclareRepo message"
         repo = self._pending_info.get(msg.reponame, None)
         if repo:
@@ -181,7 +183,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             self.get_git_info(GetPullReqs(repo.repo_name))
         self.got_response(response_name='repo_declared')
 
-    def receiveMsg_PullReqsData(self, msg, sender):
+    def receiveMsg_PullReqsData(self, msg: PullReqsData, sender):
         "Response message from the GetGitInfo actor to a GetPullReqs message"
         # A pull request references a branch in a (possibly different)
         # repo where that branch exists; the branch may not exist in
@@ -385,11 +387,15 @@ class GatherRepoInfo(ActorTypeDispatcher):
     def receiveMsg_BranchPresent(self, msg: BranchPresent, sender):
         "Response message from the GetGitInfo actor to a HasBranch message"
         if msg.branch_present:
-            self.branches_check[(msg.reponame, msg.branch_name)] = False  # no longer pending
-            self.branches.add( BranchRef(reponame=msg.reponame,
-                                         branchname=msg.branch_name,
-                                         branchref=msg.branch_present,
-            ) )
+            if isinstance(msg.branch_present, str):
+                self.branches_check[(msg.reponame, msg.branch_name)] = False  # no longer pending
+                self.branches.add( BranchRef(reponame=msg.reponame,
+                                             branchname=msg.branch_name,
+                                             branchref=msg.branch_present or "", # OK
+                ) )
+            else:
+                raise RuntimeError('branch_present is not a true string: %s (%s)' %
+                                   (str(msg.branch_present), type(msg.branch_present)))
             for repo in self.RL:
                 if repo.project_repo and repo.repo_name == msg.reponame:
                     # This is a branch on the project repo, so see if
@@ -423,7 +429,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.got_response(response_name='branch_present')
 
 
-    def receiveMsg_GitmodulesRepoVers(self, msg, sender):
+    def receiveMsg_GitmodulesRepoVers(self, msg: GitmodulesRepoVers, sender):
         "Response message from the GetGitInfo actor to a GitmodulesData message"
         for each in msg.gitmodules_repovers:
             named_submod_repo = ([r for r in self._all_repos()
@@ -494,11 +500,11 @@ class GetGitInfo(ActorTypeDispatcher):
             self.gitinfo_pending_actor[reponame] = []
         return suba
 
-    def receiveMsg_ActorExitRequest(self, msg, sender):
+    def receiveMsg_ActorExitRequest(self, msg: ActorExitRequest, sender):
         for each in self.gitinfo_actors.values():
             self.send(each, msg)
 
-    def receiveMsg_ChildActorExited(self, msg, sender):
+    def receiveMsg_ChildActorExited(self, msg: ChildActorExited, sender):
         for each in [ k
                       for k in self.gitinfo_actors
                       if self.gitinfo_actors[k] == msg.childAddress ]:
@@ -508,14 +514,15 @@ class GetGitInfo(ActorTypeDispatcher):
                       if self.gitinfo_actors_by_url[k] == msg.childAddress ]:
             del self.gitinfo_actors_by_url[each]
 
-    def receiveMsg_DeclareRepo(self, msg, sender):
+    def receiveMsg_DeclareRepo(self, msg: DeclareRepo, sender):
         self.statpoints['declared'] += 1
         suba = self._get_subactor(msg.reponame, msg.repo_url, msg.repolocs)
         self.send(sender, RepoDeclared(msg.reponame))
 
-    def receiveMsg_Repo__ReqMsg(self, msg, sender):
+    def receiveMsg_Repo__ReqMsg(self, msg: Repo__ReqMsg, sender):
         self.statpoints['reqmsg'] += 1
-        msg.orig_sender = sender
+        # Note: ignore the following for typing: this member is dynamically added
+        msg.orig_sender = sender  # type: ignore
         try:
             suba = self._get_subactor(msg.reponame)
         except NoURLForRepo:
@@ -527,7 +534,7 @@ class GetGitInfo(ActorTypeDispatcher):
             raise er
         self.send(suba, msg)
 
-    def receiveMsg_Repo_AltLoc_ReqMsg(self, msg, sender):
+    def receiveMsg_Repo_AltLoc_ReqMsg(self, msg: Repo_AltLoc_ReqMsg, sender):
         """Send a message to an alternate repo URL; the repo URL must already
            have been normalized and translated (by to_http_url).
         """
@@ -542,10 +549,11 @@ class GetGitInfo(ActorTypeDispatcher):
             # is just for alternate locations (e.g. source of
             # pullreqs)
             self.send(suba, RepoRemoteSpec(msg.api_repo_loc))
-        msg.altloc_reqmsg.orig_sender = sender
+        # Ignore the following dynamic member addition for typing
+        msg.altloc_reqmsg.orig_sender = sender  # type: ignore
         self.send(suba, msg.altloc_reqmsg)
 
-    def receiveMsg_str(self, msg, sender):
+    def receiveMsg_str(self, msg: str, sender):
         if msg == "status":
             self.send(sender,
                       { "actors": self.gitinfo_actors,

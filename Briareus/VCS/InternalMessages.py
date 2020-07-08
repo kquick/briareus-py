@@ -59,8 +59,8 @@ class Repo_AltLoc_ReqMsg(object):
        alternate repository that is associated with the main reponame
        but is not the main repo (e.g. a pullreq source repo).
     """
-    api_repo_loc: str   # API URL specification for alt repo
-    altloc_reqmsg: Repo__ReqMsg  # Repo__ReqMsg to send to the alt repo loc
+    api_repo_loc: Any   # API URL specification for alt repo: RepoAPI_Location
+    altloc_reqmsg: Repo__ReqMsg      # Repo__ReqMsg to send to the alt repo loc
 
 
 @attr.s(auto_attribs=True)
@@ -138,7 +138,7 @@ class GitmodulesData(Repo__ReqMsg):     #                --> GitmodulesRepoVers
                                # source repo; another unique field
                                # (e.g. pullreq_srcurl) could
                                # alternatively be used.
-    source_ref: str  # explicit ref for src (e.g. for Gitlab)
+    source_ref: Optional[str]  # explicit ref for src (e.g. for Gitlab)
 @attr.s(auto_attribs=True)
 class GitmodulesRepoVers(Repo__RspMsg): # GitmodulesData -->
     branch_name: str
@@ -188,7 +188,9 @@ class SubModuleInfo(object):
     """
     sm_repo_name: str  # Primary repo name (the one that contains the submodule)
     sm_branch: str     # Submodule branch name (in source repo)
-    sm_pullreq_id: str # If submodule for a PR to the project repo, this identifies the PR
+    sm_pullreq_id: Optional[str] # None if main repo branch, string if
+                                 # submodule for a PR to the project
+                                 # repo, this identifies the PR
     sm_sub_name: str   # Submodule repo name
     sm_sub_vers: str   # Submodule repo specified version
 
