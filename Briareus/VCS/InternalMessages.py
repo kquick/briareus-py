@@ -3,6 +3,7 @@
 import attr
 import json
 from Briareus.Input.Description import *
+from .ForgeAccess import RepoAPI_Location
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 def toJSON(obj) -> str:
@@ -59,7 +60,7 @@ class Repo_AltLoc_ReqMsg(object):
        alternate repository that is associated with the main reponame
        but is not the main repo (e.g. a pullreq source repo).
     """
-    api_repo_loc: Any   # API URL specification for alt repo: RepoAPI_Location
+    api_repo_loc: RepoAPI_Location   # API URL specification for alt repo
     altloc_reqmsg: Repo__ReqMsg      # Repo__ReqMsg to send to the alt repo loc
 
 
@@ -149,7 +150,7 @@ class GitmodulesRepoVers(Repo__RspMsg): # GitmodulesData -->
 
 @attr.s(auto_attribs=True)
 class RepoRemoteSpec(object):
-    repo_api_loc: str               # RepoAPI_Location for forge API
+    repo_api_loc: RepoAPI_Location   # for forge API
 
 
 @attr.s(auto_attribs=True, frozen=True)

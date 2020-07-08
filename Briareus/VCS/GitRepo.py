@@ -75,7 +75,7 @@ class GitRepoInfo(ActorTypeDispatcher):
         self._ghinfo = None
         self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None))
 
-    def receiveMsg_RepoRemoteSpec(self, msg, sender):
+    def receiveMsg_RepoRemoteSpec(self, msg: RepoRemoteSpec, sender) -> None:
         self._ghinfo = (GitHubInfo(msg.repo_api_loc)
                         if 'github' in self.repospec.repo_api_loc.apiloc else
                         (GitLabInfo(msg.repo_api_loc)
