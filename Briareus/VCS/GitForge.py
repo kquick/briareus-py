@@ -46,13 +46,6 @@ class RemoteGit__Info(object):
     trailer = '.git'
     trailer_len = len(trailer)
 
-    @staticmethod
-    def repo_url(self, url: str) -> str:
-        "Drops any additional path elements beyond the first two: owner and repo"
-        parsed = urlparse(url)
-        return urlunparse(
-            parsed._replace(path = '/'.join(parsed.path.split('/')[:3]) ))
-
     def api_req(self, reqtype: str, notFoundOK=False, raw=False) -> ResponseTy:
         self._get_count += 1
         if reqtype.startswith('//'):
