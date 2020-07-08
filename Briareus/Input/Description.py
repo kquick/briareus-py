@@ -1,13 +1,46 @@
 # Static Data Description of the Briareus Input Specifications
 
 import attr
+from typing import (Dict, List)
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
+class RepoLoc(object):
+    """These entries are used to translate the SSH repo access patterns
+       (needed by Hydra) into the corresponding API host for the
+       repository.  This is commonly needed for private repositories
+       that Hydra must use an SSH Hostname config override to access
+       (e.g. "git@projFoo-github:team/repo") but for which Briareus
+       needs to access the forge API
+       (e.g. "https://github.com/team/repo"), often using the
+       BRIAREUS_PAT token.
+    """
+    repo_loc: str  # string specified in netloc position for RL
+    api_host: str  # API forge access hostname
+
+@attr.s(auto_attribs=True, frozen=True)
+class RepoDesc(object):
+    repo_name: str
+    repo_url: str
+    main_branch: str = attr.ib(default="master") # input optional
+    project_repo: bool = attr.ib(default=False)  # internally generated, not part of the input spec
+
+@attr.s(auto_attribs=True, frozen=True)
+class BranchDesc(object):
+    branch_name: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class VariableDesc(object):
+    variable_name: str
+    variable_values: str  # list of values in string form
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class InputDesc(object):
-    RL  = attr.ib(factory=list)   # RepoDesc repo list
-    BL  = attr.ib(factory=list)   # BranchDesc branch list
-    VAR = attr.ib(factory=list)   # VariableDesc variables list
-    RX  = attr.ib(factory=list)   # RepoLoc repo location translations
+    RL: List[RepoDesc] = attr.ib(factory=list)
+    BL: List[BranchDesc] = attr.ib(factory=list)
+    VAR: List[VariableDesc] = attr.ib(factory=list)
+    RX: List[RepoLoc] = attr.ib(factory=list)   # repo location translations
 
     # Dictionary of reporting items.  Supported entries:
     #
@@ -26,37 +59,6 @@ class InputDesc(object):
     #     str.format() function with named keyword arguments of:
     #     "project".
     #
-    REP = attr.ib(factory=dict)
+    REP: Dict[str,str] = attr.ib(factory=dict)
 
-    PNAME = attr.ib(factory=str)  # string "Project Name" (if blank, use project repo name)
-
-@attr.s(frozen=True)
-class RepoLoc(object):
-    """These entries are used to translate the SSH repo access patterns
-       (needed by Hydra) into the corresponding API host for the
-       repository.  This is commonly needed for private repositories
-       that Hydra must use an SSH Hostname config override to access
-       (e.g. "git@projFoo-github:team/repo") but for which Briareus
-       needs to access the forge API
-       (e.g. "https://github.com/team/repo"), often using the
-       BRIAREUS_PAT token.
-    """
-    repo_loc = attr.ib()  # string specified in netloc position for RL
-    api_host = attr.ib()  # API forge access hostname
-
-@attr.s(frozen=True)
-class RepoDesc(object):
-    repo_name = attr.ib()
-    repo_url = attr.ib()
-    main_branch = attr.ib(default="master") # input optional
-    project_repo = attr.ib(default=False)  # internally generated, not part of the input spec
-
-@attr.s(frozen=True)
-class BranchDesc(object):
-    branch_name = attr.ib()
-
-
-@attr.s(frozen=True)
-class VariableDesc(object):
-    variable_name = attr.ib()
-    variable_values = attr.ib()  # list of names
+    PNAME: str = attr.ib(factory=str)  # string "Project Name" (if blank, use project repo name)
