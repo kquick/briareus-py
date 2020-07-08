@@ -1,27 +1,28 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRInfo, RepoSite, SubModuleInfo
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRInfo,
+                              RepoInfoTy, RepoSite, SubModuleInfo)
 import json
 import pytest
 
 input_spec = open('test/inp_prsubmodule').read()
 
-expected_repo_info = {
-    'branches' : set([
+expected_repo_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='SubRepo1', branchname='master', branchref='SubRepo1-master-ref'),
         BranchRef(reponame='TopRepo', branchname='master', branchref='TopRepo-master-ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='SubRepo1', pr_srcrepo_url='https://github.com/subrepo1_pr312_loc', pr_branch='subfix',
                pr_revision='sr1pr312sf3', pr_ident='312', pr_status=PRSts_Active(),
                pr_title='better', pr_user='dev', pr_email='dev@soft.ware'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='SubRepo1', repo_url='https://github.com/subrepo_loc', main_branch='master', use_submodules=False),
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='TopRepo', sm_branch='master', sm_pullreq_id=None, sm_sub_name='SubRepo1', sm_sub_vers='subrepo_master_head'),
     ]),
-}
+)
 
 expected_facts = sorted(filter(None, '''
 :- discontiguous project/1.

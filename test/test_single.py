@@ -4,18 +4,18 @@ import json
 import pytest
 from thespian.actors import *
 from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grouped
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo
+from Briareus.VCS_API import BranchRef, RepoInfoTy, PRSts_Active, PRInfo
 
 
 def test_repo_info(generated_repo_info):
     assert generated_repo_info[1] == expected_repo_info
 
-expected_repo_info = {
-    'branches' : set([
+expected_repo_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='TheRepo', branchname='feat1', branchref='feat1-ref'),
         BranchRef(reponame='TheRepo', branchname='master', branchref='master-ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='TheRepo',
                pr_srcrepo_url='https://github.com/frog_repo_url',
                pr_branch='frog',
@@ -35,9 +35,9 @@ expected_repo_info = {
                pr_user='hoppy',
                pr_email=''),
     ]),
-    'subrepos': set([]),
-    'submodules': set([]),
-}
+    info_subrepos = set(),
+    info_submodules = set(),
+)
 
 
 def test_example_facts(generated_facts):

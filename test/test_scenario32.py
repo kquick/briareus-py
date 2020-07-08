@@ -48,7 +48,8 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             PR_Grouped, MainBranch, PRCfg, PendingStatus,
                             ProjectSummary, StatusReport,
                             PR_Status, PR_Status_Blds)
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRInfo, RepoSite, SubModuleInfo
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRInfo,
+                              RepoInfoTy, RepoSite, SubModuleInfo)
 from Briareus.BuildSys import buildcfg_name
 import Briareus.hh as hh
 import json
@@ -59,13 +60,13 @@ proj1_input_spec = open('test/inp_scenario32_proj1').read()
 proj2_input_spec = open('test/inp_scenario32_proj2').read()
 
 
-expected_repo_proj1_info = {
-    'branches' : set([
+expected_repo_proj1_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='RepoA', branchname='master', branchref='rA_master_ref'),
         BranchRef(reponame='repo1', branchname='foo', branchref='r1_foo_ref'),
         BranchRef(reponame='repo1', branchname='master', branchref='r1_master_ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='foo',
                pr_revision='rAprFooref', pr_ident='2222', pr_status=PRSts_Merged(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
@@ -73,35 +74,35 @@ expected_repo_proj1_info = {
                pr_revision='r1prFooref', pr_ident='2222', pr_status=PRSts_Active(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False),
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='repo1', sm_branch='foo', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_foo_head'),
         SubModuleInfo(sm_repo_name='repo1', sm_branch='foo', sm_pullreq_id='2222', sm_sub_name='RepoA', sm_sub_vers='repoA_foo_head'),
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
 
     ]),
-}
+)
 
-expected_repo_proj2_info = {
-    'branches' : set([
+expected_repo_proj2_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='RepoA', branchname='master', branchref='rA_master_ref'),
         BranchRef(reponame='repo2', branchname='dog', branchref='r2_dog_ref'),
         BranchRef(reponame='repo2', branchname='master', branchref='r2_master_ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='foo',
                pr_revision='rAprFooref', pr_ident='2222', pr_status=PRSts_Merged(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False),
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
     ]),
-}
+)
 
 
 proj1_expected_facts = '''

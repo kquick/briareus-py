@@ -134,16 +134,14 @@ def get_input_facts(PNAME: str,
     subrepo_facts: FactList = [
         Fact('subrepo("%s", "%s")'
              % (project_repo.repo_name, r.repo_name))
-        for r in repo_info['subrepos']
-        if isinstance(r, RepoSite)  # KWQ: can remove when structured
+        for r in repo_info.info_subrepos
     ] if project_repo is not None else []
 
     # n.b. repo_info['pullreqs'] are of type VCS_API.PRInfo;
     # the actual definition is not imported here because Python is
     # duck-typed.
 
-    pullreqs = [p for p in repo_info['pullreqs'] if isinstance(p, PRInfo)]
-    # pullreqs = repo_info['pullreqs']
+    pullreqs = repo_info.info_pullreqs
 
     pullreq_facts : FactList = [
         Fact('pullreq("%(pr_target_repo)s", "%(pr_ident)s", "%(pr_branch)s",'
@@ -161,25 +159,21 @@ def get_input_facts(PNAME: str,
     # other projects sharing this repository) for the branch.
 
     repos_without_branches = [r.repo_name for r in RL] + [
-        r.repo_name for r in repo_info['subrepos']
-        if isinstance(r, RepoSite)  # KWQ: can remove when structured
+        r.repo_name for r in repo_info.info_subrepos
     ]
-    for rb in repo_info['branches']:  # VCS_API.BranchRef
-        if isinstance(rb, BranchRef):  # KWQ: can remove when structured
-            while rb.reponame in repos_without_branches:
-                repos_without_branches.remove(rb.reponame)
+    for rb in repo_info.info_branches:  # VCS_API.BranchRef
+        while rb.reponame in repos_without_branches:
+            repos_without_branches.remove(rb.reponame)
     if repos_without_branches:
         raise RuntimeError("The following repos have no available branches: %s"
                            % str(repos_without_branches))
 
     repobranch_facts: FactList = [ Fact('branch("%s", "%s")' % (rb.reponame, rb.branchname))
-                                   for rb in repo_info['branches']
-                                   if isinstance(rb, BranchRef)  # KWQ: can remove when structured
+                                   for rb in repo_info.info_branches
     ]
     repobranch_facts.extend([ Fact('branch_ref("%s", "%s", "%s")'
                                    % (rb.reponame, rb.branchname, rb.branchref))
-                              for rb in repo_info['branches']
-                              if isinstance(rb, BranchRef)  # KWQ: can remove when structured
+                              for rb in repo_info.info_branches
     ])
 
     submodules_facts: FactList = []
@@ -187,8 +181,7 @@ def get_input_facts(PNAME: str,
     # the actual definition is not imported here because Python is
     # duck-typed.
     submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)
-                                                    for e in repo_info['submodules']
-                                                    if isinstance(e, SubModuleInfo)  # KWQ: can remove when structured
+                                                    for e in repo_info.info_submodules
                                                     if project_repo is not None
                                                     if (e.sm_repo_name == project_repo.repo_name
                                                         and e.sm_branch == bname

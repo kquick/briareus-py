@@ -1,13 +1,13 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
 from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo,
-                              RepoSite, SubModuleInfo)
+                              RepoInfoTy, RepoSite, SubModuleInfo)
 import json
 import pytest
 
 input_spec = open('test/inp_example').read()
 
-expected_repo_info = {
-    'branches' : set([
+expected_repo_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='R1', branchname='feat1', branchref='r1-feat1-ref'),
         BranchRef(reponame='R1', branchname='master', branchref='R1-master-ref'),
         BranchRef(reponame='R2', branchname='bugfix9', branchref='r2-bugfix9-ref'),
@@ -24,7 +24,7 @@ expected_repo_info = {
         BranchRef(reponame='R6', branchname='master', branchref='R6-master-ref'),
         BranchRef(reponame='R7', branchname='master', branchref='R7-master-ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='R1', pr_srcrepo_url='https://github.com/remote_R1_b', pr_branch='blah',
                pr_revision='r1_blah_mergeref', pr_ident='1', pr_status=PRSts_Active(),
                pr_title='pr#19', pr_user='nick', pr_email='nick@bad.seeds'),
@@ -50,7 +50,7 @@ expected_repo_info = {
                pr_revision='r6_blah_mergeref', pr_ident='111', pr_status=PRSts_Active(),
                pr_title='blah match', pr_user='nick', pr_email='nick@bad.seeds'),
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R2', sm_sub_vers='r2_master_head^22'),
         SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R3', sm_sub_vers='r3_master_head'),
         SubModuleInfo(sm_repo_name='R1', sm_branch='blah', sm_pullreq_id='1', sm_sub_name='R7', sm_sub_vers='r7_master_head^4'),
@@ -61,13 +61,13 @@ expected_repo_info = {
         SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R3', sm_sub_vers='r3_master_head^3'),
         SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='R2', repo_url='https://github.com/r2_url', main_branch='master', use_submodules=False),
         RepoSite(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', use_submodules=False),
         RepoSite(repo_name='R4', repo_url='https://github.com/r4_url', main_branch='master', use_submodules=False),
         RepoSite(repo_name='R7', repo_url='https://github.com/r7_url', main_branch='master', use_submodules=False),
     ]),
-}
+)
 
 
 @pytest.fixture(scope="module")

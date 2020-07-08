@@ -45,7 +45,7 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             MainBranch, PendingStatus,
                             ProjectSummary, StatusReport,
                             PR_Status, PR_Status_Blds)
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo, RepoSite, SubModuleInfo
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo, RepoInfoTy, RepoSite, SubModuleInfo
 from Briareus.BuildSys import buildcfg_name
 import Briareus.hh as hh
 import json
@@ -57,12 +57,12 @@ proj2_input_spec = open('test/inp_scenario33_proj2').read()
 proj3_input_spec = open('test/inp_scenario33_proj3').read()
 
 
-expected_repo_proj1_info = {
-    'branches' : set([
+expected_repo_proj1_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='RepoA', branchname='master', branchref='rA_master_ref'),
         BranchRef(reponame='repo1', branchname='master', branchref='r1_master_ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='master',
                pr_revision='rAprFooref', pr_ident='2200', pr_status=PRSts_Active(),
                pr_title='Foo Do 2', pr_user='bar', pr_email='bar@brown.cow'),
@@ -73,25 +73,26 @@ expected_repo_proj1_info = {
                pr_revision='r1prFooref', pr_ident='2222', pr_status=PRSts_Active(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False)
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='3333', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id='2222', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
     ]),
-}
+)
 
-expected_repo_proj2_info = {
-    'branches' : set([
+
+expected_repo_proj2_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='RepoA', branchname='master', branchref='rA_master_ref'),
         BranchRef(reponame='repo2', branchname='dog', branchref='r2_dog_ref'),
         BranchRef(reponame='repo2', branchname='master', branchref='r2_master_ref'),
         BranchRef(reponame='repo2sub', branchname='dog', branchref='r2_dog_ref'),
         BranchRef(reponame='repo2sub', branchname='master', branchref='r2_master_ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='master',
                pr_revision='rAprFooref', pr_ident='2200', pr_status=PRSts_Active(),
                pr_title='Foo Do 2', pr_user='bar', pr_email='bar@brown.cow'),
@@ -103,30 +104,28 @@ expected_repo_proj2_info = {
                pr_revision='r2prquuxref', pr_ident='4444', pr_status=PRSts_Active(),
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False)
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id='4444', sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
     ]),
-}
+)
 
-expected_repo_proj3_info = {
-    'branches' : set([
+expected_repo_proj3_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='repo3', branchname='master', branchref='r3_master_ref'),
         BranchRef(reponame='repo2sub', branchname='master', branchref='r2_master_ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='repo2sub', pr_srcrepo_url='https://github.com/Repo2_prquux_loc', pr_branch='master',
                pr_revision='r2prquuxref', pr_ident='4444', pr_status=PRSts_Active(),
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
     ]),
-    'subrepos': set([
-    ]),
-    'submodules': set([
-    ]),
-}
+    info_subrepos = set(),
+    info_submodules = set(),
+)
 
 
 proj1_expected_facts = '''

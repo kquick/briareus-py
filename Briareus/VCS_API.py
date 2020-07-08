@@ -92,9 +92,9 @@ class SubModuleInfo(object):
     sm_sub_vers: str   # Submodule repo specified version
 
 
-InfoReturnTy = Union[List[BranchRef],
-                     List[SubModuleInfo],
-                     List[RepoSite],
-                     List[PRInfo]]
-
-RepoInfoTy = Dict[str, InfoReturnTy]
+@attr.s(auto_attribs=True)
+class RepoInfoTy(object):
+    info_branches: List[BranchRef]
+    info_subrepos: List[RepoSite]
+    info_pullreqs: List[PRInfo]
+    info_submodules: List[SubModuleInfo]

@@ -1,5 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo, RepoSite, SubModuleInfo
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo,
+                              RepoInfoTy, RepoSite, SubModuleInfo)
 from test_example import expected_repo_info
 import json
 import pytest
@@ -8,15 +9,15 @@ import pytest
 
 input_spec = open('test/inp_example3').read()
 
-expected_repo_info = {
-    'branches' : set([
+expected_repo_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='R10', branchname='master', branchref='R10-master-ref'),
         BranchRef(reponame='R3', branchname='blah', branchref='r3-blah-ref'),
         BranchRef(reponame='R3', branchname='master', branchref='R3-master-ref'),
         BranchRef(reponame='R4', branchname='feat1', branchref='r4-feat1-ref'),
         BranchRef(reponame='R4', branchname='master', branchref='R4-master-ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='R3', pr_srcrepo_url='https://github.com/remote_r3_CLOSED_url', pr_branch='closed_pr',
                pr_revision='r3_CLOSED_mergeref', pr_ident='22', pr_status=PRSts_Closed(),
                pr_title='ignored because closed', pr_user='done', pr_email='done@already.yo'),
@@ -30,15 +31,15 @@ expected_repo_info = {
                pr_revision='r4_bf9_mergeref', pr_ident='8192', pr_status=PRSts_Active(),
                pr_title='fix ninth bug!', pr_user='ozzie', pr_email='ozzie@crazy.train'),
     ]),
-    'submodules': set([
+    info_submodules = set([
         SubModuleInfo(sm_repo_name='R10', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R3', sm_sub_vers='r3_master_head^9'),
         SubModuleInfo(sm_repo_name='R10', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
     ]),
-    'subrepos': set([
+    info_subrepos = set([
         RepoSite(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', use_submodules=False),
         RepoSite(repo_name='R4', repo_url='https://github.com/r4_url', main_branch='master', use_submodules=False),
     ]),
-}
+)
 
 
 expected_facts = sorted(filter(None, '''

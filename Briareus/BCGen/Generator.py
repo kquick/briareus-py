@@ -51,11 +51,7 @@ class Generator(object):
         if not r:
             return ("no logic output", [])
 
-        # KWQ: This goes away with an actual structure instead of a dict
-        subrepos = [r for r in repo_info['subrepos'] if isinstance(r, RepoSite)]
-        pullreqs = [p for p in repo_info['pullreqs'] if isinstance(p, PRInfo)]
-
         return ("build_configs",
                 GeneratedConfigs(eval(r, globals(), logic_result_expr),
-                                 set(subrepos),
-                                 set(pullreqs)))
+                                 set(repo_info.info_subrepos),
+                                 set(repo_info.info_pullreqs)))

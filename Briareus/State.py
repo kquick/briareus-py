@@ -1,6 +1,7 @@
 import attr
 from Briareus.Types import InputDesc, BuildResult
 from Briareus.BuildSys.BuilderBase import Builder
+from Briareus.VCS_API import RepoInfoTy
 from typing import Any, Dict, List, Optional, Union
 
 
@@ -47,7 +48,7 @@ class ResultSet(object):
     # duplicates are identical.  This might not be true if the same
     # name were chosen for different repositories, but we currently
     # deem that a bad input configuration.
-    repo_info: Dict[str, Any] = attr.ib(default=None)
+    repo_info: RepoInfoTy = attr.ib(default=None)
 
     # build_cfgs is the internal build configs,
     # Briareus.BCGen.Generator.GeneratedConfigs

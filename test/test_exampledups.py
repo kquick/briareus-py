@@ -1,7 +1,8 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             PR_Grouped, PR_Solo, BranchReq, MainBranch,
                             ProjectSummary, StatusReport, VarFailure)
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRInfo, SubModuleInfo
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRInfo,
+                              RepoInfoTy, SubModuleInfo)
 import json
 import pytest
 from datetime import timedelta
@@ -27,8 +28,8 @@ from datetime import timedelta
 
 input_spec = open('test/inp_exampledups').read()
 
-expected_repo_info = {
-    'branches' : set([
+expected_repo_info = RepoInfoTy(
+    info_branches = set([
         BranchRef(reponame='Repo1', branchname='develop', branchref='r1-develop-ref'),
         BranchRef(reponame='Repo1', branchname='master', branchref='Repo1-master-ref'),
         BranchRef(reponame='Repo2', branchname='develop', branchref='r2-develop-ref'),
@@ -37,7 +38,7 @@ expected_repo_info = {
         BranchRef(reponame='Repo3', branchname='develop', branchref='r3-develop-ref'),
         BranchRef(reponame='Repo3', branchname='master', branchref='Repo3-master-ref'),
     ]),
-    'pullreqs': set([
+    info_pullreqs = set([
         PRInfo(pr_target_repo='Repo1', pr_srcrepo_url='https://github.com/Repo1_Remote8', pr_branch='dog',
                pr_revision='r1_r8_f32', pr_ident='8', pr_status=PRSts_Active(),
                pr_title='pr8 is great', pr_user='r.user', pr_email=''),
@@ -60,11 +61,9 @@ expected_repo_info = {
                pr_revision='r3_master_2', pr_ident='9', pr_status=PRSts_Active(),
                pr_title='pr#master3', pr_user='frank', pr_email='frank@stein.co'),
     ]),
-    'subrepos': set([
-    ]),
-    'submodules': set([
-    ]),
-}
+    info_subrepos = set(),
+    info_submodules= set(),
+)
 
 
 @pytest.fixture(scope="module")

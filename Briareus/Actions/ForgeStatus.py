@@ -19,7 +19,7 @@ from Briareus.Actions.Content import gen_content
 from Briareus.Input.Description import RepoDesc
 from Briareus.Types import SetForgeStatus, PRCfg, PRData
 from Briareus.State import RunContext, ResultSet
-from Briareus.VCS_API import SSHHostName
+from Briareus.VCS_API import SSHHostName, RepoSite, UserURL
 from Briareus.VCS.ForgeAccess import to_http_url
 from typing import Any, Dict, Optional, Set, Tuple
 
@@ -79,11 +79,17 @@ def set_forge_status(forge_list: Set[str],  # target repos
 
     url_and_rev = defaultdict(list)  # key=(loc, rev), value = [repos]
 
-    for r in (list(proj_results.inp_desc.RL
-                   if proj_results.inp_desc else []) +     # r is Description.RepoDesc
-              list(proj_results.repo_info['subrepos'])):
-        if r.repo_name in forge_list:
-            rlinfo = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
+    if proj_results.inp_desc:
+        for r in proj_results.inp_desc.RL:
+            if r.repo_name in forge_list:
+                rlinfo = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
+                if rlinfo is not None:
+                    repo, loc, rev = rlinfo
+                    url_and_rev[(loc,rev)].append(repo)
+
+    for s in proj_results.repo_info.info_subrepos:
+        if s.repo_name in forge_list:
+            rlinfo = get_repo_loc_and_PR_rev(s, proj_results, notify_params)
             if rlinfo is not None:
                 repo, loc, rev = rlinfo
                 url_and_rev[(loc,rev)].append(repo)
@@ -140,7 +146,7 @@ def set_forge_status(forge_list: Set[str],  # target repos
     raise RuntimeError('Unexpected response to SetForgeStatus request: %s' % str(rsp))
 
 
-def get_repo_loc_and_PR_rev(r: RepoDesc,
+def get_repo_loc_and_PR_rev(r: Union[RepoDesc, RepoSite],
                             proj_results: ResultSet,
                             notify_params: PRData) -> Optional[Tuple[str,
                                                                      RepoAPI_Location,

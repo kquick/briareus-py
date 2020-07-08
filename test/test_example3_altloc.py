@@ -1,5 +1,5 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS_API import PRSts_Active, PRInfo, RepoSite, SubModuleInfo
+from Briareus.VCS_API import PRSts_Active, PRInfo, RepoInfoTy, RepoSite, SubModuleInfo
 import test_example3 as tex3
 from datetime import timedelta
 import json
@@ -15,18 +15,18 @@ import copy
 input_spec = open('test/inp_example3_altloc').read()
 
 expected_repo_info = copy.deepcopy(tex3.expected_repo_info)
-expected_repo_info['pullreqs'].add(
+expected_repo_info.info_pullreqs.add(
     PRInfo(pr_target_repo='R10',
            pr_srcrepo_url='git@r10_git_url:r10_url',
            pr_branch='devtest',
                pr_revision='r10_devtest_ref', pr_ident='321', pr_status=PRSts_Active(),
                pr_title='test R10 PR', pr_user='miles', pr_email='miles@to.go'))
-expected_repo_info['submodules'].add(
+expected_repo_info.info_submodules.add(
     SubModuleInfo(sm_repo_name='R10', sm_branch='devtest', sm_pullreq_id='321', sm_sub_name='R3', sm_sub_vers='r3_master_head^7'))
-expected_repo_info['submodules'].add(
+expected_repo_info.info_submodules.add(
     SubModuleInfo(sm_repo_name='R10', sm_branch='devtest', sm_pullreq_id='321', sm_sub_name='R4', sm_sub_vers='r4_master_head^11'))
-expected_repo_info['subrepos'] = set(filter(lambda r: r.repo_name != 'R3', expected_repo_info['subrepos']))
-expected_repo_info['subrepos'].add(
+expected_repo_info.info_subrepos = set(filter(lambda r: r.repo_name != 'R3', expected_repo_info.info_subrepos))
+expected_repo_info.info_subrepos.add(
     RepoSite(repo_name='R3',
              repo_url='git@r3_inp_url:r3_url',
              main_branch='master'))
