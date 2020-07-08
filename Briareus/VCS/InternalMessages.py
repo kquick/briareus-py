@@ -3,7 +3,7 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from typing import (Dict, List, Optional, Tuple, Union)
+from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 def toJSON(obj) -> str:
     class objToJSON(json.JSONEncoder):
@@ -30,17 +30,6 @@ def fromJSON(jstr: str):
             return eval(objtype)(**objdict)
         return objdict
     return json.loads(jstr, object_hook=objFromJSON)
-
-
-@attr.s(auto_attribs=True)
-class GatherInfo(object):             #            --> GatheredInfo
-    repolist: List[RepoDesc] = attr.ib(factory=list)
-    repolocs: List[RepoLoc]  = attr.ib(factory=list)
-    branchlist: List[BranchDesc] = attr.ib(factory=list)
-@attr.s(auto_attribs=True)
-class GatheredInfo(object):           # GatherInfo -->
-    info: Dict[int, int] = attr.ib(factory=dict)
-    error: Optional[str] = attr.ib(default=None)
 
 
 @attr.s(auto_attribs=True)
@@ -202,3 +191,19 @@ class SubModuleInfo(object):
     sm_pullreq_id: str # If submodule for a PR to the project repo, this identifies the PR
     sm_sub_name: str   # Submodule repo name
     sm_sub_vers: str   # Submodule repo specified version
+
+
+InfoReturnTy = Union[List[BranchRef],
+                     List[SubModuleInfo],
+                     List[SubRepoVers],
+                     List[PullReqInfo]]
+
+@attr.s(auto_attribs=True)
+class GatherInfo(object):             #            --> GatheredInfo
+    repolist: List[RepoDesc] = attr.ib(factory=list)
+    repolocs: List[RepoLoc]  = attr.ib(factory=list)
+    branchlist: List[BranchDesc] = attr.ib(factory=list)
+@attr.s(auto_attribs=True)
+class GatheredInfo(object):           # GatherInfo -->
+    info: Dict[str, InfoReturnTy] = attr.ib(factory=dict)   # Any is
+    error: Optional[str] = attr.ib(default=None)

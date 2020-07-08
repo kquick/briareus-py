@@ -1,13 +1,17 @@
 # This is the primary external API for repositories
 
-from thespian.actors import *
+from thespian.actors import ActorSystem
 from Briareus.VCS.InternalOps import *
 from datetime import timedelta
+from typing import (Any, Dict, List, Type, TypeVar)
 
 
 REPO_INFO_TIMEOUT = timedelta(seconds=600)
 
-def gather_repo_info(RL, RX, BL, actor_system=None):
+def gather_repo_info(RL: List[RepoDesc],
+                     RX: List[RepoLoc],
+                     BL: List[BranchDesc],
+                     actor_system: Any = None) -> Dict[str, InfoReturnTy]:
     """Gets the full set of information for the listed repositories, with
        location translations and branches of interest.
     """
@@ -17,13 +21,22 @@ def gather_repo_info(RL, RX, BL, actor_system=None):
     return rspobj.info
 
 
-def get_updated_file(repourl, filepath, repolocs, branch, actor_system=None):
+def get_updated_file(repourl: str,
+                     filepath: str,
+                     repolocs: List[RepoLoc],
+                     branch: str,
+                     actor_system: Any = None) -> FileReadData:
     "Reads a specific file from the repository at the specified url"
     return _run_actors(ReadFileFromVCS(repourl, repolocs, filepath, branch),
                        FileReadData, actor_system)
 
 
-def _run_actors(request, expected_resp_type, actor_system=None):
+
+VCSActorResponseTy = TypeVar("VCSActorResponseTy") #, Union[GatheredInfo, FileReadData])
+
+def _run_actors(request,
+                expected_resp_type: Type[VCSActorResponseTy],
+                actor_system=None) -> VCSActorResponseTy:
     asys = actor_system or ActorSystem('multiprocTCPBase')  # use TCP base for ThespianWatch support.
     try:
         # Use a global name for this actor to re-connect to the existing "daemon"
