@@ -11,20 +11,6 @@ def sorted_nub_list(l: Sequence[Hashable]) -> List[Hashable]:
     return sorted(list(set(l)))
 
 
-BldDescTy = Union["PR_Solo", "PR_Repogroup", "PR_Grouped",
-                  "BranchReq", "MainBranch", str]
-
-
-@attr.s(auto_attribs=True, frozen=True)
-class BldConfig(object):
-    projectname: str
-    branchtype: str  # default="regular"
-    branchname: str
-    strategy: str   # default="standard"
-    description: BldDescTy
-    blds: List["BldRepoRev"] = attr.ib(factory=list, converter=sorted_nub_list)
-    bldvars: List[str] = attr.ib(factory=list, converter=sorted_nub_list)
-
 @attr.s(auto_attribs=True, frozen=True)
 class BranchReq(object):
     projectname: str
@@ -92,6 +78,21 @@ class BldVariable(object):
     project: str
     varname: str
     varvalue: str
+
+
+BldDescTy = Union["PR_Solo", "PR_Repogroup", "PR_Grouped",
+                  "BranchReq", "MainBranch", str]
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class BldConfig(object):
+    projectname: str
+    branchtype: str  # default="regular"
+    branchname: str
+    strategy: str   # default="standard"
+    description: BldDescTy
+    blds: List["BldRepoRev"] = attr.ib(factory=list, converter=sorted_nub_list)
+    bldvars: List[BldVariable] = attr.ib(factory=list, converter=sorted_nub_list)
 
 
 # ----------------------------------------------------------------------
