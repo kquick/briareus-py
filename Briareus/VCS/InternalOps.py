@@ -2,8 +2,7 @@
 
 from thespian.actors import (ActorTypeDispatcher, ActorExitRequest, ChildActorExited)
 from thespian.initmsgs import initializing_messages
-from Briareus.Input.Description import RepoDesc
-from Briareus.VCS_API import PRSts_Closed, PRSts_Merged, PRSts_Active, SSH_URL, UserURL
+from Briareus.VCS_API import RepoSite, PRSts_Closed, PRSts_Merged, PRSts_Active, SSH_URL, UserURL
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
 from Briareus.VCS.ForgeAccess import to_http_url, to_access_url
@@ -28,7 +27,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.pullreqs: Set[PRInfo] = set()
         self.submodules: Set[SubModuleInfo] = set()
         self.branches: Set[BranchRef] = set()
-        self.subrepos: Set[RepoDesc] = set()
+        self.subrepos: Set[RepoSite] = set()
 
     def receiveMsg_str(self, msg: str, sender):
         if msg == "status":
@@ -161,7 +160,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         self.branches = set()
         self.known_branches: Dict[str, Set[BranchRef]] = defaultdict(set)  # reponame:set(BranchRef)
         self.branches_check: Dict[Tuple[str, str], bool] = {}  # (reponame,branchname):bool
-        self._pending_info: Dict[str, RepoDesc] = {}  # reponame:RepoDesc
+        self._pending_info: Dict[str, RepoSite] = {}  # reponame:RepoSite
 
         self.RL = msg.repolist
         self.RX = msg.repolocs
@@ -178,7 +177,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def _all_repos(self): return set(self.RL).union(set(self.subrepos))
 
-    def _repo_by_name(self, name: str) -> Optional[RepoDesc]:
+    def _repo_by_name(self, name: str) -> Optional[RepoSite]:
         psrc = [ r for r in self.RL if r.repo_name == name ]
         return psrc[0] if psrc else  None
 
@@ -284,7 +283,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             if not isinstance(p.pullreq_status, (PRSts_Closed,
                                                  PRSts_Merged)):
                 for repo in self.RL:
-                    if repo.project_repo and repo.repo_name == msg.reponame:
+                    if repo.use_submodules and repo.repo_name == msg.reponame:
                         # Get submodules information because the pr is
                         # on the project repo and might have changed
                         # the submodules configuration.  Note that the
@@ -391,10 +390,9 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 raise RuntimeError('branch_present is not a true string: %s (%s)' %
                                    (str(msg.branch_present), type(msg.branch_present)))
             for repo in self.RL:
-                if repo.project_repo and repo.repo_name == msg.reponame:
-                    # This is a branch on the project repo, so see if
-                    # there is any submodule information on that
-                    # branch.
+                if repo.use_submodules and repo.repo_name == msg.reponame:
+                    # Check if there is any submodule information on
+                    # the branch.
                     self.get_git_info(GitmodulesData(repo.repo_name, msg.branch_name,
                                                      None, # Branches are never queried in PR source repos
                                                      None))
@@ -435,7 +433,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
                 # repo branch with the corresponding changed subrepo
                 # url.
                 assert not isinstance(each.subrepo_url, BOGUS_URL)
-                named_submod_repo = RepoDesc(each.subrepo_name, each.subrepo_url)
+                named_submod_repo = RepoSite(each.subrepo_name, each.subrepo_url)
                 self.get_info_for_a_repo(named_submod_repo)
             self.subrepos.add(named_submod_repo)
             # Add the submodule specification for this submodule repo

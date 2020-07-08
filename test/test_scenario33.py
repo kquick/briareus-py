@@ -45,8 +45,7 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             MainBranch, PendingStatus,
                             ProjectSummary, StatusReport,
                             PR_Status, PR_Status_Blds)
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo, SubModuleInfo
-from Briareus.VCS.InternalMessages import RepoDesc
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo, RepoSite, SubModuleInfo
 from Briareus.BuildSys import buildcfg_name
 import Briareus.hh as hh
 import json
@@ -75,7 +74,7 @@ expected_repo_proj1_info = {
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False)
+        RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False)
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
@@ -105,7 +104,7 @@ expected_repo_proj2_info = {
                pr_title='Quux Do', pr_user='zeb', pr_email='zeb@barn.farm'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False)
+        RepoSite(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', use_submodules=False)
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),

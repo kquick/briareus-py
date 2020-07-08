@@ -1,6 +1,5 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRInfo, SubModuleInfo
-from Briareus.VCS.InternalMessages import RepoDesc
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRInfo, RepoSite, SubModuleInfo
 import json
 import pytest
 
@@ -17,7 +16,7 @@ expected_repo_info = {
                pr_title='better', pr_user='dev', pr_email='dev@soft.ware'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='SubRepo1', repo_url='https://github.com/subrepo_loc', main_branch='master', project_repo=False),
+        RepoSite(repo_name='SubRepo1', repo_url='https://github.com/subrepo_loc', main_branch='master', use_submodules=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='TopRepo', sm_branch='master', sm_pullreq_id=None, sm_sub_name='SubRepo1', sm_sub_vers='subrepo_master_head'),

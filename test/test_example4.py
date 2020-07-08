@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, BranchReq, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo, SubModuleInfo
-from Briareus.VCS.InternalMessages import RepoDesc
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo,
+                              RepoSite, SubModuleInfo)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import json
@@ -52,8 +52,8 @@ expected_repo_info = {
         SubModuleInfo(sm_repo_name='R10', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R4', repo_url='https://github.com/r4_explicit_default_url', main_branch='primary', project_repo=False),
+        RepoSite(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='R4', repo_url='https://github.com/r4_explicit_default_url', main_branch='primary', use_submodules=False),
     ]),
 }
 

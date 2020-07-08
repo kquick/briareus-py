@@ -1,7 +1,7 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
-from Briareus.VCS_API import SSHHostName, UserURL, SSH_URL
+from Briareus.VCS_API import RepoSite, SSHHostName, UserURL, SSH_URL
 from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 
@@ -106,7 +106,7 @@ def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
 
 
 def to_access_url(url: str,
-                  for_repo: Optional[Any], # actually a RepoDesc (circular imports)
+                  for_repo: Optional[RepoSite],
                   repolocs: List[SSHHostName]) -> Union[UserURL, SSH_URL]:
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that

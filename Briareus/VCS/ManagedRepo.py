@@ -1,8 +1,11 @@
 # This is the primary external API for repositories
 
 from thespian.actors import ActorSystem
-from Briareus.VCS.InternalOps import *
-from Briareus.VCS_API import SSHHostName, UserURL
+from Briareus.VCS.InternalMessages import (GatherInfo, GatheredInfo, ReadFileFromVCS, FileReadData,
+                                           InfoReturnTy,
+                                           toJSON, fromJSON)
+from Briareus.Input.Description import RepoDesc, RepoLoc, BranchDesc
+from Briareus.VCS_API import RepoSite, SSHHostName, UserURL
 from datetime import timedelta
 from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 
@@ -16,7 +19,11 @@ def gather_repo_info(RL: List[RepoDesc],
     """Gets the full set of information for the listed repositories, with
        location translations and branches of interest.
     """
-    rspobj = _run_actors(GatherInfo(RL,
+    rspobj = _run_actors(GatherInfo([RepoSite(repo_name=r.repo_name,
+                                              repo_url=r.repo_url,
+                                              main_branch=r.main_branch,
+                                              use_submodules=r.project_repo)
+                                     for r in RL],
                                     [SSHHostName(ssh_hostname=x.repo_loc,
                                                  https_hostname=x.api_host)
                                      for x in RX],

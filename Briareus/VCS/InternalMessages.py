@@ -142,18 +142,18 @@ class RepoRemoteSpec(object):
 
 InfoReturnTy = Union[List[BranchRef],
                      List[SubModuleInfo],
-                     List[RepoDesc],
+                     List[RepoSite],
                      List[PRInfo]]
 
 @attr.s(auto_attribs=True)
 class GatherInfo(object):             #            --> GatheredInfo
-    repolist: List[RepoDesc] = attr.ib(factory=list)
+    repolist: List[RepoSite] = attr.ib(factory=list)
     repolocs: List[SSHHostName]  = attr.ib(factory=list)
     branchlist: List[BranchDesc] = attr.ib(factory=list)
 @attr.s(auto_attribs=True)
 class GatheredInfo(object):           # GatherInfo -->
     branches: List[BranchRef]
     submodules: List[SubModuleInfo]
-    subrepos: List[RepoDesc]
+    subrepos: List[RepoSite]
     pullreqs: List[PRInfo]
     error: Optional[str] = attr.ib(default=None)

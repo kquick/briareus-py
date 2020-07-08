@@ -1,6 +1,5 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS_API import PRSts_Active, PRInfo, SubModuleInfo
-from Briareus.VCS.InternalMessages import PullReqInfo, RepoDesc
+from Briareus.VCS_API import PRSts_Active, PRInfo, RepoSite, SubModuleInfo
 import test_example3 as tex3
 from datetime import timedelta
 import json
@@ -28,9 +27,9 @@ expected_repo_info['submodules'].add(
     SubModuleInfo(sm_repo_name='R10', sm_branch='devtest', sm_pullreq_id='321', sm_sub_name='R4', sm_sub_vers='r4_master_head^11'))
 expected_repo_info['subrepos'] = set(filter(lambda r: r.repo_name != 'R3', expected_repo_info['subrepos']))
 expected_repo_info['subrepos'].add(
-    RepoDesc(repo_name='R3',
+    RepoSite(repo_name='R3',
              repo_url='git@r3_inp_url:r3_url',
-             main_branch='master', project_repo=False))
+             main_branch='master'))
 
 
 build_output_time_budget = timedelta(seconds=1, milliseconds=250)  # avg 0.52s

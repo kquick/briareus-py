@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo, SubModuleInfo
-from Briareus.VCS.InternalMessages import RepoDesc
+from Briareus.VCS_API import (BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo,
+                              RepoSite, SubModuleInfo)
 import json
 import pytest
 
@@ -62,10 +62,10 @@ expected_repo_info = {
         SubModuleInfo(sm_repo_name='R1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='R4', sm_sub_vers='r4_master_head^1'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='R2', repo_url='https://github.com/r2_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R4', repo_url='https://github.com/r4_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='R7', repo_url='https://github.com/r7_url', main_branch='master', project_repo=False),
+        RepoSite(repo_name='R2', repo_url='https://github.com/r2_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='R3', repo_url='https://github.com/r3_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='R4', repo_url='https://github.com/r4_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='R7', repo_url='https://github.com/r7_url', main_branch='master', use_submodules=False),
     ]),
 }
 

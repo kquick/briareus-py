@@ -1,7 +1,6 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             ProjectSummary, StatusReport, VarFailure)
-from Briareus.VCS_API import BranchRef, SubModuleInfo
-from Briareus.VCS.InternalMessages import (RepoDesc)
+from Briareus.VCS_API import BranchRef, RepoSite, SubModuleInfo
 import json
 import pytest
 from datetime import timedelta
@@ -24,9 +23,9 @@ expected_repo_info = {
     ]),
     'pullreqs': set([]),
     'subrepos': set([
-        RepoDesc(repo_name='Repo2', repo_url='https://github.com/r2_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='Repo3', repo_url='https://gitlab.com/r3_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='Repo4', repo_url='https://github.com/r4_url', main_branch='master', project_repo=False),
+        RepoSite(repo_name='Repo2', repo_url='https://github.com/r2_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='Repo3', repo_url='https://gitlab.com/r3_url', main_branch='master', use_submodules=False),
+        RepoSite(repo_name='Repo4', repo_url='https://github.com/r4_url', main_branch='master', use_submodules=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='Repo1', sm_branch='develop', sm_pullreq_id=None, sm_sub_name='Repo2', sm_sub_vers='r2_develop_head'),

@@ -286,10 +286,9 @@ class GitHub(GitForge__BASE):
                 pullreq_id=pullreq_id,
                 gitmodules_repovers=subs))
         ret['subrepos'].extend([
-            RepoDesc(repo_name=subrepo_name(sub),
+            RepoSite(repo_name=subrepo_name(sub),
                      repo_url=t_(g_(sub, *extra_path, 'gitUrl')),
-                     main_branch='master', # assumption
-                     project_repo=False)
+                     main_branch='master') # assumption
             for sub in submods
             if not any([sr.repo_url == t_(g_(sub, *extra_path, 'gitUrl')) for sr in ret['subrepos']])
         ])

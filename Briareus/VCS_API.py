@@ -6,6 +6,14 @@ class UserURL(str): 'URL specified by a user, can be any form'
 class SSH_URL(str): 'Form: git@github.com:project/repo'
 
 
+@attr.s(auto_attribs=True, frozen=True)
+class RepoSite(object):
+    repo_name: str
+    repo_url: UserURL
+    main_branch: str = attr.ib(default="master") # input optional
+    use_submodules: bool = attr.ib(default=False)
+
+
 @attr.s(auto_attribs=True)
 class SSHHostName(object):
     # Used to maintain the equivalence between the SSH host access
