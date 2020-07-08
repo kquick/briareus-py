@@ -5,13 +5,17 @@ import argparse
 from Briareus.AnaRep.Prior import ( read_report_from )
 from Briareus.AnaRep.TextSummary import text_summary
 from Briareus.AnaRep.HTMLSummary import html_summary
+from Briareus.State import ReportType
+from Briareus.BuildSys.BuilderBase import BuilderURL
+from typing import Optional
 
-def text_formatter(repdata, _builder_url):
+
+def text_formatter(repdata: ReportType, _builder_url: Optional[BuilderURL]) -> None:
     lines = len(repdata)
     print('Text status from a', lines, ' line report')
     print(text_summary(repdata))
 
-def html_formatter(repdata, builder_url):
+def html_formatter(repdata: ReportType, builder_url: Optional[BuilderURL]) -> None:
     lines = len(repdata)
     # print('HTML status from a', lines, ' line report')
     print(html_summary(repdata, builder_url))
