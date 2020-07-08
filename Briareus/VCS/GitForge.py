@@ -488,7 +488,7 @@ class GitHubInfo(RemoteGit__Info):
         return PullReqsData(reponame, preqs)
 
     def get_user_email(self, username: str) -> str:
-        userinfo = self.api_req('//user/' + username, notFoundOK=True)
+        userinfo = self.api_req('//users/' + username, notFoundOK=True)
         if userinfo == self.NotFound:
             return ''
         assert isinstance(userinfo, dict)
