@@ -199,7 +199,12 @@ def run_hh_gen_on_inpfile(inp_fname, params, inpcfg, prev_gen_result=None):
     return r[0]
 
 
-def upd_from_remote(src_url, src_path, fname, repolocs, actor_system=None):
+def upd_from_remote(src_url: UserURL,         # URL to fetch update from
+                    src_path: Optional[str],  # path underneath url
+                    fname: Optional[str],     # Output filename
+                    repolocs,
+                    actor_system=None) -> None:
+    if fname is None: return
     fpath = os.path.join(src_path, os.path.basename(fname)) if src_path else fname
     try:
         data = get_updated_file(src_url, fpath, repolocs, 'master', actor_system=actor_system)
