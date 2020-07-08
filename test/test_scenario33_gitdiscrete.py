@@ -28,7 +28,7 @@ def test_gitinfo_proj1(get_hub_api_url, actor_system, fake_forge):
 
     input_desc, repo_info = input_desc_and_VCS_info(proj1_input_spec,
                                                     actor_system=actor_system)
-    assert repo_info == expected_repo_proj1_info
+    assert expected_repo_proj1_info == repo_info
 
 
 @patch.object(Briareus.VCS.GitForge.GitHubInfo, 'get_api_url')
@@ -41,7 +41,7 @@ def test_gitinfo_proj2(get_hub_api_url, actor_system, fake_forge):
 
     input_desc, repo_info = input_desc_and_VCS_info(proj2_input_spec,
                                                     actor_system=actor_system)
-    assert repo_info == expected_repo_proj2_info
+    assert expected_repo_proj2_info == repo_info
 
 
 @patch.object(Briareus.VCS.GitForge.GitHubInfo, 'get_api_url')
@@ -54,7 +54,7 @@ def test_gitinfo_proj3(get_hub_api_url, actor_system, fake_forge):
 
     input_desc, repo_info = input_desc_and_VCS_info(proj3_input_spec,
                                                     actor_system=actor_system)
-    assert repo_info == expected_repo_proj3_info
+    assert expected_repo_proj3_info == repo_info
 
 
 repo2_branches = json.dumps([

@@ -57,7 +57,7 @@ def test_gitinfo(get_lab_api_url, get_hub_api_url, actor_system, fake_forge):
     get_lab_api_url.side_effect = get_gitlab_api_url_local(fakeforge_port)
 
     input_desc, repo_info = input_desc_and_VCS_info(input_spec, actor_system=actor_system)
-    assert repo_info == expected_repo_info
+    assert expected_repo_info == repo_info
 
 
 # #######################################################################
