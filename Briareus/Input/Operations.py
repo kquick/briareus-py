@@ -1,8 +1,13 @@
 import Briareus.Input.Parser as Parser
+from Briareus.Types import InputDesc
+from Briareus.VCS_API import RepoInfoTy
 from Briareus.VCS.ManagedRepo import gather_repo_info
+from typing import Tuple
 
 
-def input_desc_and_VCS_info(input_spec, verbose=False, actor_system=None):
+def input_desc_and_VCS_info(input_spec: str,
+                            verbose: bool = False,
+                            actor_system=None) -> Tuple[InputDesc, RepoInfoTy]:
     """Called with the input_spec as a string and parses that
        specification to get the input description, and then gets VCS
        information for the repositories mentioned in the input

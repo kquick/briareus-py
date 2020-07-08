@@ -7,10 +7,10 @@ import Briareus.Input.Description as Desc
 class BISParser(object):
     "Parser for the Briareus Input Specification"
 
-    def __init__(self, verbose=False):
+    def __init__(self, verbose: bool = False) -> None:
         self.verbose = verbose
 
-    def parse(self, input_spec):
+    def parse(self, input_spec: str) -> Desc.InputDesc:
         x = eval(input_spec)
         # print(x)
         # print(x['Repos'])
@@ -25,7 +25,7 @@ class BISParser(object):
             raise TypeError("Invalid repo types, expected tuples: %s"
                             % str(bad_repospecs))
 
-        repos = set([Desc.RepoDesc(*r, project_repo=(n == 0))
+        repos = set([Desc.RepoDesc(*r, project_repo=(n == 0))  # type: ignore
                      for n,r in enumerate(x['Repos'])])
         pname = x.get('Name', [r.repo_name for r in repos if r.project_repo][0])
         branches = set([Desc.BranchDesc(b) for b in x.get('Branches', [])])
