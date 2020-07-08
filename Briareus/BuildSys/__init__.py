@@ -1,8 +1,9 @@
 # Support for various backend builders
 
-from Briareus.Types import PR_Solo, PR_Repogroup
+from Briareus.Types import PR_Solo, PR_Repogroup, BldConfig
 
-def fix_jobname(branchname):
+
+def fix_jobname(branchname: str) -> str:
     """Git (and other VCS tools) allows all sorts of characters in a
        branch name (a common form often seen is "bugfix/foo"), but a
        Hydra jobset and a URL specification are much more restricted.
@@ -46,7 +47,7 @@ def fix_jobname(branchname):
     return branchname.replace('/', '--').replace('_','---')
 
 
-def buildcfg_name(bldcfg):
+def buildcfg_name(bldcfg: BldConfig) -> str:
     if bldcfg.bldvars:
         vnames = sorted([ v.varname for v in bldcfg.bldvars ])
         vdict = dict( [(v.varname, v.varvalue) for v in bldcfg.bldvars] )

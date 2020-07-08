@@ -1,12 +1,14 @@
 # Definitions for a Nix Hydra builder
 
 import Briareus.BuildSys.BuilderBase as BuilderBase
-from Briareus.Types import BuilderResult, PR_Solo
+from Briareus.Types import BuilderResult, PR_Solo, BldConfig
 from Briareus.BuildSys import buildcfg_name
 import requests
 import json
 import os
 from collections import Counter
+from typing import List, Optional, Union
+
 
 # For general admin processing of nix expressions
 recent_nixpkgs = "https://github.com/NixOS/nixpkgs-channels nixos-19.09"
@@ -362,10 +364,10 @@ class HydraBuilder(BuilderBase.Builder):
         print("Takes output of output_build_configurations"
               " and updates the actual remote builder")
 
-    def get_project_url(self, project):
+    def get_project_url(self, project: str) -> Optional[BuilderBase.BuilderURL]:
         if not self._builder_url:
             return None
-        return '/'.join([self._builder_url, 'project', project])
+        return BuilderBase.BuilderURL('/'.join([self._builder_url, 'project', project]))
 
     def _get_build_results(self):
         r = getattr(self, '_build_results', None)
@@ -389,13 +391,13 @@ class HydraBuilder(BuilderBase.Builder):
         return self._build_results
 
 
-    def get_build_result(self, bldcfg):
+    def get_build_result(self, bldcfg: BldConfig) -> Union[str, BuilderResult]:
         n = buildcfg_name(bldcfg)
         rval = self._get_build_results()
         if isinstance(rval, str):
             return rval
         project_name, r = rval
-        return ([
+        bldres = [
             BuilderResult(
                 buildname=n,
                 nrtotal=get_or_show(e, 'nrtotal'),
@@ -404,13 +406,14 @@ class HydraBuilder(BuilderBase.Builder):
                 nrscheduled=get_or_show(e, 'nrscheduled'),
                 cfgerror=(get_or_show(e, 'haserrormsg') or
                           bool(get_or_show(e, "fetcherrormsg"))),
-                builder_url = ("/".join([self._builder_url,
-                                         "jobset",
-                                         project_name, n])
+                builder_url = (BuilderBase.BuilderURL("/".join([self._builder_url,
+                                                                "jobset",
+                                                                project_name, n]))
                                if self._builder_url else None),
             )
             for e in r if e['name'] == n
-        ] + ['No results available for jobset ' + n])[0]
+        ]
+        return bldres[0] if bldres else ('No results available for jobset ' + n)
 
 
 def get_or_show(obj, fieldname):

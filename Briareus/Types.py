@@ -5,6 +5,7 @@
 
 import attr
 from Briareus.Input.Description import InputDesc
+from Briareus.BuildSys.BuilderBase import Builder, BuilderURL
 from typing import (Any, Dict, Hashable, List, Optional, Sequence, Union)
 
 def sorted_nub_list(l: Sequence[Hashable]) -> List[Hashable]:
@@ -100,17 +101,17 @@ class BldConfig(object):
 @attr.s(auto_attribs=True, frozen=True)
 class BuildResult(object):
     bldconfig: BldConfig
-    results: "BuilderResult"
+    results: Union[str, "BuilderResult"]
 
 @attr.s(auto_attribs=True, frozen=True)
 class BuilderResult(object):
-    buildname:str  # string name of build on builder
+    buildname: str  # string name of build on builder
     nrtotal: int
     nrsucceeded: int
     nrfailed: int
     nrscheduled: int
     cfgerror: bool
-    builder_url: str
+    builder_url: Optional[BuilderURL]
 
 
 # ----------------------------------------------------------------------
@@ -408,17 +409,17 @@ class ResultSet(object):
     obtained during the Briareus processing.
     """
 
+    # inp_desc is a Briareus.Input.Description.InputDesc object.
+    # These are kept separate so that the set of input logic facts are
+    # consistent to each inp_desc.
+    inp_desc: InputDesc
+
     # At present, the builder is used by reporting to get the build
     # results, so any builder will suffice.  In the future, all
     # builders should be the same, and the first generated should be
     # threaded through, or the builder map should be passed to AnaRep
     # for consuting project-specific builders for results.
-    builder: Optional[Any] = attr.ib(default=None)  # Briareus.BuilderBase.Builder
-
-    # inp_desc is a Briareus.Input.Description.InputDesc # object.
-    # These are kept separate so that the set of input logic facts are
-    # consistent to each inp_desc.
-    inp_desc: Optional[InputDesc] = attr.ib(default=None)  # Briareus.Input.Description.InputDesc
+    builder: Optional[Builder] = attr.ib(default=None)  # Briareus.BuilderBase.Builder  KWQ not optional?
 
     # repo_info is a dictionary gathered from the remote repositories.
     # Assume that the dictionaries can simply be combined and that any
@@ -432,7 +433,7 @@ class ResultSet(object):
     build_cfgs: Optional[Any] = attr.ib(default=None) # Briareus.BCGen.Generator.GeneratedConfigs
 
     # build_results are the array of [BuildResult]
-    build_results: List[BuildResult] = attr.ib(factory=list)
+    build_results: List[Union[str, BuildResult]] = attr.ib(factory=list)
 
 
 class UpTo(object):

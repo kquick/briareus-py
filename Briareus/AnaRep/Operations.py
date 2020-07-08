@@ -71,7 +71,7 @@ class AnaRep(object):
         for each in run_context.result_sets:
             each.build_results = self.get_build_results(each)
 
-        build_results: List[BuildResult] = functools.reduce(
+        build_results: List[Union[str, BuildResult]] = functools.reduce(
             lambda bres, e: bres + e.build_results,
             result_sets,
             [])
@@ -131,7 +131,7 @@ class AnaRep(object):
         return ("report", run_context)
 
 
-    def get_build_results(self, result_set: ResultSet) -> List[BuildResult]:
+    def get_build_results(self, result_set: ResultSet) -> List[Union[str, BuildResult]]:
         # Returns BuildSys-obtained BuildResult associated with
         # BuildCfg for each BuildCfg; BuildSys results not associated
         # with a BuildCfg are ignored.
@@ -148,7 +148,7 @@ def mk_prior_facts(prior_report: Optional[FactList]) -> Set[Union[DeclareFact, F
         ] +
         list(filter(None, [ prior_fact(p) for p in (prior_report or []) ])))
 
-def mk_built_facts(build_results: List[BuildResult]) -> Set[Union[DeclareFact, Fact]]:
+def mk_built_facts(build_results: List[Union[str, BuildResult]]) -> Set[Union[DeclareFact, Fact]]:
     decls: FactList = [ DeclareFact('bldres/12'),
                         DeclareFact('report/1'),
                         DeclareFact('status_report/7'),
@@ -158,7 +158,7 @@ def mk_built_facts(build_results: List[BuildResult]) -> Set[Union[DeclareFact, F
                         DeclareFact('fixed/0'),
     ]
     return set(decls +
-               [ f for f in [ built_fact(r) for r in build_results ]
+               [ f for f in [ built_fact(r) for r in build_results if isinstance(r, BuildResult) ]
                  if f is not None])
 
 def prior_fact(prior):

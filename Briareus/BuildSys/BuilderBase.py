@@ -1,4 +1,5 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
+from Briareus.Types import BuilderResult, PR_Solo, BldConfig
 
 
 class BuilderURL(str): "URL to fetch build results from Builder"
@@ -26,5 +27,18 @@ class Builder(object):
            input specification.
 
         """
+        raise RuntimeError("This method must be implemented"
+                           " in a Builder-specific subclass")
+
+
+    def get_build_result(self, bldcfg: BldConfig) -> Union[str, BuilderResult]:
+        """Queries the builder for the result of the described BldConfig"""
+        raise RuntimeError("This method must be implemented"
+                           " in a Builder-specific subclass")
+
+
+    def get_project_url(self, project: str) -> Optional[BuilderURL]:
+        """Returns the URL for the builder's build summary for a specific
+           project."""
         raise RuntimeError("This method must be implemented"
                            " in a Builder-specific subclass")
