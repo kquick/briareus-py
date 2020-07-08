@@ -416,3 +416,35 @@ forge_responses = {
     ''',
 
 }
+
+
+# #######################################################################
+
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in
+        [
+            '/repos/r1_url/branches',
+            '/repos/r1_url/pulls?state=all',
+            '/repos/r2_url/branches',
+            '/repos/r2_url/pulls?state=all',
+            '/api/v4/projects/r3_url/repository/branches',
+            '/api/v4/projects/r3_url/merge_requests?scope=all&state=all',
+            '/repos/r4_url/branches',
+            '/repos/r4_url/pulls?state=all',
+            '/repos/r1_url/contents/.gitmodules?ref=master',
+            '/repos/r1_url/contents/.gitmodules?ref=develop',
+            '/repos/r1_url/contents/deps/r2?ref=master',
+            '/repos/r1_url/contents/deps/r2?ref=develop',
+            '/repos/r1_url/contents/deps/r3?ref=master',
+            '/repos/r1_url/contents/deps/r3?ref=develop',
+            '/repos/r1_url/contents/deps/r4?ref=master',
+            '/repos/r1_url/contents/deps/r4?ref=develop',
+        ]
+    },
+
+    'responses': {},
+
+}

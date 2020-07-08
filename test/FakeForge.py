@@ -1,4 +1,5 @@
 from urllib.parse import urlparse, urlunparse
+from collections import defaultdict
 import http.server
 import threading
 import requests
@@ -7,6 +8,7 @@ import base64
 import json
 import random
 import hashlib
+from helpers import assert_eqdict
 
 
 server_done = False
@@ -19,18 +21,25 @@ class FakeGitHub(http.server.BaseHTTPRequestHandler):
             server_done.set()
             self.send_response(200, 'Bye!')
             self.end_headers()
-            self.wfile.write(b'shutting down as requested')
+            self.wfile.write(json.dumps(self.server.stats).encode('utf-8'))
         elif self.path in self.server.response_data:
             # == '/repos/the_repo_url/branches':
             self.send_response(200)
             self.end_headers()
             self.wfile.write(self.server.response_data[self.path])
+            self.upd_stats(self.path, 200)
         else:
             self.send_response(404, 'Not Found')
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Not Found',
                                          'documentation_url': 'doc url',
             }).encode('utf-8'))
+            self.upd_stats(self.path, 404)
+
+    def upd_stats(self, urlpath, resp_code):
+        self.server.stats['requests'][urlpath] += 1
+        self.server.stats['responses'][urlpath].append(resp_code)
+
 
 def run_server(server):
     def run():
@@ -46,11 +55,29 @@ def fake_forge(request):
     server_done = threading.Event()
     server = http.server.HTTPServer(('', request.module.fakeforge_port), FakeGitHub)
     server.response_data = request.module.forge_responses
+    server.stats = { 'responses': defaultdict(list),  # key=url_path, value=[response_code]
+                     'requests': defaultdict(int), # key=url_path, value=call count
+    }
     srun = threading.Thread(target=run_server(server))
     srun.start()
     yield srun
     r = requests.get('http://localhost:%d/shutdown'%request.module.fakeforge_port)
     srun.join(5)
+    # Determine if server got the expected set of operations and results
+    if hasattr(request.module, 'forge_stats'):
+        assert_eqdict(request.module.forge_stats['requests'],
+                      server.stats['requests'],
+                      a_name='Exp', b_name='Act')
+        assert_eqdict(
+            { r:c
+              for r in
+              set(list(request.module.forge_stats['responses'].keys()) +
+                  list(server.stats['responses'].keys()))
+              for c in [request.module.forge_stats['responses'].get(r, [200])]
+            },
+            server.stats['responses'],
+            a_name='Exp', b_name='Act')
+
 
 def get_github_api_url_local(fakeforge_port):
     def g(url):

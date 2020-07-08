@@ -457,6 +457,30 @@ forge_responses = {
 
     ''',
 
-    # '/repos/the_repo_url/contents/.gitmodules?ref=master' : b'''
-    # ''',
+}
+
+
+# ######################################################################
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in [
+            '/repos/the_repo_url/branches',
+            '/repos/the_repo_url/pulls?state=all',
+            '/repos/the_repo_url/contents/.gitmodules?ref=master',
+            '/repos/the_repo_url/contents/.gitmodules?ref=feat1',
+            '/repos/frog_repo_url/contents/.gitmodules?ref=frog',
+            '/repos/toad_repo_url/contents/.gitmodules?ref=toad',
+            '/users/frog',
+            '/users/hoppy',
+        ]},
+
+    'responses': {
+        n:[404] for n in [
+            '/repos/the_repo_url/contents/.gitmodules?ref=master',
+            '/repos/the_repo_url/contents/.gitmodules?ref=feat1',
+            '/repos/frog_repo_url/contents/.gitmodules?ref=frog',
+            '/repos/toad_repo_url/contents/.gitmodules?ref=toad',
+        ]},
 }

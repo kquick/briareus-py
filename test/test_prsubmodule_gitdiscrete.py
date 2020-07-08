@@ -72,3 +72,21 @@ forge_responses = {
     '/users/dev': github_user('https://github.com/toprepo_loc',
                               'dev', 243, 'dev@soft.ware'),
 }
+
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in [
+            '/repos/toprepo_loc/branches',
+            '/repos/subrepo_loc/branches',
+            '/repos/toprepo_loc/pulls?state=all',
+            '/repos/subrepo_loc/pulls?state=all',
+            '/repos/toprepo_loc/contents/.gitmodules?ref=master',
+            '/repos/toprepo_loc/contents/subrepo_path?ref=master',
+            '/users/dev',
+        ]},
+
+    # Anything not listed is expected to be a 200 response
+    'responses': {},
+}

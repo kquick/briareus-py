@@ -1590,3 +1590,51 @@ forge_responses = {
 
 
 }
+
+
+# #######################################################################
+
+forge_stats = {
+
+    'requests': {
+        n:(3 if n == '/users/nick' else 1) for n in
+        [
+            '/repos/r1_url/branches',
+            '/repos/r2_url/branches',
+            '/repos/r3_url/branches',
+            '/repos/r4_url/branches',
+            '/repos/r5_url/branches',
+            '/repos/r6_url/branches',
+            '/repos/r7_url/branches',
+            '/repos/r1_url/pulls?state=all',
+            '/repos/r2_url/pulls?state=all',
+            '/repos/r3_url/pulls?state=all',
+            '/repos/r4_url/pulls?state=all',
+            '/repos/r5_url/pulls?state=all',
+            '/repos/r6_url/pulls?state=all',
+            '/repos/r7_url/pulls?state=all',
+            '/users/nick',
+            '/users/not_nick',
+            '/users/banana',
+            '/users/done',
+            '/users/ozzie',
+            '/repos/r1_url/contents/.gitmodules?ref=master',
+            '/repos/remote_R1_b/contents/.gitmodules?ref=blah',
+            '/repos/r1_url/contents/.gitmodules?ref=feat1',
+            '/repos/r1_url/contents/sub/r2?ref=master',
+            '/repos/remote_R1_b/contents/sub/r2?ref=blah',
+            '/repos/r1_url/contents/sub/r2?ref=feat1',
+            '/repos/r1_url/contents/sub/r3?ref=master',
+            '/repos/remote_R1_b/contents/sub/r3?ref=blah',
+            '/repos/r1_url/contents/sub/r3?ref=feat1',
+            '/repos/r1_url/contents/deps/r4?ref=master',
+            '/repos/r1_url/contents/deps/r4?ref=feat1',
+            '/repos/remote_R1_b/contents/deps/r7?ref=blah',
+        ]
+    },
+
+    'responses': {
+        '/users/nick': [200, 200, 200],
+    },
+
+}

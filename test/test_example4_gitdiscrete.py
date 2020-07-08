@@ -58,3 +58,32 @@ def test_gitinfo(get_lab_api_url, get_hub_api_url, actor_system, fake_forge):
 
     input_desc, repo_info = input_desc_and_VCS_info(input_spec, actor_system=actor_system)
     assert repo_info == expected_repo_info
+
+
+# #######################################################################
+
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in [
+            '/api/v4/projects/r10_url/merge_requests?scope=all&state=all',
+            '/api/v4/projects/r10_url/repository/branches',
+            '/api/v4/projects/r10_url/repository/files/.gitmodules/raw?ref=develop',
+
+            '/api/v4/projects/r10_url/repository/files/deps%2Fr4?ref=develop',
+            '/api/v4/projects/r10_url/repository/files/sub%2Fr3?ref=develop',
+            '/repos/r3_url/branches',
+            '/repos/r3_url/pulls?state=all',
+            '/repos/r4_explicit_default_url/branches',
+            '/repos/r4_explicit_default_url/pulls?state=all',
+            '/users/done',
+            '/users/nick',
+            '/users/ozzie',
+        ]},
+
+    'responses': {
+        n:[404] for n in [
+        ]},
+
+}

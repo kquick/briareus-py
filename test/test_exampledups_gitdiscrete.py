@@ -126,3 +126,28 @@ forge_responses = {
                                'fido', 1014, 'fido@woof.grr'),
 
 }
+
+
+# #######################################################################
+
+
+gitmodules_reqs = [
+    '/repos/Repo1_Remote8/contents/.gitmodules?ref=dog',
+    '/repos/r1_url/contents/.gitmodules?ref=master',
+    '/repos/r1_url/contents/.gitmodules?ref=develop',
+    '/repos/remote_Repo1/contents/.gitmodules?ref=master',
+    '/repos/remote_Repo1_pr2/contents/.gitmodules?ref=master',
+]
+
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in gitmodules_reqs + list(forge_responses.keys())
+    },
+
+    'responses': {
+        n:[404] for n in gitmodules_reqs
+    },
+
+}

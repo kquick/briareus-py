@@ -228,3 +228,43 @@ forge_responses = {
                                'https://github.com/repoA_loc'),
 
 }
+
+
+# #######################################################################
+
+
+forge_stats = {
+
+    'requests': {
+        n:(2 if n == '/users/bar' else 1) for n in [
+            '/users/bar',
+            '/users/zeb',
+            '/repos/repoA_loc/branches',
+            '/repos/repoA_loc/pulls?state=all',
+            '/repos/repo1_loc/branches',
+            '/repos/repo1_loc/pulls?state=all',
+            '/repos/repo2_loc/branches',
+            '/repos/repo2_loc/pulls?state=all',
+            '/repos/repo3_loc/branches',
+            '/repos/repo3_loc/pulls?state=all',
+            '/repos/repo2_loc/contents/.gitmodules?ref=dog',
+            '/repos/repo2_loc/contents/.gitmodules?ref=master',
+            '/repos/repo2_loc/contents/deps/repoA?ref=master',
+            '/repos/repo1_loc/contents/.gitmodules?ref=master',
+            '/repos/repo1_loc/contents/sub/repoA?ref=master',
+            '/repos/repo3_loc/contents/.gitmodules?ref=master',
+            '/repos/Repo1_prbar_loc/contents/.gitmodules?ref=master',
+            '/repos/Repo1_prbar_loc/contents/sub/repoA?ref=master',
+            '/repos/Repo1_prfoo_loc/contents/.gitmodules?ref=master',
+            '/repos/Repo1_prfoo_loc/contents/sub/repoA?ref=master',
+            '/repos/Repo2_prquux_loc/contents/.gitmodules?ref=master',
+            '/repos/Repo2_prquux_loc/contents/deps/repoA?ref=master',
+        ]},
+
+    'responses': {
+        '/users/bar': [200, 200],
+        '/repos/repo3_loc/contents/.gitmodules?ref=master': [404],
+        '/repos/repo2_loc/contents/.gitmodules?ref=dog': [404],
+    },
+
+}

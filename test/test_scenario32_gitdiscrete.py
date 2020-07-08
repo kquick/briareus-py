@@ -139,3 +139,31 @@ forge_responses = {
                                'https://github.com/repoA_loc'),
 
 }
+
+
+# #######################################################################
+
+
+forge_stats = {
+
+    'requests': {
+        n:1 for n in
+        [
+            '/users/bar',
+            '/repos/repoA_loc/branches',
+            '/repos/repoA_loc/pulls?state=all',
+            '/repos/repo2_loc/branches',
+            '/repos/repo2_loc/pulls?state=all',
+            '/repos/repo2_loc/contents/.gitmodules?ref=dog',
+            '/repos/repo2_loc/contents/.gitmodules?ref=master',
+            '/repos/repo2_loc/contents/deps/repoA?ref=master',
+        ]
+    },
+
+    'responses': {
+        n:[404] for n in [
+            '/repos/repo2_loc/contents/.gitmodules?ref=dog',
+        ]
+    },
+
+}
