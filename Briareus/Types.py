@@ -78,7 +78,7 @@ class BldRepoRev(object):
       # for comparisons since a specific repo revision build
       # instruction is effective in the builder regardless of which
       # logic statement generated it.
-    srcident   = attr.ib(default="unk", cmp=False)
+    srcident   = attr.ib(default="unk", eq=False)
 
 @attr.s(frozen=True)
 class BldVariable(object):
