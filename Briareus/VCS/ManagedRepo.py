@@ -31,7 +31,7 @@ def get_updated_file(repourl: str,
                      branch: str,
                      actor_system: Any = None) -> FileReadData:
     "Reads a specific file from the repository at the specified url"
-    return _run_actors(ReadFileFromVCS(repourl, repolocs, filepath, branch),
+    return _run_actors(ReadFileFromVCS("reponame", repourl, repolocs, filepath, branch),
                        FileReadData, actor_system)
 
 

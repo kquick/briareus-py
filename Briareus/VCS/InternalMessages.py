@@ -35,24 +35,24 @@ def fromJSON(jstr: str):
 
 
 @attr.s(auto_attribs=True)
-class ReadFileFromVCS(object):        # --> FileReadData
-    repourl: str
-    repolocs: List[RepoLoc]
-    file_path: str
-    branch: str = attr.ib(factory=str)     # defaults to "master"
-@attr.s(auto_attribs=True)
-class FileReadData(object):           # ReadFileFromVCS -->
-    req: ReadFileFromVCS                # The ReadFileFromVCS that originated this response
-    error_code: Optional[int] = attr.ib(default=None)  # integer, 0/None on success
-    file_data: str = attr.ib(factory=str)    # empty string if error_code
-
-
-@attr.s(auto_attribs=True)
 class Repo__ReqMsg(object):
     reponame: str
 @attr.s(auto_attribs=True)
 class Repo__RspMsg(object):
     reponame: str
+
+
+@attr.s(auto_attribs=True)
+class ReadFileFromVCS(Repo__ReqMsg):        # --> FileReadData
+    repourl: str
+    repolocs: List[RepoLoc]
+    file_path: str
+    branch: str = attr.ib(factory=str)     # defaults to "master"
+@attr.s(auto_attribs=True)
+class FileReadData(Repo__RspMsg):           # ReadFileFromVCS -->
+    req: ReadFileFromVCS                # The ReadFileFromVCS that originated this response
+    error_code: Optional[int] = attr.ib(default=None)  # integer, 0/None on success
+    file_data: str = attr.ib(factory=str)    # empty string if error_code
 
 
 @attr.s(auto_attribs=True)

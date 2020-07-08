@@ -154,16 +154,16 @@ class GitRepoInfo(ActorTypeDispatcher):
                 ecode = getattr(err.response, 'status_code', -1)
             else:
                 ecode = getattr(err, 'errno', -2)
-            self.send(back_to, FileReadData(req=msg, error_code=ecode))
+            self.send(back_to, FileReadData(msg.reponame, req=msg, error_code=ecode))
         except Exception as err:
             logging.critical('ReadFileFromVCS err: %s', err, exc_info=True)
             ecode = getattr(err, 'errno', -2)
-            self.send(back_to, FileReadData(req=msg, error_code=ecode))
+            self.send(back_to, FileReadData(msg.reponame, req=msg, error_code=ecode))
         else:
             if isinstance(rval, int):
-                self.send(back_to, FileReadData(req=msg, error_code=rval))
+                self.send(back_to, FileReadData(msg.reponame, req=msg, error_code=rval))
             else:
-                self.send(back_to, FileReadData(req=msg, file_data=rval))
+                self.send(back_to, FileReadData(msg.reponame, req=msg, file_data=rval))
 
 
     def receiveMsg_str(self, msg: str, sender) -> None:

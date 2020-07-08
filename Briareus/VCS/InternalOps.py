@@ -120,7 +120,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
         """
         self.read_vcs_file(msg, sender)
 
-    def read_vcs_file(self, readfile_msg, sender, jsonReply=False):
+    def read_vcs_file(self, readfile_msg: ReadFileFromVCS, sender, jsonReply=False) -> None:
         if not self.is_idle(readfile_msg, sender, jsonReply):
             return
         self.top_requestor = sender
