@@ -138,7 +138,7 @@ def get_input_facts(PNAME: str,
         if isinstance(r, RepoSite)  # KWQ: can remove when structured
     ] if project_repo is not None else []
 
-    # n.b. repo_info['pullreqs'] are of type PRInfo from InternalOps;
+    # n.b. repo_info['pullreqs'] are of type VCS_API.PRInfo;
     # the actual definition is not imported here because Python is
     # duck-typed.
 

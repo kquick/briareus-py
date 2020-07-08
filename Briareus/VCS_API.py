@@ -1,5 +1,5 @@
 import attr
-from typing import Optional
+from typing import Optional, Union
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
@@ -36,6 +36,19 @@ class PullReqStatus__Base(object):
 class PRSts_Active(PullReqStatus__Base): pass
 class PRSts_Closed(PullReqStatus__Base): pass
 class PRSts_Merged(PullReqStatus__Base): pass
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class PRInfo(object):
+    pr_target_repo: str
+    pr_srcrepo_url: Union[UserURL, SSH_URL]
+    pr_branch: str
+    pr_revision: str
+    pr_ident: str  # unique identifier string, required
+    pr_status: PullReqStatus__Base  # derivation
+    pr_title: str  # user-assistance, optional
+    pr_user: str   # name of user creating pull request
+    pr_email: str  # email of user (if known, else blank)
 
 
 @attr.s(auto_attribs=True, frozen=True)

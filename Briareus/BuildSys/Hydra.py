@@ -431,7 +431,7 @@ def VCS_repo_url(input_desc, bldcfgs, bldreporev):
 
 
 def pullreq_for_bldcfg_and_brr(bldcfgs, bldcfg, brr):
-    return (([ p for p in bldcfgs.cfg_pullreqs  # InternalOps.PRInfo
+    return (([ p for p in bldcfgs.cfg_pullreqs  # VCS_API.PRInfo
                if p.pr_target_repo == brr.reponame and
                   p.pr_branch == bldcfg.branchname and
                   p.pr_ident == brr.pullreq_id

@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, BranchReq, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, SubModuleInfo
-from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc)
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo, SubModuleInfo
+from Briareus.VCS.InternalMessages import RepoDesc
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
 import json

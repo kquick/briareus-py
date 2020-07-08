@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped
-from Briareus.VCS_API import PRSts_Active, SubModuleInfo
-from Briareus.VCS.InternalMessages import PullReqInfo, PRInfo, RepoDesc
+from Briareus.VCS_API import PRSts_Active, PRInfo, SubModuleInfo
+from Briareus.VCS.InternalMessages import PullReqInfo, RepoDesc
 import test_example3 as tex3
 from datetime import timedelta
 import json

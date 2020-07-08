@@ -140,19 +140,6 @@ class RepoRemoteSpec(object):
     repo_api_loc: RepoAPI_Location   # for forge API
 
 
-@attr.s(auto_attribs=True, frozen=True)
-class PRInfo(object):
-    pr_target_repo: str
-    pr_srcrepo_url: Union[UserURL, SSH_URL]
-    pr_branch: str
-    pr_revision: str
-    pr_ident: str  # unique identifier string, required
-    pr_status: PullReqStatus__Base  # derivation
-    pr_title: str  # user-assistance, optional
-    pr_user: str   # name of user creating pull request
-    pr_email: str  # email of user (if known, else blank)
-
-
 InfoReturnTy = Union[List[BranchRef],
                      List[SubModuleInfo],
                      List[RepoDesc],

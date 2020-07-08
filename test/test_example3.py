@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, BranchReq, PR_Grouped, MainBranch
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, SubModuleInfo
-from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc)
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, PRSts_Closed, PRInfo, SubModuleInfo
+from Briareus.VCS.InternalMessages import RepoDesc
 from test_example import expected_repo_info
 import json
 import pytest

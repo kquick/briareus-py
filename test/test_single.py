@@ -4,8 +4,7 @@ import json
 import pytest
 from thespian.actors import *
 from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grouped
-from Briareus.VCS_API import BranchRef, PRSts_Active
-from Briareus.VCS.InternalMessages import PRInfo
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRInfo
 
 
 def test_repo_info(generated_repo_info):
