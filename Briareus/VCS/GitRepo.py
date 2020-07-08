@@ -45,6 +45,7 @@ from thespian.initmsgs import initializing_messages
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitForge import RepoAPI_Location, GitLabInfo, GitHubInfo
 import datetime
+from typing import (Optional, Union)
 
 
 def transient_idle(exit_delay=datetime.timedelta(seconds=20)):
@@ -70,9 +71,9 @@ def transient_idle(exit_delay=datetime.timedelta(seconds=20)):
 @initializing_messages([('repospec', RepoRemoteSpec)], init_passthru=True)
 @transient_idle(datetime.timedelta(hours=12))
 class GitRepoInfo(ActorTypeDispatcher):
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         super(GitRepoInfo, self).__init__(*args, **kw)
-        self._ghinfo = None
+        self._ghinfo: Optional[Union[GitHubInfo, GitLabInfo]] = None
         self.repospec = RepoRemoteSpec(RepoAPI_Location("no-url", None))
 
     def receiveMsg_RepoRemoteSpec(self, msg: RepoRemoteSpec, sender) -> None:
@@ -85,67 +86,86 @@ class GitRepoInfo(ActorTypeDispatcher):
             raise ValueError('Cannot determine type of remote repo at %s'
                              % self.repospec.repo_api_loc.apiloc)
 
-    def receiveMsg_GetPullReqs(self, msg, sender):
+    def receiveMsg_GetPullReqs(self, msg: GetPullReqs, sender) -> None:
+        # typing ignored because orig_sender dynamically added
+        back_to = msg.orig_sender  # type: ignore
+        assert self._ghinfo is not None
         try:
             rsp = self._ghinfo.get_pullreqs(msg.reponame)
         except Exception as err:
             logging.critical('GetPullReqs err: %s', err, exc_info=True)
-            self.send(msg.orig_sender,
+            self.send(back_to,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'GetPullReqs - ' + str(err)))
         else:
-            self.send(msg.orig_sender, rsp)
+            self.send(back_to, rsp)
 
-    def receiveMsg_HasBranch(self, msg, sender):
+    def receiveMsg_HasBranch(self, msg: HasBranch, sender) -> None:
+        # typing ignored because orig_sender dynamically added
+        back_to = msg.orig_sender  # type: ignore
+        assert self._ghinfo is not None
         branch = msg.branch_name
         try:
             rsp = self._ghinfo.get_branches()
         except Exception as err:
             logging.critical('HasBranch: %s', err, exc_info=True)
-            self.send(msg.orig_sender,
+            self.send(back_to,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'HasBranch - ' + str(err)))
         else:
             blist = { b['name']: b['ref'] for b in rsp }
             chk = blist.get(branch, False)
-            self.send(msg.orig_sender,
+            self.send(back_to,
                       BranchPresent(msg.reponame, branch, chk,
                                     known_branches=list(blist.items())))
 
 
-    def receiveMsg_GitmodulesData(self, msg, sender):
+    def receiveMsg_GitmodulesData(self, msg: GitmodulesData, sender) -> None:
+        # typing ignored because orig_sender dynamically added
+        back_to = msg.orig_sender  # type: ignore
+        assert self._ghinfo is not None
         branch = msg.branch_name
         try:
             rval = self._ghinfo.get_gitmodules(msg.reponame, branch, msg.pullreq_id)
         except Exception as err:
             logging.critical('GitmodulesData err: %s', err, exc_info=True)
-            self.send(msg.orig_sender,
+            self.send(back_to,
                       InvalidRepo(msg.reponame, 'git', self.repospec.repo_api_loc.apiloc,
                                   getattr(self._ghinfo, '_url', str(self._ghinfo)),
                                   'GitmodulesData - ' + str(err)))
         else:
-            self.send(msg.orig_sender, rval)
+            self.send(back_to, rval)
 
 
-    def receiveMsg_ReadFileFromVCS(self, msg, sender):
+    def receiveMsg_ReadFileFromVCS(self, msg: ReadFileFromVCS, sender) -> None:
+        # typing ignored because orig_sender dynamically added
+        back_to = msg.orig_sender  # type: ignore
+        assert self._ghinfo is not None
         filepath = msg.file_path
         branch = msg.branch or "master"
         try:
             rval = self._ghinfo.get_file_contents_raw(filepath, branch)
-        except Exception as err:
+        except requests.exceptions.RequestException as err:
             logging.critical('ReadFileFromVCS err: %s', err, exc_info=True)
             if hasattr(err, 'response'):
                 ecode = getattr(err.response, 'status_code', -1)
             else:
                 ecode = getattr(err, 'errno', -2)
-            self.send(msg.orig_sender, FileReadData(req=msg, error_code=ecode))
+            self.send(back_to, FileReadData(req=msg, error_code=ecode))
+        except Exception as err:
+            logging.critical('ReadFileFromVCS err: %s', err, exc_info=True)
+            ecode = getattr(err, 'errno', -2)
+            self.send(back_to, FileReadData(req=msg, error_code=ecode))
         else:
-            self.send(msg.orig_sender, FileReadData(req=msg, file_data=rval))
+            if isinstance(rval, int):
+                self.send(back_to, FileReadData(req=msg, error_code=rval))
+            else:
+                self.send(back_to, FileReadData(req=msg, file_data=rval))
 
 
-    def receiveMsg_str(self, msg, sender):
+    def receiveMsg_str(self, msg: str, sender) -> None:
         if msg == "status":
             self.send(sender, self._ghinfo.stats() if self._ghinfo else
                       { "url": str(self.repospec.repo_api_loc.apiloc) + " (never accessed)",
