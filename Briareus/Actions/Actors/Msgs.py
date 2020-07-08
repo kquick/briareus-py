@@ -1,11 +1,11 @@
 import attr
 import json
-
+from typing import (List, TypeVar, Union)
 # Bring objects that might appear in the JSON messages into scope
-from Briareus.VCS.GitForge import RepoAPI_Location
+from Briareus.VCS.ForgeAccess import UserURL, RepoAPI_Location
 
 
-def toJSON(obj):
+def toJSON(obj) -> str:
     """Convert class objects to json by providing a type hint that can be
     used by the fromJSON decoder.
 
@@ -38,15 +38,16 @@ def toJSON(obj):
                 return super(objToJSON, self).default(obj)
     return json.dumps(obj, cls=objToJSON)
 
+SomeTy = TypeVar('SomeTy')
 
-def normallyToJSON(thing):
+def normallyToJSON(thing: SomeTy) -> Union[str, SomeTy]:
     try:
         return toJSON(thing)
     except TypeError:
         return thing
 
 
-def fromJSON(jstr):
+def fromJSON(jstr: str):
     def objFromJSON(objdict):
         if '__type__' in objdict:
             objtype = objdict['__type__']
@@ -58,43 +59,43 @@ def fromJSON(jstr):
     return json.loads(jstr, object_hook=objFromJSON)
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class EmailEnvelope(object):
-    recipients = attr.ib()  # list of strs
-    subject = attr.ib() # string subject
-    message = attr.ib() # string message
+    recipients: List[str]
+    subject: str
+    message: str
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class SendReceipt(object): # Response to EmailEnvelope
-    envelope = attr.ib()   # EmailEnvelope
-    recipients = attr.ib() # list of strs email was sent successfully to
+    envelope: EmailEnvelope
+    recipients: List[str]
 
 
-@attr.s
+@attr.s(auto_attribs=True)
 class RepoURLRevProjURL(object):
-    tgt_url  = attr.ib()  # RepoAPI_Location
-    rev      = attr.ib()  # str revision hash
-    proj_url = attr.ib()  # string project url
+    tgt_url: RepoAPI_Location
+    rev: str  # str revision hash
+    proj_names: List[str]  # string project
 
-@attr.s
+@attr.s(auto_attribs=True)
 class NewForgeStatus(object):
-    url_and_rev = attr.ib() # array of RepoURLRevProjURL
-    sts = attr.ib()         # "pending", "success", "failure"
-    desc = attr.ib()        # text description of status
-    stsurl = attr.ib()      # string URL for status details
-    project = attr.ib()     # project name string
+    url_and_rev: List[RepoURLRevProjURL]
+    sts: str         # "pending", "success", "failure"
+    desc: str        # text description of status
+    stsurl: str      # string URL for status details
+    project: UserURL     # project name string
 
-@attr.s
+@attr.s(auto_attribs=True)
 class Posted(object):      # Response to NewForgeStatus
-    envelope = attr.ib()   # NewForgeStatus
-    successful = attr.ib() # list of proj_url
+    envelope: NewForgeStatus
+    successful: List[str]  # project names
 
-@attr.s
+@attr.s(auto_attribs=True)
 class ForgeStatusResults(object):
-    succeeded = attr.ib() # boolean
-    project   = attr.ib() # string
-    rev       = attr.ib() # target VCS revision hash string
-    projrepos = attr.ib() # repos for which these results were set
-    status    = attr.ib() # posted status (string)
-    message   = attr.ib() # on failure
+    succeeded: bool
+    project: str
+    rev: str     # target VCS revision hash string
+    projrepos: List[UserURL] # repo for which these results were set
+    status: str  # posted status (string)
+    message: str # on failure

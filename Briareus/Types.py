@@ -4,6 +4,7 @@
 # values defined here via the logic_result_expr translation below.
 
 import attr
+from Briareus.Input.Description import InputDesc
 from typing import (Any, Dict, Hashable, List, Optional, Sequence, Union)
 
 def sorted_nub_list(l: Sequence[Hashable]) -> List[Hashable]:
@@ -294,7 +295,7 @@ class SepHandledVar(object):
 class Notify(object):
     what: str         # type of notification
     subject: str      # project
-    params: List[Any] # parameters associated with item; specific to 'what'
+    params: Union[PRData, List[Any]] # parameters associated with item; specific to 'what'
 
 
 @attr.s(auto_attribs=True, frozen=True)
@@ -409,17 +410,17 @@ class ResultSet(object):
     # for consuting project-specific builders for results.
     builder: Optional[Any] = attr.ib(default=None)  # Briareus.BuilderBase.Builder
 
-    # inp_desc is an array of Briareus.Input.Description.InputDesc
-    # object.  These are kept separate so that the set of input logic
-    # facts are consistent to each inp_desc.
-    inp_desc: Optional[List[Any]] = attr.ib(default=None)  # Briareus.Input.Description.InputDesc
+    # inp_desc is a Briareus.Input.Description.InputDesc # object.
+    # These are kept separate so that the set of input logic facts are
+    # consistent to each inp_desc.
+    inp_desc: Optional[InputDesc] = attr.ib(default=None)  # Briareus.Input.Description.InputDesc
 
     # repo_info is a dictionary gathered from the remote repositories.
     # Assume that the dictionaries can simply be combined and that any
     # duplicates are identical.  This might not be true if the same
     # name were chosen for different repositories, but we currently
     # deem that a bad input configuration.
-    repo_info: Dict[int, int] = attr.ib(default=None)
+    repo_info: Dict[str, Any] = attr.ib(default=None)
 
     # build_cfgs is the internal build configs,
     # Briareus.BCGen.Generator.GeneratedConfigs

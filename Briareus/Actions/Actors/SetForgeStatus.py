@@ -1,4 +1,4 @@
-from thespian.actors import ActorTypeDispatcher
+from thespian.actors import ActorTypeDispatcher, ChildActorExited
 from thespian.troupe import troupe
 from Briareus.Actions.Actors.Msgs import *
 import logging
@@ -6,6 +6,7 @@ import os
 import attr
 # n.b. RepoAPI_Location is needed for fromJSON decode
 from Briareus.VCS.GitForge import GitHubInfo, GitLabInfo, RepoAPI_Location
+from typing import List, Tuple
 
 
 NUM_RECENT_RESULTS=100  # maximum number of results of set operations to store
@@ -23,22 +24,23 @@ class SetForgeStatus(ActorTypeDispatcher):
 
     """
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         super(SetForgeStatus, self).__init__(*args, **kw)
-        self._recent_results = []
-        self._set_can_post(os.getenv('BRIAREUS_FORGE_STATUS', None))
+        self._recent_results: List[ForgeStatusResults] = []
+        self.can_post = False
+        self._set_can_post(os.getenv('BRIAREUS_FORGE_STATUS', '0'))
         self._setter = None
 
 
-    def _set_can_post(self, can_post):
-        self.can_post = can_post
+    def _set_can_post(self, can_post: str) -> None:
+        can_post_str = can_post
         try:
-            self.can_post=int(can_post)
+            self.can_post = not (0 == int(can_post_str))
         except Exception:
             pass
 
 
-    def receiveMsg_str(self, msg, sender):
+    def receiveMsg_str(self, msg: str, sender) -> None:
         # All unrecognized messages are ignored (e.g. messages from
         # the Thespian Director based on the TLI file to ensure
         # startup, etc.).
@@ -62,23 +64,23 @@ class SetForgeStatus(ActorTypeDispatcher):
             else:
                 self._dispatch(objmsg, sender, jsonReply=True)
 
-    def _dispatch(self, objmsg, sender, jsonReply=False):
+    def _dispatch(self, objmsg, sender, jsonReply: bool = False) -> None:
         if isinstance(objmsg, NewForgeStatus):
             self._do_setforge(objmsg, sender, jsonReply=jsonReply)
         else:
-            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), msg)
+            logging.warning('No handling for objmsg [%s]: %s', type(objmsg), objmsg)
 
 
-    def receiveMsg_NewForgeStatus(self, envelope, sender):
+    def receiveMsg_NewForgeStatus(self, envelope: NewForgeStatus, sender) -> None:
         self._do_setforge(envelope, sender, False)
 
 
-    def _do_setforge(self, envelope, sender, jsonReply):
+    def _do_setforge(self, envelope: NewForgeStatus, sender, jsonReply: bool) -> None:
         fmtReply = normallyToJSON if jsonReply else lambda x: x
-        url_and_rev = { (e.tgt_url, e.rev) : e.proj_url
+        url_and_rev = { (e.tgt_url, e.rev) : e.proj_names
                         # e is RepoURLRevProjURL
                         for e in envelope.url_and_rev }
-        done = []
+        done: List[str] = []
 
         # Requests are not processed inline here, but are instead
         # passed to a troupe of worker actors to be performed at some
@@ -101,11 +103,11 @@ class SetForgeStatus(ActorTypeDispatcher):
         self.send(sender, fmtReply(Posted(envelope, done)))
 
 
-    def receiveMsg_ChildActorExited(self, exitmsg, sender):
+    def receiveMsg_ChildActorExited(self, exitmsg: ChildActorExited, sender) -> None:
         if exitmsg.childAddress == self._setter:
             self._setter = None
 
-    def receiveMsg_ForgeStatusResults(self, msg, sender):
+    def receiveMsg_ForgeStatusResults(self, msg: ForgeStatusResults, sender) -> None:
         # Recent results are stored and can be retrieved with a "status" message
         self._recent_results.append(msg)
         self._recent_results = self._recent_results[-NUM_RECENT_RESULTS:]
@@ -113,21 +115,24 @@ class SetForgeStatus(ActorTypeDispatcher):
 
 @troupe()
 class SetStatusActor(ActorTypeDispatcher):
-    def receiveMsg_tuple(self, msg, sender):
+    def receiveMsg_tuple(self,
+                         msg: Tuple[RepoAPI_Location,str,str,str,str,str,List[UserURL]],
+                         sender) -> None:
         loc, rev, sts, desc, stsurl, project, stsrepos = msg
-        forge = GitForge(loc)
+        forge_sts = GitForgeStatus(loc)
         try:
             logging.debug('*** forge(%s, %s, %s, %s, %s, %s)',sts,desc,rev,stsurl,project,stsrepos)
-            res,msg = forge.set_commit_status(sts, desc, rev, stsurl, project)
+            res,message = forge_sts.set_commit_sts(sts, desc, rev, stsurl, project)
         except Exception as ex:
             logging.error('posting forge status to %s: %s', str(loc), str(ex))
             res = False
-            msg = str(ex)
-        self.send(sender, ForgeStatusResults(res is True, project, rev, stsrepos, sts, msg))
+            message = str(ex)
+        self.send(sender,
+                  ForgeStatusResults(res is True, project, rev, stsrepos, sts, message))
 
 
-class GitForge(object):
-    def __init__(self, repoloc):
+class GitForgeStatus(object):
+    def __init__(self, repoloc: RepoAPI_Location) -> None:
         self._repoloc = repoloc  # Briareus.VCS.GitForge.RepoAPI_Location
         self._ghinfo = (GitHubInfo(repoloc) if 'github' in repoloc.apiloc else
                         (GitLabInfo(repoloc) if 'gitlab' in repoloc.apiloc else None))
@@ -136,7 +141,12 @@ class GitForge(object):
                              % repoloc)
 
 
-    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+    def set_commit_sts(self, sts: str,
+                       desc: str,
+                       commitref: str,
+                       url: str = '',
+                       context_ref: str = '') -> Tuple[bool, str]:
+        assert self._ghinfo is not None
         rval = self._ghinfo.set_commit_status(sts, desc, commitref, url, context_ref)
         if getattr(rval, 'status_code', None) in [ 200, 201 ]:
             return True, str(rval)

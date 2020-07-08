@@ -6,7 +6,7 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             Notify,
                             SendEmail, SetForgeStatus)
 import Briareus.hh as hh
-from Briareus.VCS.GitForge import RepoAPI_Location
+from Briareus.VCS.ForgeAccess import RepoAPI_Location
 from test_example import expected_repo_info
 import json
 import pytest
@@ -510,7 +510,7 @@ bugfix9_prfaildata=PRFailedSubBlds(
     ),
 )
 
-@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForgeStatus')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydra_results):
     asys = ActorSystem('simpleSystemBase')
@@ -530,7 +530,7 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
 
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
-    gitforge().set_commit_status.assert_has_calls(
+    gitforge().set_commit_sts.assert_has_calls(
         [
             call('failure',
                  'Fails 1/1/4 (master 1/1/4) submods/heads/total',
@@ -544,7 +544,7 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
         ],
         any_order=True)
 
-@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForgeStatus')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydra_results):
     asys = ActorSystem('simpleSystemBase')
@@ -578,7 +578,7 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # print(gitforge().set_commit_status.call_args_list)
-    gitforge().set_commit_status.assert_has_calls(
+    gitforge().set_commit_sts.assert_has_calls(
         [
             call('failure',
                  'Fails 1/1/4 (master 1/1/4) submods/heads/total',
@@ -592,7 +592,7 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
         ],
         any_order=True)
 
-@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForgeStatus')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hydra_results):
     asys = ActorSystem('simpleSystemBase')
@@ -616,10 +616,10 @@ def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hy
                               params=bugfix9_prfaildata),
                           updated=["R2", "R4"]) in reps
 
-    for each in gitforge().set_commit_status.call_args_list:
+    for each in gitforge().set_commit_sts.call_args_list:
         assert each.ref not in ['r2_b9_mergeref', 'r4_bf9_patch' ]
 
-@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForgeStatus')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hydra_results):
     asys = ActorSystem('simpleSystemBase')
@@ -641,7 +641,7 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
 
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
-    gitforge().set_commit_status.assert_has_calls(
+    gitforge().set_commit_sts.assert_has_calls(
         [
             call('failure',
                  'Fails 1/1/4 (master 1/1/4) submods/heads/total',
@@ -655,7 +655,7 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
         ],
         any_order=True)
 
-@patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
+@patch('Briareus.Actions.Actors.SetForgeStatus.GitForgeStatus')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
 def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate_hydra_results):
     asys = ActorSystem('simpleSystemBase')
@@ -685,7 +685,7 @@ def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # print(gitforge().set_commit_status.call_args_list)
-    gitforge().set_commit_status.assert_has_calls(
+    gitforge().set_commit_sts.assert_has_calls(
         [
             call('pending',
                  'Build of Project #1 is pending...\n', ref,
@@ -724,7 +724,7 @@ def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r2_url", apitoken=None))
     gitforge.assert_any_call(RepoAPI_Location(apiloc="https://github.com/r4_url", apitoken=None))
     # Ensure the pending status is not re-asserted, even if the number pending changes
-    assert gitforge().set_commit_status.call_args_list == []
+    assert gitforge().set_commit_sts.call_args_list == []
 
 
 def test_pr_blah_fail_do_setforgestatus(example_hydra_results):

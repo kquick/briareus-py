@@ -13,25 +13,31 @@ import sys
 import requests
 from collections import defaultdict
 from datetime import timedelta
-from thespian.actors import *
+from thespian.actors import ActorSystem
 from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Content import gen_content
-from Briareus.Types import SetForgeStatus, PRCfg
+from Briareus.Input.Description import RepoDesc
+from Briareus.Types import SetForgeStatus, PRCfg, PRData, RunContext, ResultSet
 from Briareus.VCS.ForgeAccess import to_http_url
+from typing import Any, Dict, Optional, Set, Tuple
 
 
 SET_FORGE_STATUS_TIMEOUT = timedelta(seconds=20)
 
 
-def do_set_forge_status(action, full_report, runctxt, report_supplement):
+def do_set_forge_status(action: SetForgeStatus,
+                        full_report: str,
+                        runctxt: RunContext,
+                        report_supplement: Dict[str,Any]) -> SetForgeStatus:
     "Posts a status update to the VCS Forge (github, gitlab, etc.)"
-    project = action.notification.subject
+    project = UserURL(action.notification.subject)
     rec = action.targetrepos
     done = action.updated
     post_to = set(rec) - set(done)
     if post_to:
         _, desc = gen_content('forge_status', action.notification, runctxt)
         if desc:
+            assert isinstance(action.notification.params, PRData)
             posted_to = set_forge_status(post_to,
                                          action.notification.what,
                                          desc,
@@ -48,14 +54,21 @@ def do_set_forge_status(action, full_report, runctxt, report_supplement):
     return action
 
 
-def set_forge_status(forge_list, status, desc, runctxt, report_supplement, project, notify_params):
+def set_forge_status(forge_list: Set[str],  # target repos
+                     status: str,
+                     desc: str,
+                     runctxt: RunContext,
+                     report_supplement: Dict[str,Any],
+                     project: UserURL,
+                     notify_params: PRData) -> Set[str]:
     if not runctxt.actor_system:
         runctxt.actor_system = ActorSystem('multiprocTCPBase')
     asys = runctxt.actor_system
 
     proj_results = [ each
                      for each in runctxt.result_sets
-                     if project == each.inp_desc.PNAME ][0] # must match at least one!
+                     if each.inp_desc and project == each.inp_desc.PNAME ][0]
+    # must match at least one!
 
     # Modules may share the same actual repository, so the status need
     # only be set once for the entire repository.  Build a translation
@@ -64,11 +77,14 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
 
     url_and_rev = defaultdict(list)  # key=(loc, rev), value = [repos]
 
-    for r in (list(proj_results.inp_desc.RL) +     # r is Description.RepoDesc
+    for r in (list(proj_results.inp_desc.RL
+                   if proj_results.inp_desc else []) +     # r is Description.RepoDesc
               list(proj_results.repo_info['subrepos'])):
         if r.repo_name in forge_list:
-            repo, loc, rev = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
-            url_and_rev[(loc,rev)].append(repo)
+            rlinfo = get_repo_loc_and_PR_rev(r, proj_results, notify_params)
+            if rlinfo is not None:
+                repo, loc, rev = rlinfo
+                url_and_rev[(loc,rev)].append(repo)
 
     # Determine the status to set, and the details URL to post with each status
 
@@ -77,13 +93,17 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
             "pr_projstatus_fail": "failure"
     }[status]
 
-    user_url_spec = proj_results.inp_desc.REP.get(
-        'status_url',
-        report_supplement.get('status_url', None))
-    stsurl = \
-        user_url_spec.format(project=project) \
-        if user_url_spec else \
-        proj_results.builder.get_project_url(project)
+    dflt_url_spec = report_supplement.get('status_url', None)
+    user_url_spec = (proj_results.inp_desc.REP.get('status_url', dflt_url_spec)
+                     if proj_results.inp_desc
+                     else dflt_url_spec)
+    stsurl = (
+        user_url_spec.format(project=project)
+        if user_url_spec else
+        (proj_results.builder.get_project_url(project)
+         if proj_results.builder
+         else '-none-')
+    )
 
     print('Forge post "', desc, '" [',sts,'] about ',
           notify_params.prtype,'to', url_and_rev,'and url',stsurl)
@@ -118,9 +138,15 @@ def set_forge_status(forge_list, status, desc, runctxt, report_supplement, proje
     raise RuntimeError('Unexpected response to SetForgeStatus request: %s' % str(rsp))
 
 
-def get_repo_loc_and_PR_rev(r, proj_results, notify_params):
+def get_repo_loc_and_PR_rev(r: RepoDesc,
+                            proj_results: ResultSet,
+                            notify_params: PRData) -> Optional[Tuple[str,
+                                                                     RepoAPI_Location,
+                                                                     str]]:
+    if proj_results.inp_desc is None:
+        return None
     tgtloc = to_http_url(r.repo_url, proj_results.inp_desc.RX)
     for p in notify_params.prcfg:  # p is Types.PRCfg
         if isinstance(p, PRCfg) and p.reponame == r.repo_name:
             return r.repo_name, tgtloc, p.revision
-    return None, None, None
+    return None
