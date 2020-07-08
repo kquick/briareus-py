@@ -2,10 +2,9 @@
 
 from thespian.actors import ActorSystem
 from Briareus.VCS.InternalMessages import (GatherInfo, GatheredInfo, ReadFileFromVCS, FileReadData,
-                                           InfoReturnTy,
                                            toJSON, fromJSON)
 from Briareus.Input.Description import RepoDesc, RepoLoc, BranchDesc
-from Briareus.VCS_API import BranchName, RepoSite, SSHHostName, UserURL
+from Briareus.VCS_API import BranchName, InfoReturnTy, RepoSite, SSHHostName, UserURL
 from datetime import timedelta
 from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 

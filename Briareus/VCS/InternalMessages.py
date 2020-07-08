@@ -159,11 +159,6 @@ class RepoRemoteSpec(object):
     repo_api_loc: RepoAPI_Location   # for forge API
 
 
-InfoReturnTy = Union[List[BranchRef],
-                     List[SubModuleInfo],
-                     List[RepoSite],
-                     List[PRInfo]]
-
 @attr.s(auto_attribs=True)
 class GatherInfo(object):             #            --> GatheredInfo
     repolist: List[RepoSite] = attr.ib(factory=list)

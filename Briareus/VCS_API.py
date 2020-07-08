@@ -1,5 +1,5 @@
 import attr
-from typing import NewType, Optional, Union
+from typing import List, NewType, Optional, Union
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
@@ -90,3 +90,9 @@ class SubModuleInfo(object):
                                  # repo, this identifies the PR
     sm_sub_name: str   # Submodule repo name
     sm_sub_vers: str   # Submodule repo specified version
+
+
+InfoReturnTy = Union[List[BranchRef],
+                     List[SubModuleInfo],
+                     List[RepoSite],
+                     List[PRInfo]]
