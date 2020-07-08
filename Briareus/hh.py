@@ -512,7 +512,7 @@ def main() -> None:
     else:
         input_url, input_path = args.input_url_and_path.split('+') if args.input_url_and_path else (None,None)
         inpcfg = InpConfig(hhd=args.INPUT,
-                           input_url=UserURL(input_url),
+                           input_url=UserURL(input_url) if input_url else None,
                            input_path=input_path,
                            builder_type=args.builder,
                            builder_conf=args.builder_conf,
