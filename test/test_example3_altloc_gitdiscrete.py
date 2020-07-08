@@ -3,6 +3,7 @@ from Briareus.Input.Operations import input_desc_and_VCS_info
 import Briareus.VCS.GitForge
 import copy
 from datetime import timedelta
+from helpers import *
 from test_example3_altloc import expected_repo_info
 import test_example1_gitdiscrete
 import pytest
@@ -122,7 +123,19 @@ def test_gitinfo(get_lab_api_url, get_hub_api_url, actor_system, fake_forge):
     get_lab_api_url.side_effect = get_gitlab_api_url_local(fakeforge_port)
 
     input_desc, repo_info = input_desc_and_VCS_info(input_spec, actor_system=actor_system)
-    assert repo_info == expected_repo_info
+
+    assert_eqlist([str(e) for e in expected_repo_info.info_branches],
+                  [str(e) for e in repo_info.info_branches],
+                  a_name='expected', b_name='actual')
+    assert_eqlist([str(e) for e in expected_repo_info.info_subrepos],
+                  [str(e) for e in repo_info.info_subrepos],
+                  a_name='expected', b_name='actual')
+    assert_eqlist([str(e) for e in expected_repo_info.info_submodules],
+                  [str(e) for e in repo_info.info_submodules],
+                  a_name='expected', b_name='actual')
+    assert_eqlist([str(e) for e in expected_repo_info.info_pullreqs],
+                  [str(e) for e in repo_info.info_pullreqs],
+                  a_name='expected', b_name='actual')
 
 
 # #######################################################################
