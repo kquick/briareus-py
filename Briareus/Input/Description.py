@@ -8,7 +8,7 @@ from typing import (Dict, List)
 @attr.s(auto_attribs=True, frozen=True)
 class RepoDesc(object):
     repo_name: str
-    repo_url: str
+    repo_url: UserURL
     main_branch: str = attr.ib(default="master") # input optional
     project_repo: bool = attr.ib(default=False)  # internally generated, not part of the input spec
 

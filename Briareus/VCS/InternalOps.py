@@ -125,7 +125,7 @@ class GatherRepoInfo(ActorTypeDispatcher):
             return
         self.top_requestor = sender
         self.prepareReply = toJSON if jsonReply else (lambda x: x)
-        self.get_git_info(Repo_AltLoc_ReqMsg(to_http_url(readfile_msg.repourl,
+        self.get_git_info(Repo_AltLoc_ReqMsg(to_http_url(UserURL(readfile_msg.repourl),
                                                          readfile_msg.repolocs),
                                              readfile_msg))
 
@@ -456,7 +456,7 @@ class GetGitInfo(ActorTypeDispatcher):
         self.gitinfo_pending_actor = defaultdict(list)  # reponame:[requests pending a DeclareRepo/repourl]
         self.statpoints = defaultdict(int)
 
-    def _get_subactor(self, reponame, repourl=None, repolocs=None):
+    def _get_subactor(self, reponame, repourl: UserURL = None, repolocs=None):
         suba = self.gitinfo_actors.get(reponame, None)
         if not suba:
             if not repourl:

@@ -65,7 +65,8 @@ def _changeloc(url: str,
     return API_URL(url), parsed.netloc, parsed.netloc
 
 
-def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:
+def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
+                repolocs: List[RepoLoc]) -> RepoAPI_Location:
     """Converts git clone access specification
     (e.g. "git@foo.com:group/proj") to the corresponding HTTP forge
     reference RepoAPI_URL (e.g. "https://foo.com/group/proj").  Also
@@ -79,10 +80,11 @@ def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:
     URL (as extracted from the BRIAREUS_PAT environment variable).
 
     """
-    if url.startswith("git@"):
+    if isinstance(url, SSH_URL) or url.startswith("git@"):
         trimmed_url = _remove_trailer(url[len('git@'):], '.git')
         spl = trimmed_url.split(':')
-        return to_http_url('https://%s/%s' % (spl[0], ':'.join(spl[1:])), repolocs)
+        return to_http_url(HTTPS_URL('https://%s/%s' % (spl[0], ':'.join(spl[1:]))),
+                           repolocs)
 
     returl, for_remote, orig_remote_spec = _changeloc(_remove_trailer(url, '.git'), repolocs)
 

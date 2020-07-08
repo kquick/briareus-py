@@ -208,7 +208,7 @@ class RemoteGit__Info(object):
                     # invalid repository.  Have to assume the name is
                     # the last component of the path.
                     ret.append(SubRepoVers(os.path.split(gitmod_cfg[remote]['path'])[-1],
-                                           'invalid_remote_repo',
+                                           UserURL('invalid_remote_repo'),
                                            'unknownRemoteRefForPullReq'))
                 else:
                     # The submodule was added to .gitmodules, but no
@@ -224,7 +224,7 @@ class RemoteGit__Info(object):
                                     gitmod_cfg[remote]['url'])
                     # Generate an invalid revision that will cause this build to fail on fetch of source
                     ret.append(SubRepoVers(gitmod_cfg[remote]['path'].split('/')[-1],
-                                           gitmod_cfg[remote]['url'],
+                                           UserURL(gitmod_cfg[remote]['url']),
                                            'unknownRemoteRefForPullReq'))
             else:
                 assert not isinstance(submod_info, list)
@@ -385,7 +385,7 @@ class GitLabInfo(RemoteGit__Info):
                          submod_info: Union[str, Dict[str,Any]]) -> Optional[SubRepoVers]:
         if isinstance(submod_info, dict):
             return SubRepoVers(submod_info['file_name'],
-                               remote_info['url'],
+                               UserURL(remote_info['url']),
                                submod_info['blob_id'])
         else:
             raise RuntimeError('Gitlab._subrepoversion submod_info should be str'

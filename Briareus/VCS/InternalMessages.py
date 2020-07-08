@@ -67,7 +67,7 @@ class Repo_AltLoc_ReqMsg(object):
 
 @attr.s(auto_attribs=True)
 class DeclareRepo(Repo__ReqMsg):        #             --> RepoDeclared
-    repo_url: str
+    repo_url: UserURL
     repolocs: List[RepoLoc] = attr.ib(factory=list)
 @attr.s
 class RepoDeclared(Repo__RspMsg):       # DeclareRepo -->
@@ -128,7 +128,7 @@ class BranchRef(object):
 @attr.s(auto_attribs=True)
 class SubRepoVers(object):
     subrepo_name: str
-    subrepo_url: str
+    subrepo_url: UserURL
     subrepo_vers: str
 
 @attr.s(auto_attribs=True)
