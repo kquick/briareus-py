@@ -27,7 +27,7 @@ class RemoteGit__Info(object):
         self._url = api_url
         self._request_session = requests.Session()
         self._rsp_cache: Dict[str, Union[int, requests.Response]] = {}   # requrl:response
-        self._rsp_fetched: Dict[str, datetime.datetime] = {}  # requrl:fetch_time
+        self._rsp_expires: Dict[str, datetime.datetime] = {}  # requrl:expiry_time
         self._get_count = 0
         self._req_count = 0
         self._refresh_count = 0
@@ -96,9 +96,9 @@ class RemoteGit__Info(object):
         if last_one:
             # If fetched within the local cache period, just re-use
             # the same response
-            last = self._rsp_fetched.get(req_url, None)
-            if last:
-                if datetime.datetime.now() - last < LocalCachePeriod:
+            exp = self._rsp_expires.get(req_url, None)
+            if exp:
+                if datetime.datetime.now() <= exp:
                     return self._rsp_cache[req_url]
         # If already fetched, pass the header tags to the server in
         # the request so that the server can respond with either a 304
@@ -115,14 +115,14 @@ class RemoteGit__Info(object):
         rsp = self._request_session.get(req_url, headers = hdrs)
         if rsp.status_code == 304:  # Not Modified
             self._refresh_count += 1
-            self._rsp_fetched[req_url] = datetime.datetime.now()
+            self._rsp_expires[req_url] = datetime.datetime.now() + LocalCachePeriod
             return self._rsp_cache[req_url]
         elif rsp.status_code == 200:
             self._rsp_cache[req_url] = rsp
-            self._rsp_fetched[req_url] = datetime.datetime.now()
+            self._rsp_expires[req_url] = datetime.datetime.now() + (LocalCachePeriod * 4)
         elif rsp.status_code == 404 and notFoundOK:
             self._rsp_cache[req_url] = self.NotFound
-            self._rsp_fetched[req_url] = datetime.datetime.now()
+            self._rsp_expires[req_url] = datetime.datetime.now() + datetime.timedelta(hours=3)
             return self.NotFound
         else:
             try:
