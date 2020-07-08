@@ -6,8 +6,8 @@
 import attr
 import requests
 from urllib.parse import urlparse, urlunparse
-from Briareus.VCS.InternalMessages import *
 from .ForgeAccess import *
+from Briareus.VCS.InternalMessages import *
 
 
 class NoDefault(object): pass
