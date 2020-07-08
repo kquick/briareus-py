@@ -5,6 +5,7 @@ import Briareus.AnaRep.Operations as AnaRep
 from Briareus.AnaRep.Prior import ( get_prior_report, write_report_output )
 import Briareus.BCGen.Operations as BCGen
 import Briareus.Input.Operations as BInput
+from Briareus.BuildSys.BuilderBase import BuilderURL
 import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
@@ -485,7 +486,7 @@ def main():
                            input_path=input_path,
                            builder_type=args.builder,
                            builder_conf=args.builder_conf,
-                           builder_url=args.builder_url,
+                           builder_url=BuilderURL(args.builder_url),
                            output_file=args.OUTPUT or
                            (os.path.splitext(args.INPUT)[0] + ".hhc"))
         inputArg = None

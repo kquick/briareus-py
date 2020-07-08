@@ -1,7 +1,13 @@
+from typing import Optional
+
+
+class BuilderURL(str): "URL to fetch build results from Builder"
+
+
 # Base definitions for a Builder
 
 class Builder(object):
-    def __init__(self, conf_file, builder_url=None):
+    def __init__(self, conf_file: Optional[str], builder_url: BuilderURL = None) -> None:
         self._conf_file = conf_file
         self._builder_url = builder_url
 
