@@ -10,7 +10,7 @@ import Briareus.BuildSys.Hydra as BldSys
 import Briareus.Actions.Ops as Actions
 from Briareus.VCS.ManagedRepo import get_updated_file
 from Briareus.VCS.ForgeAccess import UserURL
-from Briareus.Types import SendEmail, RunContext, ReportType
+from Briareus.Types import SendEmail, RunContext, ReportType, UpTo
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
 import datetime
@@ -370,49 +370,6 @@ def run_hh(params: Params, inpcfg: Optional[InpConfig] = None, inputArg=None):
         run_hh_reporting_to(None, params, inputArg=inputArg, inpcfg=inpcfg)
     verbosely(params,'hh',('completed up to: ' + str(params.up_to))
               if params.up_to else 'done')
-
-
-class UpTo(object):
-    """Specifies an endpoint for the processing (for debugging or
-       informational purposes).  Note that this object does not encode
-       a "no restrictions" value; None should be used instead of this
-       object for an unrestricted execution.
-    """
-
-    # In order:
-    valid_up_to = [ "facts", "raw_logic_output", "build_configs", "builder_configs",
-                    "write_bldcfgs",
-                    "build_results", "built_facts", "raw_built_analysis",
-                    "actions", "report" ]
-
-    @staticmethod
-    def valid() -> str:
-        return ', '.join(UpTo.valid_up_to)
-
-    def __init__(self, arg: str) -> None:
-        if arg not in UpTo.valid_up_to:
-            raise ValueError("The --up-to value must be one of: " + self.valid())
-        self._up_to = arg
-
-    def __eq__(self, o: object) -> bool:
-        # Compare this object to a string to see if the string matches
-        # the internal value. This is usually the indicator for the
-        # checker to exit because the termination point has been
-        # reached.
-        assert isinstance(o, str)
-        return self._up_to == o
-
-    def __str__(self): return self._up_to
-
-    def enough(self, point: str) -> bool:
-        """Returns true if the internal up_to value is one of the valid values
-           at or after the point value; this indicates that enough
-           processing has been performed and the code should simply
-           proceed to exit.  If false, more processing was
-           requested.
-        """
-        pt = UpTo.valid_up_to.index(point)  # Throws a ValueError if point is not in the valid list
-        return UpTo.valid_up_to.index(self._up_to) >= pt
 
 
 def main() -> None:
