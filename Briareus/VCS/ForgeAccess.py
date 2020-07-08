@@ -1,32 +1,38 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
+from Briareus.Input.Description import *
+from typing import (List, Optional, Tuple, Type, TypeVar, Union)
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class RepoAPI_Location(object):
-    apiloc = attr.ib()   # HTTP API URL base used internally to get
-                         # information.  This may not yet be a valid
-                         # API reference because there is often path
-                         # or URL adjustments based on that, but this
-                         # should be an http reference to an API
-                         # server (e.g. a git forge) instead of an ssh
-                         # or http reference to a repository.
-    apitoken = attr.ib() # Token used to access the API URL (or None if no token)
+    apiloc: str   # HTTP API URL base used internally to get
+                  # information.  This may not yet be a valid API
+                  # reference because there is often path or URL
+                  # adjustments based on that, but this should be an
+                  # http reference to an API server (e.g. a git forge)
+                  # instead of an ssh or http reference to a
+                  # repository.
+    apitoken: Optional[str]  # Token used to access the API URL (or None if no token)
 
 
-def _remove_trailer(path, trailer):
+def _remove_trailer(path: str, trailer: str) -> str:
     trailer_len = len(trailer)
     return path[:-trailer_len] if path[-trailer_len:] == trailer else path
 
-def _changeloc(url, repolocs):
+
+def _changeloc(url: str,
+               repolocs: List[RepoLoc]) -> Union[str,  # changed
+                                                 Tuple[str, str, str]]: # unchanged
     parsed = urlparse(url)
     for each in repolocs:
         if parsed.netloc == each.repo_loc:
             return urlunparse(parsed._replace(netloc=each.api_host)), each.api_host, parsed.netloc
     return url, parsed.netloc, parsed.netloc
 
-def to_http_url(url, repolocs):
+
+def to_http_url(url: str, repolocs: List[RepoLoc]) -> RepoAPI_Location:
     """Converts git clone access specification
     (e.g. "git@foo.com:group/proj") to the corresponding HTTP forge
     reference RepoAPI_URL (e.g. "https://foo.com/group/proj").  Also
@@ -71,7 +77,9 @@ def to_http_url(url, repolocs):
 
     return RepoAPI_Location(returl, None)
 
-def to_access_url(url, for_repo, repolocs): # KWQ: use for_repo to get "git@" portion instead of https portion...
+def to_access_url(url: str,
+                  for_repo: RepoDesc,
+                  repolocs: List[RepoLoc]) -> str:  # KWQ: use for_repo to get "git@" portion instead of https portion...
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that
        an SSH deploy key is being used by the Builder (e.g. Hydra) to
@@ -100,9 +108,19 @@ def to_access_url(url, for_repo, repolocs): # KWQ: use for_repo to get "git@" po
     # so extract the hostname so that the same hostname can be used in
     # the input URL to ensure the same Builder's .ssh/config entry is
     # used.
+    #
+    # This is often called for URLs obtained from examining PR
+    # sources.  In this case, the URL references the source of the
+    # pull request, which is often a fork of the for_repo.  The
+    # for_repo may be accessed via SSH, but there is no way to
+    # determine whether the fork source needs to be translated or not,
+    # and if it does, what the proper translation is, since the forked
+    # repo will have its own deploy key and therefore a different ssh
+    # access entry.  Because of this ambiguity, the ssh translation is
+    # *only* done if the repository is the same (identical path portions).
 
     trimmed_url = _remove_trailer(for_repo.repo_url[len('git@'):], '.git')
-    ssh_host = trimmed_url.split(':')[0]
+    ssh_host, for_path = trimmed_url.split(':')
 
     # The input URL can be in http form or already in ssh form.
     if url.startswith("git@"):
@@ -113,5 +131,11 @@ def to_access_url(url, for_repo, repolocs): # KWQ: use for_repo to get "git@" po
         # portions of a git http URL.  Remove the initial slash on the
         # path part as well.
         url_path = parsed.path[1:]
+
+    if url_path != for_path:
+        # The input path does not match the for_path, so this is
+        # assumed to be a source repo for a PR; don't assume the
+        # ssh translation holds for it.
+        return url
 
     return "git@" + ssh_host + ":" + url_path

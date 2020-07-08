@@ -9,25 +9,32 @@ import logging
 from urllib.parse import urlparse, urlunparse
 from Briareus.VCS.InternalMessages import *
 from .ForgeAccess import *
-
+from typing import (Any, Dict, NoReturn, Optional, Tuple, Type, TypeVar, Union)
 
 LocalCachePeriod = datetime.timedelta(minutes=1, seconds=35)
 
 
+ResponseTy = Union[int,   # http error code, usually NotFound
+                   Dict[str,Any],   # if JSON, parsed into a python dict, OR
+                   List[Any],       # if JSON, parsed into a list
+                   str,   # if not JSON, return the text
+]
+
+
 class RemoteGit__Info(object):
     """Common functionality for remote Git retrieval (Github or Gitlab)."""
-    def __init__(self, api_url):
+    def __init__(self, api_url: str) -> None:
         self._url = api_url
         self._request_session = requests.Session()
-        self._rsp_cache = {}
-        self._rsp_fetched = {}
+        self._rsp_cache: Dict[str, Union[int, requests.Response]] = {}   # requrl:response
+        self._rsp_fetched: Dict[str, datetime.datetime] = {}  # requrl:fetch_time
         self._get_count = 0
         self._req_count = 0
         self._refresh_count = 0
 
     NotFound = 404
 
-    def stats(self):
+    def stats(self) -> Dict[str, Any]:
         return { "url": self._url,
                  "rsp_cache_keys": list(self._rsp_cache.keys()),
                  "get_info_reqs": self._get_count,
@@ -40,13 +47,13 @@ class RemoteGit__Info(object):
     trailer_len = len(trailer)
 
     @staticmethod
-    def repo_url(self, url):
+    def repo_url(self, url: str) -> str:
         "Drops any additional path elements beyond the first two: owner and repo"
         parsed = urlparse(url)
         return urlunparse(
             parsed._replace(path = '/'.join(parsed.path.split('/')[:3]) ))
 
-    def api_req(self, reqtype, notFoundOK=False, raw=False):
+    def api_req(self, reqtype: str, notFoundOK=False, raw=False) -> ResponseTy:
         self._get_count += 1
         if reqtype.startswith('//'):
             # Drop the owner/repo at the tail of the url
@@ -56,9 +63,11 @@ class RemoteGit__Info(object):
             req_url = self._url + reqtype
         return self._get_cached_links_pageable_url(req_url, notFoundOK=notFoundOK, raw=raw)
 
-    def _get_cached_links_pageable_url(self, req_url, notFoundOK, raw):
+    def _get_cached_links_pageable_url(self, req_url: str,
+                                       notFoundOK: bool,
+                                       raw: bool) -> ResponseTy:
         rsp = self._get_cached_url(req_url, notFoundOK=notFoundOK, raw=raw)
-        if rsp == self.NotFound:
+        if isinstance(rsp, int):
             return rsp
         if 'Link' not in rsp.headers or not rsp.links.get('next', None):
             return rsp.text if raw else rsp.json()
@@ -75,18 +84,20 @@ class RemoteGit__Info(object):
         # https://2.python-requests.org/en/master/user/advanced/#link-headers
         nextrsp = self._get_cached_links_pageable_url(rsp.links['next']['url'],
                                                       notFoundOK=notFoundOK, raw=raw)
+        if isinstance(nextrsp, int):
+            return nextrsp
         if raw:
+            assert isinstance(nextrsp, str)
             return rsp.text + nextrsp
         if isinstance(nextrsp, dict):
             nextrsp.update(rsp.json())
             return nextrsp
-        elif isinstance(nextrsp, list):
-            return rsp.json() + nextrsp
-        else:
-            logging.error('Unable to join nextrsp type %s to this response type %s',
-                          type(nextrsp), type(rsp.json()))
+        assert isinstance(nextrsp, list)
+        return rsp.json() + nextrsp
 
-    def _get_cached_url(self, req_url, notFoundOK, raw):
+    def _get_cached_url(self, req_url: str,
+                        notFoundOK: bool,
+                        raw: bool) -> Union[int, requests.Response]:
         last_one = self._rsp_cache.get(req_url, None)
         if last_one:
             # If fetched within the local cache period, just re-use
@@ -100,7 +111,8 @@ class RemoteGit__Info(object):
         # "Not Modified" or the new data (the 304 does not count
         # against the server's rate limit).
         hdrs = {}
-        if last_one and last_one != self.NotFound:
+        if last_one and last_one != self.NotFound and \
+           isinstance(last_one, requests.Response):
             if 'ETag' in last_one.headers:
                 hdrs = { "If-None-Match": last_one.headers['ETag'] }
             elif last_one and 'Last-Modified' in last_one.headers:
@@ -109,8 +121,8 @@ class RemoteGit__Info(object):
         rsp = self._request_session.get(req_url, headers = hdrs)
         if rsp.status_code == 304:  # Not Modified
             self._refresh_count += 1
-            rsp = self._rsp_cache[req_url]
             self._rsp_fetched[req_url] = datetime.datetime.now()
+            return self._rsp_cache[req_url]
         elif rsp.status_code == 200:
             self._rsp_cache[req_url] = rsp
             self._rsp_fetched[req_url] = datetime.datetime.now()
@@ -125,7 +137,9 @@ class RemoteGit__Info(object):
             rsp.raise_for_status()
         return rsp
 
-    def api_post(self, reqtype, data, notFoundOK=False):
+    def api_post(self, reqtype: str,
+                 data: object,
+                 notFoundOK=False) -> Union[int, requests.Response]:
         # POST operations are not cached
         req_url = self._url + reqtype
         rsp = self._request_session.post(req_url, json=data)
@@ -137,30 +151,51 @@ class RemoteGit__Info(object):
         rsp.raise_for_status()
         return rsp
 
-    def get_file_contents_raw(self, target_filepath, branch):
+    def get_file_contents_raw(self, target_filepath: str, branch: str) -> Union[int,str]:
         rsp = self._get_file_contents_info(target_filepath, branch)
-        if rsp != self.NotFound:
+        if isinstance(rsp, type(self.NotFound)):
+            return rsp
+        if isinstance(rsp, dict):
             if rsp['encoding'] != 'base64':
                 logging.error('Unknown encoding for %s, branch %s, repo %s: %s',
                               target_filepath, branch, self._url)
                 return self.NotFound
             return base64.b64decode(rsp['content']).decode('utf-8')
+        else:
+            assert isinstance(rsp, str)
         return rsp
 
-    def get_gitmodules(self, reponame, branch, pullreq_id):
+    def _get_file_contents_info(self, target_filepath: str, branch: str) -> ResponseTy:
+        raise NotImplementedError('Subclass %s must define _get_file_contents_info!' %
+                                  str(self.__class__.__name__))
+
+    def get_gitmodules(self, reponame: str,
+                       branch: str,
+                       pullreq_id: str) -> GitmodulesRepoVers:
         rsp = self.get_file_contents_raw('.gitmodules', branch)
-        if rsp == self.NotFound:
-            return GitmodulesRepoVers(reponame, branch, pullreq_id, [])
+        if isinstance(rsp, int):
+            if rsp == self.NotFound:
+                return GitmodulesRepoVers(reponame, branch, pullreq_id, [])
+            else:
+                raise RuntimeError('Got unexpected response to reading .gitmodules: %s' %
+                                   rsp)
         return self.parse_gitmodules_contents(reponame, branch, pullreq_id, rsp)
 
-    def parse_gitmodules_contents(self, reponame, branch, pullreq_id, gitmodules_contents):
+    def parse_gitmodules_contents(self, reponame:str,
+                                  branch: str,
+                                  pullreq_id: str,
+                                  gitmodules_contents: str) -> GitmodulesRepoVers:
         gitmod_cfg = configparser.ConfigParser()
         gitmod_cfg.read_string(gitmodules_contents)
         ret = []
         for remote in gitmod_cfg.sections():
             # Note: if the URL of a repo moves, need a new name for the moved location?  Or choose not to track these changes?
             submod_info = self._get_file_contents_info(gitmod_cfg[remote]['path'], branch)
-            if submod_info == self.NotFound:
+            if isinstance(submod_info, int):
+                if submod_info != self.NotFound:
+                    raise RuntimeError('Unexpected response getting submod ' +
+                                       gitmod_cfg[remote]['path'] + ' revision ' + branch +
+                                       ': ' + str(submod_info))
                 # Is the repo in .gitmodules valid?
                 valid_repo = self.api_req('', notFoundOK=True)
                 if valid_repo == self.NotFound:
@@ -189,8 +224,18 @@ class RemoteGit__Info(object):
                                            gitmod_cfg[remote]['url'],
                                            'unknownRemoteRefForPullReq'))
             else:
-                ret.append(self._subrepo_version(remote, gitmod_cfg[remote], submod_info))
+                assert not isinstance(submod_info, list)
+                srv = self._subrepo_version(remote, gitmod_cfg[remote], submod_info)
+                if srv:
+                    ret.append(srv)
         return GitmodulesRepoVers(reponame, branch, pullreq_id, ret)
+
+    def _subrepo_version(self,
+                         remote_name: str,
+                         remote_info: configparser.SectionProxy,
+                         remote_vers: Union[str, Dict[str,Any]]) -> Optional[SubRepoVers]:
+        raise NotImplementedError('Must subclass %s._subrepo_version for forge type.' %
+                                  self.__class__.__name__)
 
 
 # ----------------------------------------------------------------------
@@ -213,32 +258,35 @@ class GitLabInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, repo_api_location):
+    def __init__(self, repo_api_location: RepoAPI_Location) -> None:
         super(GitLabInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
         if repo_api_location.apitoken:
             self._request_session.headers.update({'Private-Token': repo_api_location.apitoken})
 
-    def get_api_url(self, url):
+    def get_api_url(self, url: str) -> str:
         parsed = urlparse(url)
         return urlunparse(
             parsed._replace(path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
 
 
-    def _src_repo_url(self, mergereq):
+    def _src_repo_url(self, mergereq: Dict[str, Any]) -> Union[str, int, Tuple[str, str]]:
         if 'source_project_url' in mergereq:
             return mergereq['source_project_url']
         # It's a source_project_id, but since it's on this gitlab
         # forge, it's in this repo as a local branch.  The proper URL
         # is not known here, only the forge API url, so defer the
         # actual URL to the caller who does have that information.
-        if mergereq.get('source_project_id', "no_spid") == mergereq.get('target_project_id', "no_tpid"):
+        if mergereq.get('source_project_id', "no_spid") == \
+           mergereq.get('target_project_id', "no_tpid"):
             return "SameProject"
-        rsp = self.api_req('//projects/%d' % mergereq.get('source_project_id', "no_spid"), notFoundOK=True)
-        if rsp == self.NotFound:
+        rsp = self.api_req('//projects/%d' % mergereq.get('source_project_id', "no_spid"),
+                           notFoundOK=True)
+        if isinstance(rsp, int):
             return rsp
-        return ("DifferentProject", rsp.name)
+        assert isinstance(rsp, dict)
+        return ("DifferentProject", rsp['name'])
 
-    def get_pullreqs(self, reponame):
+    def get_pullreqs(self, reponame: str) -> PullReqsData:
         rsp = self.api_req('/merge_requests?scope=all&state=all')
         # Gather {"upvotes": 0, "downvotes": 0, "approvals_before_merge": 0} for analysis phase
         # Use {"work_in_progress": true} to ignore the PR
@@ -246,6 +294,7 @@ class GitLabInfo(RemoteGit__Info):
 
         # n.b. GitLab pullreqs have an id and and iid.  The iid is the
         # one that is presented to the user on the Web page.
+        assert isinstance(rsp, list)
 
         preqs = []
         for pr in rsp:
@@ -275,6 +324,8 @@ class GitLabInfo(RemoteGit__Info):
                 src_repo_url = "SameProject"
                 src_branch = 'refs/merge-requests/' + str(pr["iid"]) + '/head'
 
+            assert isinstance(src_repo_url, str)
+
             prinfo = PullReqInfo(str(pr["iid"]),   # for user reference
                                  pullreq_status = { "closed": PRSts_Closed,
                                                     "merged": PRSts_Merged,
@@ -286,30 +337,32 @@ class GitLabInfo(RemoteGit__Info):
                                  pullreq_branch=src_branch,
                                  pullreq_ref=pr["sha"],
                                  pullreq_user=pr['author']['username'],
-                                 pullreq_email=self.get_user_email(pr['author']['id']),
+                                 pullreq_email=self.get_user_email(str(pr['author']['id'])),
                                  pullreq_mergeref=None)
             preqs.append(prinfo)
 
         return PullReqsData(reponame, preqs)
 
-    def get_user_email(self, userid):
-        userinfo = self.api_req('//users/' + str(userid), notFoundOK=True)
+    def get_user_email(self, userid: str) -> str:
+        userinfo = self.api_req('//users/' + userid, notFoundOK=True)
         if userinfo == self.NotFound:
             return ''
+        assert isinstance(userinfo, dict)
         return userinfo['public_email']
 
-    def get_branches(self):
+    def get_branches(self) -> List[Dict[str,str]]:
         r = self.api_req('/repository/branches')
+        assert isinstance(r, list)
         return [ dict([('name', e['name']),
                        ('ref', e['commit']['id']),
                       ])
                  for e in r ]
 
-    def _get_file_contents_info(self, target_filepath, branch):
+    def _get_file_contents_info(self, target_filepath: str, branch: str) -> ResponseTy:
         return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '?ref=' + branch)
 
-    def get_file_contents_raw(self, target_filepath, branch):
-        return self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch,
+    def get_file_contents_raw(self, target_filepath: str, branch: str) -> Union[int,str]:
+        rsp = self.api_req('/repository/files/' + target_filepath.replace('/', '%2F') + '/raw?ref=' + branch,
                             # Sometimes this cannot be accessed, and
                             # the higher levels handle this.  This
                             # will frequently happen when someone
@@ -318,13 +371,25 @@ class GitLabInfo(RemoteGit__Info):
                             # user's fork doesn't propagate the PAT.
                             notFoundOK=True,
                             raw=True)
+        assert isinstance(rsp, (int,str))
+        return rsp
 
-    def _subrepo_version(self, remote_name, remote_info, submod_info):
-        return SubRepoVers(submod_info['file_name'],
-                           remote_info['url'],
-                           submod_info['blob_id'])
+    def _subrepo_version(self, remote_name: str,
+                         remote_info: configparser.SectionProxy,
+                         submod_info: Union[str, Dict[str,Any]]) -> Optional[SubRepoVers]:
+        if isinstance(submod_info, dict):
+            return SubRepoVers(submod_info['file_name'],
+                               remote_info['url'],
+                               submod_info['blob_id'])
+        else:
+            raise RuntimeError('Gitlab._subrepoversion submod_info should be str'
+                               ', got %s :: %s' % (str(submod_info), type(submod_info)))
 
-    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+    def set_commit_status(self, sts: str,
+                          desc: str,
+                          commitref: str,
+                          url: str = '',
+                          context_ref: str = '') -> Union[int, requests.Response]:
         """Posts a status to the commit (usually shown on the pull request/
            merge request page.  The sts should be one of "pending",
            "running", "success", "canceled", or "failed".  The desc is
@@ -376,13 +441,13 @@ class GitHubInfo(RemoteGit__Info):
        this object does not maintain a "name" for the repo because
        several projects may share the same repo.
     """
-    def __init__(self, repo_api_location):
+    def __init__(self, repo_api_location: RepoAPI_Location):
         super(GitHubInfo, self).__init__(self.get_api_url(repo_api_location.apiloc))
         if repo_api_location.apitoken:
             self._request_session.auth = requests.auth.HTTPBasicAuth(
                 *tuple(repo_api_location.apitoken.split(':')))
 
-    def get_api_url(self, url):
+    def get_api_url(self, url: str) -> str:
         """Converts a remote repository URL into a form that is useable for
            the Github API (https://developer.github.com/v3) to allow
            API-related requests.
@@ -394,11 +459,12 @@ class GitHubInfo(RemoteGit__Info):
                                 path = 'repos' + parsed.path))
         raise RuntimeError("No API URL parsing for: %s [ %s ]" % (url, str(parsed)))
 
-    def get_pullreqs(self, reponame):
+    def get_pullreqs(self, reponame: str) -> PullReqsData:
         # Need closed PR's as well as open: when a PR is closed or
         # merged, master should be used instead of that branch in
         # conjunction with identical branch open PR's in other repos.
         rsp = self.api_req('/pulls?state=all')
+        assert isinstance(rsp, list)
         # May want to echo either ["number"] or ["title"]
         # ["base"]["ref"] is the fork point the pull req is related to (e.g. matterhorn "develop")  # constrains merge command, but not build config...
         # ["head"]["repo"]["url"] is the github repo url for the source repo of the PR
@@ -418,32 +484,43 @@ class GitHubInfo(RemoteGit__Info):
                   for pr in rsp ]
         return PullReqsData(reponame, preqs)
 
-    def get_user_email(self, username):
+    def get_user_email(self, username: str) -> str:
         userinfo = self.api_req('//user/' + username, notFoundOK=True)
         if userinfo == self.NotFound:
             return ''
+        assert isinstance(userinfo, dict)
         return userinfo['email'] or ''
 
-    def get_branches(self):
+    def get_branches(self) -> List[Dict[str,str]]:
         r = self.api_req('/branches')
+        assert isinstance(r, list)
         return [ dict([('name', e['name']),
                        ('ref', e['commit']['sha']),
                       ])
                  for e in r ]
 
-    def _get_file_contents_info(self, target_filepath, branch):
+    def _get_file_contents_info(self, target_filepath: str, branch: str) -> ResponseTy:
         return self.api_req('/contents/' + target_filepath + '?ref=' + branch, notFoundOK=True)
 
-    def _subrepo_version(self, remote_name, remote_info, submod_info):
+    def _subrepo_version(self, remote_name: str,
+                         remote_info: configparser.SectionProxy,
+                         submod_info: Union[str, Dict[str,Any]]) -> Optional[SubRepoVers]:
+        if not isinstance(submod_info, dict):
+            raise RuntimeError('GitHubInfo._subrepo_version must get dict submod_info'
+                               ', not: %s :: %s' % (str(submod_info), type(submod_info)))
         if submod_info['type'] != 'submodule':
             logging.warning('Found %s at %s, but expected a submodule',
-                            submod_info['type'], gitmod_cfg[remote]['path'])
+                            submod_info['type'], remote_name)
             return None # ignore this submodule entry
         return SubRepoVers(submod_info['name'],
                            submod_info['submodule_git_url'],
                            submod_info['sha'])
 
-    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+    def set_commit_status(self, sts: str,
+                          desc: str,
+                          commitref: str,
+                          url: str = '',
+                          context_ref: str = '') -> Union[int, requests.Response]:
         """Posts a status to the commit (usually shown on the pull request/
            merge request page.  The sts should be one of "pending",
            "success", or "failure".  The desc is a short description
@@ -464,4 +541,3 @@ class GitHubInfo(RemoteGit__Info):
                              },
                              # Allow 404: means no permissions to set a status, so don't retry
                              notFoundOK=True)
-
