@@ -97,6 +97,6 @@ class ForgeStatusResults(object):
     succeeded: bool
     project: str
     rev: str     # target VCS revision hash string
-    projrepos: List[UserURL] # repo for which these results were set
+    projrepos: List[str] # repo for which these results were set
     status: str  # posted status (string)
     message: str # on failure

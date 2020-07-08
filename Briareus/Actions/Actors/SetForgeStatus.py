@@ -12,6 +12,17 @@ from typing import List, Tuple
 NUM_RECENT_RESULTS=100  # maximum number of results of set operations to store
 
 
+@attr.s(auto_attribs=True)
+class SetterArgs(object):
+    loc: RepoAPI_Location
+    rev: str
+    sts: str
+    desc: str
+    stsurl: str
+    project: UserURL
+    stsrepos: List[str]
+
+
 class SetForgeStatus(ActorTypeDispatcher):
     """Actor to perform asynchronous parallel updates of the status of a
        commit (usually a Pull Request/Merge Request) to a specified
@@ -94,10 +105,10 @@ class SetForgeStatus(ActorTypeDispatcher):
             if not self._setter:
                 self._setter = self.createActor(SetStatusActor)
             for loc,rev in url_and_rev:
-                self.send(self._setter, (loc, rev,
-                                         envelope.sts, envelope.desc,
-                                         envelope.stsurl, envelope.project,
-                                         url_and_rev[(loc,rev)]))
+                self.send(self._setter, SetterArgs(loc, rev,
+                                                   envelope.sts, envelope.desc,
+                                                   envelope.stsurl, envelope.project,
+                                                   url_and_rev[(loc,rev)]))
                 done.extend(url_and_rev[(loc,rev)])
 
         self.send(sender, fmtReply(Posted(envelope, done)))
@@ -115,20 +126,19 @@ class SetForgeStatus(ActorTypeDispatcher):
 
 @troupe()
 class SetStatusActor(ActorTypeDispatcher):
-    def receiveMsg_tuple(self,
-                         msg: Tuple[RepoAPI_Location,str,str,str,str,str,List[UserURL]],
-                         sender) -> None:
-        loc, rev, sts, desc, stsurl, project, stsrepos = msg
-        forge_sts = GitForgeStatus(loc)
+    def receiveMsg_SetterArgs(self, msg: SetterArgs, sender) -> None:
+        forge_sts = GitForgeStatus(msg.loc)
         try:
-            logging.debug('*** forge(%s, %s, %s, %s, %s, %s)',sts,desc,rev,stsurl,project,stsrepos)
-            res,message = forge_sts.set_commit_sts(sts, desc, rev, stsurl, project)
+            logging.debug('*** forge(%s, %s, %s, %s, %s, %s)',
+                          msg.sts, msg.desc, msg.rev, msg.stsurl,
+                          msg.project, msg.stsrepos)
+            res,message = forge_sts.set_commit_sts(msg.sts, msg.desc, msg.rev, msg.stsurl, msg.project)
         except Exception as ex:
-            logging.error('posting forge status to %s: %s', str(loc), str(ex))
+            logging.error('posting forge status to %s: %s', str(msg.loc), str(ex))
             res = False
             message = str(ex)
         self.send(sender,
-                  ForgeStatusResults(res is True, project, rev, stsrepos, sts, message))
+                  ForgeStatusResults(res is True, msg.project, msg.rev, msg.stsrepos, msg.sts, message))
 
 
 class GitForgeStatus(object):
