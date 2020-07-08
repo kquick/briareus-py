@@ -1,7 +1,6 @@
 from Briareus.Input.Operations import input_desc_and_VCS_info
 import Briareus.VCS.GitForge
 from test_example import expected_repo_info
-import base64
 import json
 import pytest
 from unittest.mock import patch
@@ -10,7 +9,9 @@ from FakeForge import (fake_forge, get_github_api_url_local,
                        github_gitmodules_contents,
                        github_submodule_contents,
                        github_branch,
-                       gitlab_branch)
+                       gitlab_branch,
+                       github_pullreq,
+                       github_user)
 
 
 input_spec = open('test/inp_example').read()
@@ -30,7 +31,7 @@ def test_gitinfo(get_hub_api_url, actor_system, fake_forge):
     assert repo_info == expected_repo_info
 
 
-r1_gitmodules_master = base64.b64encode(b'''[submodule "r2_submod"]
+r1_gitmodules_master = b'''[submodule "r2_submod"]
 	path = sub/r2
 	url = https://github.com/r2_url
 [submodule "r3-submod"]
@@ -39,10 +40,10 @@ r1_gitmodules_master = base64.b64encode(b'''[submodule "r2_submod"]
 [submodule "r4-sub"]
 	path = deps/r4
 	url = https://github.com/r4_url
-''').decode('utf-8')
+'''
 
 
-r1_gitmodules_blah = base64.b64encode(b'''[submodule "r2_submod"]
+r1_gitmodules_blah = b'''[submodule "r2_submod"]
 	path = sub/r2
 	url = https://github.com/r2_url
 [submodule "r3-submod"]
@@ -51,13 +52,13 @@ r1_gitmodules_blah = base64.b64encode(b'''[submodule "r2_submod"]
 [submodule "r7-sub"]
 	path = deps/r7
 	url = https://github.com/r7_url
-''').decode('utf-8')
+'''
 
 
 r1_gitmodules_feat1 = r1_gitmodules_master
 
 
-r2_gitmodules_master = base64.b64encode(b'''[submodule "r3_sub"]
+r2_gitmodules_master = b'''[submodule "r3_sub"]
 	path = sub/r3
 	url = https://github.com/r3_url
 [submodule "r5-submod"]
@@ -66,7 +67,7 @@ r2_gitmodules_master = base64.b64encode(b'''[submodule "r3_sub"]
 [submodule "r4-sub"]
 	path = deps/r4
 	url = https://github.com/r4_url
-''').decode('utf-8')
+'''
 
 
 r10_gitmodules_master = b'''[submodule "r3-submod"]
@@ -325,356 +326,16 @@ forge_responses = {
 
     ## R2 pulls
 
-    '/repos/r2_url/pulls?state=all': b'''
-[
-  {
-    "url": "https://github.com/r2_url/pulls/23",
-    "id": 365427239,
-    "node_id": "MDExOlB1bGxSZXF1ZXN0MzY1NDI3MjM5",
-    "html_url": "https://localhost/r2_url/pull/23",
-    "diff_url": "https://localhost/r2_url/pull/23.diff",
-    "patch_url": "https://localhost/r2_url/pull/23.patch",
-    "issue_url": "https://github.com/r2_url/issues/23",
-    "number": 23,
-    "state": "open",
-    "locked": false,
-    "title": "add fantasticness",
-    "user": {
-      "login": "banana",
-      "id": 553,
-      "type": "User",
-      "site_admin": false
-    },
-    "body": "",
-    "created_at": "2020-01-21T17:35:14Z",
-    "updated_at": "2020-01-26T23:35:44Z",
-    "closed_at": null,
-    "merged_at": null,
-    "merge_commit_sha": "r2_bugfix9_merge_commit_ref",
-    "assignee": null,
-    "assignees": [
-
-    ],
-    "requested_reviewers": [
-
-    ],
-    "requested_teams": [
-
-    ],
-    "labels": [
-
-    ],
-    "milestone": null,
-    "draft": false,
-    "commits_url": "https://github.com/r2_url/pulls/23/commits",
-    "review_comments_url": "https://github.com/r2_url/pulls/23/comments",
-    "review_comment_url": "https://github.com/r2_url/pulls/comments{/number}",
-    "comments_url": "https://github.com/r2_url/issues/23/comments",
-    "statuses_url": "https://github.com/r2_url/statuses/bugfix9_mergeref",
-    "head": {
-      "label": "r2_repo:bugfix9",
-      "ref": "bugfix9",
-      "sha": "r2_b9_mergeref",
-      "user": {
-        "login": "banana",
-        "id": 554,
-        "type": "User",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 235401723,
-        "name": "r2_repo",
-        "full_name": "proj_repo/r2_repo",
-        "private": false,
-        "owner": {
-          "login": "alfred",
-          "id": 55,
-          "type": "User",
-          "site_admin": false
-        },
-        "html_url": "https://github.com/remote_r2_a",
-        "description": "r2 repo",
-        "fork": false,
-        "created_at": "2020-01-21T17:32:49Z",
-        "updated_at": "2020-01-21T17:37:42Z",
-        "pushed_at": "2020-01-26T23:35:45Z",
-        "homepage": null,
-        "size": 3,
-        "stargazers_count": 0,
-        "watchers_count": 0,
-        "language": null,
-        "has_issues": false,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 0,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 1,
-        "license": null,
-        "forks": 0,
-        "open_issues": 1,
-        "watchers": 0,
-        "default_branch": "master"
-      }
-    },
-    "base": {
-      "label": "r2_repo:master",
-      "ref": "master",
-      "sha": "r2_master_ref",
-      "user": {
-        "login": "alfred",
-        "id": 55,
-        "type": "User",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 235401723,
-        "name": "r2_repo",
-        "full_name": "proj_name/r2_repo",
-        "private": false,
-        "owner": {
-          "login": "alfred",
-          "id": 55,
-          "type": "User",
-          "site_admin": false
-        },
-        "html_url": "https://localhost/r2_url",
-        "description": "r2 repo",
-        "fork": false,
-        "url": "https://github.com/r2_url",
-        "created_at": "2020-01-21T17:32:49Z",
-        "updated_at": "2020-01-21T17:37:42Z",
-        "pushed_at": "2020-01-26T23:35:45Z",
-        "homepage": null,
-        "size": 3,
-        "stargazers_count": 0,
-        "watchers_count": 0,
-        "language": null,
-        "has_issues": false,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 0,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 1,
-        "license": null,
-        "forks": 0,
-        "open_issues": 1,
-        "watchers": 0,
-        "default_branch": "master"
-      }
-    },
-    "_links": {
-      "self": {
-        "href": "https://github.com/r2_url/pulls/23"
-      },
-      "html": {
-        "href": "https://localhost/r2_url/pull/23"
-      },
-      "issue": {
-        "href": "https://github.com/r2_url/issues/23"
-      },
-      "comments": {
-        "href": "https://github.com/r2_url/issues/23/comments"
-      },
-      "review_comments": {
-        "href": "https://github.com/r2_url/pulls/23/comments"
-      },
-      "review_comment": {
-        "href": "https://github.com/r2_url/pulls/comments{/number}"
-      },
-      "commits": {
-        "href": "https://github.com/r2_url/pulls/23/commits"
-      },
-      "statuses": {
-        "href": "https://github.com/r2_url/statuses/bugfix9_mergeref"
-      }
-    },
-    "author_association": "OWNER",
-    "active_lock_reason": null
-  },
-
-
-  {
-    "url": "https://github.com/r2_url/pulls/1111",
-    "id": 36542711119,
-    "node_id": "MDExOlB1bGxSZXF1ZXN0MzY1NDI3MjM5",
-    "html_url": "https://localhost/r2_url/pull/1111",
-    "diff_url": "https://localhost/r2_url/pull/1111.diff",
-    "patch_url": "https://localhost/r2_url/pull/1111.patch",
-    "issue_url": "https://github.com/r2_url/issues/1111",
-    "number": 1111,
-    "state": "open",
-    "locked": false,
-    "title": "blah also",
-    "user": {
-      "login": "not_nick",
-      "id": 554,
-      "type": "User",
-      "site_admin": false
-    },
-    "body": "",
-    "created_at": "2020-01-21T17:35:14Z",
-    "updated_at": "2020-01-26T1111:35:44Z",
-    "closed_at": null,
-    "merged_at": null,
-    "merge_commit_sha": "r2_blah_merge_commit_ref",
-    "assignee": null,
-    "assignees": [
-
-    ],
-    "requested_reviewers": [
-
-    ],
-    "requested_teams": [
-
-    ],
-    "labels": [
-
-    ],
-    "milestone": null,
-    "draft": false,
-    "commits_url": "https://github.com/r2_url/pulls/1111/commits",
-    "review_comments_url": "https://github.com/r2_url/pulls/1111/comments",
-    "review_comment_url": "https://github.com/r2_url/pulls/comments{/number}",
-    "comments_url": "https://github.com/r2_url/issues/1111/comments",
-    "statuses_url": "https://github.com/r2_url/statuses/blah_mergeref",
-    "head": {
-      "label": "r2_repo:blah",
-      "ref": "blah",
-      "sha": "r2_blah_mergeref",
-      "user": {
-        "login": "not_nick",
-        "id": 554,
-        "type": "User",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 1111540171111,
-        "name": "r2_repo",
-        "full_name": "proj_repo/r2_repo",
-        "private": false,
-        "owner": {
-          "login": "alfred",
-          "id": 55,
-          "type": "User",
-          "site_admin": false
-        },
-        "html_url": "https://github.com/remote_r2_pr1111_url",
-        "description": "r2 repo",
-        "fork": false,
-        "created_at": "2020-01-21T17:32:49Z",
-        "updated_at": "2020-01-21T17:37:42Z",
-        "pushed_at": "2020-01-26T23:35:45Z",
-        "homepage": null,
-        "size": 3,
-        "stargazers_count": 0,
-        "watchers_count": 0,
-        "language": null,
-        "has_issues": false,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 0,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 1,
-        "license": null,
-        "forks": 0,
-        "open_issues": 1,
-        "watchers": 0,
-        "default_branch": "master"
-      }
-    },
-    "base": {
-      "label": "r2_repo:master",
-      "ref": "master",
-      "sha": "r2_master_ref",
-      "user": {
-        "login": "alfred",
-        "id": 55,
-        "type": "User",
-        "site_admin": false
-      },
-      "repo": {
-        "id": 1111540171111,
-        "name": "r2_repo",
-        "full_name": "proj_name/r2_repo",
-        "private": false,
-        "owner": {
-          "login": "alfred",
-          "id": 55,
-          "type": "User",
-          "site_admin": false
-        },
-        "html_url": "https://localhost/r2_url",
-        "description": "r2 repo",
-        "fork": false,
-        "url": "https://github.com/r2_url",
-        "created_at": "2020-01-21T17:32:49Z",
-        "updated_at": "2020-01-21T17:37:42Z",
-        "pushed_at": "2020-01-26T23:35:45Z",
-        "homepage": null,
-        "size": 3,
-        "stargazers_count": 0,
-        "watchers_count": 0,
-        "language": null,
-        "has_issues": false,
-        "has_projects": true,
-        "has_downloads": true,
-        "has_wiki": true,
-        "has_pages": false,
-        "forks_count": 0,
-        "mirror_url": null,
-        "archived": false,
-        "disabled": false,
-        "open_issues_count": 1,
-        "license": null,
-        "forks": 0,
-        "open_issues": 1,
-        "watchers": 0,
-        "default_branch": "master"
-      }
-    },
-    "_links": {
-      "self": {
-        "href": "https://github.com/r2_url/pulls/1111"
-      },
-      "html": {
-        "href": "https://localhost/r2_url/pull/1111"
-      },
-      "issue": {
-        "href": "https://github.com/r2_url/issues/1111"
-      },
-      "comments": {
-        "href": "https://github.com/r2_url/issues/1111/comments"
-      },
-      "review_comments": {
-        "href": "https://github.com/r2_url/pulls/1111/comments"
-      },
-      "review_comment": {
-        "href": "https://github.com/r2_url/pulls/comments{/number}"
-      },
-      "commits": {
-        "href": "https://github.com/r2_url/pulls/1111/commits"
-      },
-      "statuses": {
-        "href": "https://github.com/r2_url/statuses/blah_mergeref"
-      }
-    },
-    "author_association": "OWNER",
-    "active_lock_reason": null
-  }
-]
-    ''',
+    '/repos/r2_url/pulls?state=all': json.dumps([
+        github_pullreq('https://github.com/r2_url', '23', 'bugfix9',
+                       'r2_b9_mergeref', 'add fantasticness',
+                       'https://github.com/remote_r2_a',
+                       'banana', 553),
+        github_pullreq('https://github.com/r2_url', '1111', 'blah',
+                       'r2_blah_mergeref', 'blah also',
+                       'https://github.com/remote_r2_pr1111_url',
+                       'not_nick', 554),
+    ]).encode('utf-8'),
 
 
     ## R3 pulls
@@ -1579,170 +1240,32 @@ forge_responses = {
     # ############################################################
 
 
-    '/users/nick' : b'''
-{
-  "login": "nick",
-  "id": 555,
-  "node_id": "MDQ555Nl0jc4NzQyMQ==",
-  "url": "https://github.com/r1_url/users/nick",
-  "html_url": "https://localhost/nick",
-  "type": "User",
-  "site_admin": false,
-  "name": "Nick",
-  "company": "@bad.seeds",
-  "blog": "",
-  "location": "Some, Where",
-  "email": "nick@bad.seeds",
-  "hireable": null,
-  "bio": null,
-  "twitter_username": null,
-  "public_repos": 54,
-  "public_gists": 22,
-  "followers": 24,
-  "following": 3,
-  "created_at": "2011-05-14T06:20:56Z",
-  "updated_at": "2020-05-21T14:26:57Z"
-}
-    ''',
+    '/users/nick' : github_user('https://github.com/r1_url',
+                                'nick', 555, 'nick@bad.seeds'),
 
-    '/users/not_nick' : b'''
-{
-  "login": "not_nick",
-  "id": 554,
-  "node_id": "MDQ55wjkcjc4NzQyMQ==",
-  "url": "https://github.com/r1_url/users/not_nick",
-  "html_url": "https://localhost/not_nick",
-  "type": "User",
-  "site_admin": false,
-  "name": "Not Nick",
-  "company": "@bad.seeds",
-  "blog": "",
-  "location": "Some, Where",
-  "email": "not_nick@bad.seeds",
-  "hireable": null,
-  "bio": null,
-  "twitter_username": null,
-  "public_repos": 54,
-  "public_gists": 22,
-  "followers": 24,
-  "following": 3,
-  "created_at": "2011-05-14T06:20:56Z",
-  "updated_at": "2020-05-21T14:26:57Z"
-}
-    ''',
+    '/users/not_nick' : github_user('https://github.com/r1_url',
+                                    'not_nick', 554, 'not_nick@bad.seeds'),
 
-    '/users/banana' : b'''
-{
-  "login": "banana",
-  "id": 553,
-  "node_id": "MDQ55wjkcjc4NzQyMQ==",
-  "url": "https://github.com/r1_url/users/banana",
-  "html_url": "https://localhost/banana",
-  "type": "User",
-  "site_admin": false,
-  "name": "Banana",
-  "company": "@plantation",
-  "blog": "",
-  "location": "Plantation, Jamaica",
-  "email": null,
-  "hireable": null,
-  "bio": null,
-  "twitter_username": null,
-  "public_repos": 54,
-  "public_gists": 22,
-  "followers": 24,
-  "following": 3,
-  "created_at": "2011-05-14T06:20:56Z",
-  "updated_at": "2020-05-21T14:26:57Z"
-}
-    ''',
+    '/users/banana' : github_user('https://github.com/r1_url', 'banana', 553),
 
-    '/users/done' : b'''
-{
-  "login": "done",
-  "id": 552,
-  "node_id": "MDQ55wjkcjc4NzQyMQ==",
-  "url": "https://github.com/r1_url/users/done",
-  "html_url": "https://localhost/done",
-  "type": "User",
-  "site_admin": false,
-  "name": "Done",
-  "company": "@already",
-  "blog": "",
-  "location": "finished, complete",
-  "email": "done@already.yo",
-  "hireable": null,
-  "bio": null,
-  "twitter_username": null,
-  "public_repos": 54,
-  "public_gists": 22,
-  "followers": 24,
-  "following": 3,
-  "created_at": "2011-05-14T06:20:56Z",
-  "updated_at": "2020-05-21T14:26:57Z"
-}
-    ''',
+    '/users/done' : github_user('https://github.com/r1_url',
+                                'done', 552, 'done@already.yo'),
 
-    '/users/ozzie' : b'''
-{
-  "login": "ozzie",
-  "id": 559,
-  "node_id": "MDQ55wjkcjc4NzQyMQ==",
-  "url": "https://github.com/r1_url/users/ozzie",
-  "html_url": "https://localhost/ozzie",
-  "type": "User",
-  "site_admin": false,
-  "name": "Ozzie",
-  "company": "@crazy",
-  "blog": "",
-  "location": "Crazy",
-  "email": "ozzie@crazy.train",
-  "hireable": null,
-  "bio": null,
-  "twitter_username": null,
-  "public_repos": 54,
-  "public_gists": 22,
-  "followers": 24,
-  "following": 3,
-  "created_at": "2011-05-14T06:20:56Z",
-  "updated_at": "2020-05-21T14:26:57Z"
-}
-    ''',
+    '/users/ozzie' : github_user('https://github.com/r1_url',
+                                 'ozzie', 559, 'ozzie@crazy.train'),
 
 
 
     # ############################################################
 
 
-    '/repos/r1_url/contents/.gitmodules?ref=master' : json.dumps(
-        {
-            "name": ".gitmodules",
-            "path": ".gitmodules",
-            "sha": "9ec4b3415097850f9f9ec3fa50cb03367c473c34",
-            "size": len(r1_gitmodules_master),
-            "url": "https://api.github.com/repos/r1_repo/contents/.gitmodules?ref=master",
-            "html_url": "https://github.com/r1_repo/blob/master/.gitmodules",
-            "git_url": "https://api.github.com/repos/r1_repo/git/blobs/9ec4b3415097850f9f9ec3fa50cb03367c473c34",
-            "download_url": "https://raw.githubusercontent.com/r1_repo/master/.gitmodules",
-            "type": "file",
-            "encoding": "base64",
-            "content": r1_gitmodules_master,
-        }).encode('utf-8'),
+    '/repos/r1_url/contents/.gitmodules?ref=master' :
+    github_gitmodules_contents('https://github.com/r1_repo', 'master',
+                               r1_gitmodules_master),
 
-    '/repos/remote_R1_b/contents/.gitmodules?ref=blah' : json.dumps(
-        {
-            "name": ".gitmodules",
-            "path": ".gitmodules",
-            "sha": "9ec4b3415097850f9f9ec3fa50cb03367c473c35",
-            "size": len(r1_gitmodules_blah),
-            "url": "https://api.github.com/repos/r1_repo/contents/.gitmodules?ref=blah",
-            "html_url": "https://github.com/r1_repo/blob/blah/.gitmodules",
-            "git_url": "https://api.github.com/repos/r1_repo/git/blobs/9ec4b3415097850f9f9ec3fa50cb03367c473c35",
-            "download_url": "https://raw.githubusercontent.com/r1_repo/blah/.gitmodules",
-            "type": "file",
-            "encoding": "base64",
-            "content": r1_gitmodules_blah,
-        }).encode('utf-8'),
+    '/repos/remote_R1_b/contents/.gitmodules?ref=blah' :
+    github_gitmodules_contents('https://github.com/remote_R1_b', 'blah',
+                               r1_gitmodules_blah),
 
     '/repos/r1_url/contents/.gitmodules?ref=feat1' :
         github_gitmodules_contents('https://github.com/r1_repo', 'feat1',
