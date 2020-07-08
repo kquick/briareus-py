@@ -123,7 +123,7 @@ def run_hh_gen(params: Params,
     if params.up_to and not params.up_to.enough('builder_configs'):
         return config_results
     assert isinstance(config_results, tuple)
-    # assert isinstance(config_results[0], BCGen.BuilderConfigsTy)
+    # assert isinstance(config_results[0], dict) # BuildSys.BuilderConfigsTy
     # assert isinstance(config_results[1], BCGen.GeneratedConfigs)
 
     builder_cfgs, build_cfgs = config_results
@@ -212,8 +212,8 @@ def run_hh_gen_on_inpfile(inp_fname: str,
     params.timing_info('Writing outputs (%s)' % outfname)
     writings = FileWriterSession(params.tempdir or os.path.dirname(outfname))
 
-    assert isinstance(r, tuple)  # Tuple[RunContext, BCGen.BuilderConfigsTy]
-    assert isinstance(r[1], BCGen.BuilderConfigsTy)
+    assert isinstance(r, tuple)  # Tuple[RunContext, BuildSys.BuilderConfigsTy]
+    assert isinstance(r[1], dict)  # BuildSys.BuilderConfigsTy
     bldrcfgs = r[1]
     for fname in bldrcfgs:
         if fname:
