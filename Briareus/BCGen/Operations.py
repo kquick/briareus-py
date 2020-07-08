@@ -2,17 +2,29 @@
 # specifications and repository information.
 
 from Briareus import print_each
+from Briareus.Types import UpTo
+from Briareus.VCS_API import RepoInfoTy
+from Briareus.Input.Description import InputDesc
+from Briareus.BuildSys.BuilderBase import BuilderConfigsTy, Builder
 import Briareus.Input.Parser as Parser
 import Briareus.BCGen.Generator as Generator
+from typing import Tuple
+
 
 class BCGen(object):
-    def __init__(self, bldsys, actor_system=None, verbose=False, up_to=None):
+    def __init__(self, bldsys: Builder,
+                 actor_system=None,
+                 verbose: bool = False,
+                 up_to: UpTo = None) -> None:
         self._bldsys = bldsys
         self._actor_system = actor_system
         self.verbose = verbose
         self._up_to = up_to  # None or UpTo
 
-    def generate(self, input_desc, repo_info, bldcfg_fname=None):
+    def generate(self, input_desc: InputDesc,
+                 repo_info: RepoInfoTy,
+                 bldcfg_fname: str = None) -> Tuple[BuilderConfigsTy,
+                                                    Generator.GeneratedConfigs]:
         gen = Generator.Generator(actor_system=self._actor_system,
                                   verbose=self.verbose)
         (rtype, cfgs) = gen.generate_build_configs(input_desc, repo_info,

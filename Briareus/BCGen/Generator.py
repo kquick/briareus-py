@@ -1,17 +1,20 @@
 # Core BCGen functionality to process input specification into build configurations
 
 from Briareus import print_titled, print_each
-from Briareus.Types import logic_result_expr
+from Briareus.Types import logic_result_expr, BldConfig
+from Briareus.VCS_API import PRInfo
+from Briareus.Input.Description import RepoDesc
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 from Briareus.Logic.InpFacts import get_input_facts
 import attr
+from typing import List, Set
 
 
-@attr.s(frozen=True)
+@attr.s(auto_attribs=True, frozen=True)
 class GeneratedConfigs(object):
-    cfg_build_configs = attr.ib()  # This is a list of InpFacts BldConfig objects
-    cfg_subrepos = attr.ib(factory=set)  # repo_info['subrepos']
-    cfg_pullreqs = attr.ib(factory=set)  # repo_info['pullreqs']
+    cfg_build_configs: List[BldConfig] = attr.ib()  # This is a list of InpFacts BldConfig objects
+    cfg_subrepos: Set[RepoDesc] = attr.ib(factory=set)  # repo_info['subrepos']
+    cfg_pullreqs: Set[PRInfo] = attr.ib(factory=set)  # repo_info['pullreqs']
 
 
 class Generator(object):
