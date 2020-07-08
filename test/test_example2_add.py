@@ -31,9 +31,9 @@ expected_repo_info = {
     ]),
     'pullreqs': set([]),
     'subrepos': set([
-        RepoDesc(repo_name='Repo2', repo_url='r2_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='Repo3', repo_url='r3_url', main_branch='master', project_repo=False),
-        RepoDesc(repo_name='Repo4', repo_url='r4_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo2', repo_url='https://github.com/r2_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo3', repo_url='https://gitlab.com/r3_url', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='Repo4', repo_url='https://github.com/r4_url', main_branch='master', project_repo=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='Repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='Repo2', sm_sub_vers='r2_master_head'),

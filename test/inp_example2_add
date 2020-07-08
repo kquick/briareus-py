@@ -1,8 +1,8 @@
 {
-  "Repos" : [ ("Repo1", "r1_url"),
-              ("RAdd1", "ra1_url"),
-              ("Repo3", "r3_url"),
-              ("RAdd2", "ra2_url"),
+  "Repos" : [ ("Repo1", "https://github.com/r1_url"),
+              ("RAdd1", "https://github.com/ra1_url"),
+              ("Repo3", "https://gitlab.com/r3_url"),
+              ("RAdd2", "https://github.com/ra2_url"),
             ]
 , "Name": "alt-proj"
 , "Branches" : [ "master" ]
