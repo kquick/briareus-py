@@ -21,7 +21,7 @@ import functools
 from Briareus import print_each, print_titled
 from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary, ResultSet
 from Briareus.Logic.InpFacts import get_input_facts
-from Briareus.VCS.InternalMessages import (PRSts_New, PRSts_Active)
+from Briareus.VCS.InternalMessages import PRSts_Active
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
 
@@ -49,7 +49,7 @@ class AnaRep(object):
             subrepo_count = sum([len(e.build_cfgs.cfg_subrepos) for e in result_sets]),
             pullreq_count = sum([len([p
                                       for p in e.build_cfgs.cfg_pullreqs
-                                      if isinstance(p.pr_status, (PRSts_New, PRSts_Active))])
+                                      if isinstance(p.pr_status, (PRSts_Active,))])
                                  for e in result_sets]))
 
         if self.verbose:

@@ -111,7 +111,6 @@ class PullReqInfo(object):
 class PullReqStatus__Base(object):
     def as_fact(self):
         return self.__class__.__name__.lower()
-class PRSts_New(PullReqStatus__Base): "Marked WIP"
 class PRSts_Active(PullReqStatus__Base): pass
 class PRSts_Closed(PullReqStatus__Base): pass
 class PRSts_Merged(PullReqStatus__Base): pass

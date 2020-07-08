@@ -108,7 +108,7 @@ branch_ref("R4", "feat1", "r4-feat1-ref").
 branch_ref("R7", "master", "R7-master-ref").
 branch_ref("R5", "bugfix9", "r5-bugfix9-ref").
 pullreq("R1", "1", "blah", "r1_blah_mergeref", prsts_active, "nick", "nick@bad.seeds").
-pullreq("R4", "8192", "bugfix9", "r1_bf9_mergeref", prsts_new, "ozzie", "ozzie@crazy.train").
+pullreq("R4", "8192", "bugfix9", "r4_bf9_mergeref", prsts_active, "ozzie", "ozzie@crazy.train").
 pullreq("R2", "23", "bugfix9", "r2_b9_mergeref", prsts_active, "banana", "").
 pullreq("R3", "11", "blah", "r3_blah_mergeref", prsts_active, "nick", "nick@bad.seeds").
 pullreq("R3", "22", "closed_pr", "r3_CLOSED_mergeref", prsts_closed, "done", "done@already.yo").

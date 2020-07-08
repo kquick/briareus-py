@@ -461,7 +461,7 @@ def test_pr_projstatus_fail_do_set_forge_status(example_hydra_results):
 
 bugfix9_prtype = PR_Grouped('bugfix9')
 bugfix9_prcfg = [ PRCfg('R2', '23', 'bugfix9', 'r2_b9_mergeref', 'banana', ''),
-                  PRCfg('R4', '8192', 'bugfix9', 'r1_bf9_mergeref', 'ozzie', 'ozzie@crazy.train'),
+                  PRCfg('R4', '8192', 'bugfix9', 'r4_bf9_mergeref', 'ozzie', 'ozzie@crazy.train'),
                   BranchCfg('R5', 'bugfix9'),
 ]
 
@@ -539,7 +539,7 @@ def test_pr_bugfix9_fail_do_first_setforgestatus(getenv, gitforge, generate_hydr
                  'Project #1')
             for ref in [
                     'r2_b9_mergeref',
-                    'r1_bf9_mergeref',
+                    'r4_bf9_mergeref',
             ]
         ],
         any_order=True)
@@ -587,7 +587,7 @@ def test_pr_bugfix9_fail_do_again_setforgestatus(getenv, gitforge, generate_hydr
                  'Project #1')
             for ref in [
                     # 'r2_b9_mergeref',  # This is in a prior, so no notification this time
-                    'r1_bf9_mergeref',   # OK
+                    'r4_bf9_mergeref',   # OK
             ]
         ],
         any_order=True)
@@ -617,7 +617,7 @@ def test_pr_bugfix9_fail_do_alldone_setforgestatus(getenv, gitforge, generate_hy
                           updated=["R2", "R4"]) in reps
 
     for each in gitforge().set_commit_status.call_args_list:
-        assert each.ref not in ['r2_b9_mergeref', 'r1_bf9_patch' ]
+        assert each.ref not in ['r2_b9_mergeref', 'r4_bf9_patch' ]
 
 @patch('Briareus.Actions.Actors.SetForgeStatus.GitForge')
 @patch('Briareus.Actions.Actors.SetForgeStatus.os.getenv')
@@ -650,7 +650,7 @@ def test_pr_bugfix9_fail_supplement_setforgestatus(getenv, gitforge, generate_hy
                  'Project #1')
             for ref in [
                     'r2_b9_mergeref',
-                    'r1_bf9_mergeref',
+                    'r4_bf9_mergeref',
             ]
         ],
         any_order=True)
@@ -693,7 +693,7 @@ def test_pr_bugfix9_only_first_pending_setforgestatus(getenv, gitforge, generate
                  'Project #1')
             for ref in [
                     'r2_b9_mergeref',
-                    'r1_bf9_mergeref',
+                    'r4_bf9_mergeref',
             ]
         ],
         any_order=True)

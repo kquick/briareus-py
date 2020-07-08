@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, BranchReq, MainBranch
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
-                                           PRSts_Active, PRSts_Merged, PRSts_Closed, PRSts_New,
+                                           PRSts_Active, PRSts_Merged, PRSts_Closed,
                                            RepoDesc, SubModuleInfo)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator
@@ -45,7 +45,7 @@ expected_repo_info = {
                pr_revision='r3_blah_mergeref', pr_ident='11', pr_status=PRSts_Active(),
                pr_title='blah started', pr_user='nick', pr_email='nick@bad.seeds'),
         PRInfo(pr_target_repo='R4', pr_srcrepo_url='remote_R4_y', pr_branch='bugfix9',
-               pr_revision='r1_bf9_mergeref', pr_ident='8192', pr_status=PRSts_New(),
+               pr_revision='r4_bf9_mergeref', pr_ident='8192', pr_status=PRSts_Active(),
                pr_title='fix ninth bug!', pr_user='ozzie', pr_email='ozzie@crazy.train'),
     ]),
     'submodules': set([
@@ -109,7 +109,7 @@ branch_ref("R3", "blah", "r3-blah-ref").
 branch_ref("R4", "feat1", "r4-feat1-ref").
 branch_ref("R3", "master", "R3-master-ref").
 branch_ref("R10", "develop", "R10-master-ref").
-pullreq("R4", "8192", "bugfix9", "r1_bf9_mergeref", prsts_new, "ozzie", "ozzie@crazy.train").
+pullreq("R4", "8192", "bugfix9", "r4_bf9_mergeref", prsts_active, "ozzie", "ozzie@crazy.train").
 pullreq("R3", "11", "blah", "r3_blah_mergeref", prsts_active, "nick", "nick@bad.seeds").
 pullreq("R3", "22", "closed_pr", "r3_CLOSED_mergeref", prsts_closed, "done", "done@already.yo").
 pullreq("R3", "33", "merged_pr", "r3_MERGED_mergeref", prsts_merged, "done", "done@already.yo").
