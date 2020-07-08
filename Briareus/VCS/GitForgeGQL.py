@@ -43,6 +43,8 @@ class GitForge__BASE(object):
         self._rsp_cache = {} # key = request, value = response
         self._req_count = 0
 
+    NotFound = 404
+
     def stats(self):
         return { "url": self._url,
                  "rsp_cache_keys": list(self._rsp_cache.keys()),
@@ -158,7 +160,7 @@ class GitHub(GitForge__BASE):
                 'submodules': [],
                 'subrepos': [],
         }
-        next = { category: { 'num': 30, 'at': '' }
+        next = { category: { 'num': 100, 'at': '' }
                  for category in
                  filter(None, [ 'branches', 'pullreqs',
                                 'submodules' if get_submodules else None ])}
@@ -292,6 +294,47 @@ class GitHub(GitForge__BASE):
             if not any([sr.repo_url == t_(g_(sub, *extra_path, 'gitUrl')) for sr in ret['subrepos']])
         ])
 
+    def set_commit_status(self, sts, desc, commitref, url='', context_ref=''):
+        """Posts a status to the commit (usually shown on the pull request/
+           merge request page.  The sts should be one of "pending",
+           "success", or "failure".  The desc is a short description
+           (about 144 chars), the commitref is the sha256 commit the
+           status should be posted about.  The optional url is a
+           "click for details" link for the status.  The context_ref
+           is used to make this status report unique (github uses a
+           "context" as the index key for a status: posting to the
+           same context overrides previous status values).
+        """
+        # This is still a v3 operation, unsupported by the v4 GraphQL API.
+
+        return self._api_post('/statuses/' + commitref,
+                              {"state": sts,
+                               "description": desc,
+                               "target_url": url,
+                               "context": ("ci/briareus:" + context_ref
+                                           if context_ref else "ci/briareus"),
+                              },
+                              # Allow 404: means no permissions to set a status, so don't retry
+                              notFoundOK=True)
+
+    def _api_post(self, reqtype, data, notFoundOK=False):
+        # Generate a v3 URL for this reqtype
+        req_url = self._url.replace('graphql',
+                                    'repos/%s/%s%s'
+                                    % (self._owner, self._repo, reqtype))
+        print('posting to',req_url)
+        print('  data',str(data))
+        rsp = self._request_session.post(req_url, json=data)
+        if notFoundOK and rsp.status_code == 404:
+            print('not found but ok')
+            print(rsp)
+            print(rsp.text)
+            return self.NotFound
+        for err in rsp.json().get('errors', []):
+            logging.error('POST %s err: %s', req_url,
+                         err.get('message', rsp.status_code))
+        rsp.raise_for_status()
+        return rsp
 
     # Rate Limiting Notes
     # -------------------
