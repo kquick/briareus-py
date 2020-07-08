@@ -174,7 +174,7 @@ class RemoteGit__Info(object):
 
     def get_gitmodules(self, reponame: str,
                        branch: str,
-                       pullreq_id: str) -> GitmodulesRepoVers:
+                       pullreq_id: Optional[str]) -> GitmodulesRepoVers:
         rsp = self.get_file_contents_raw('.gitmodules', branch)
         if isinstance(rsp, int):
             if rsp == self.NotFound:
@@ -186,7 +186,7 @@ class RemoteGit__Info(object):
 
     def parse_gitmodules_contents(self, reponame:str,
                                   branch: str,
-                                  pullreq_id: str,
+                                  pullreq_id: Optional[str],
                                   gitmodules_contents: str) -> GitmodulesRepoVers:
         gitmod_cfg = configparser.ConfigParser()
         gitmod_cfg.read_string(gitmodules_contents)
