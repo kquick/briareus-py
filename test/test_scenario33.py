@@ -45,8 +45,8 @@ from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             MainBranch, PendingStatus,
                             ProjectSummary, StatusReport,
                             PR_Status, PR_Status_Blds)
-from Briareus.VCS_API import BranchRef, PRSts_Active
-from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc, SubModuleInfo)
+from Briareus.VCS_API import BranchRef, PRSts_Active, SubModuleInfo
+from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc)
 from Briareus.BuildSys import buildcfg_name
 import Briareus.hh as hh
 import json

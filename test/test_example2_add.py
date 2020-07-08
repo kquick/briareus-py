@@ -1,8 +1,8 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable, BranchReq,
                             ProjectSummary, StatusReport, VarFailure,
                             Notify, SendEmail)
-from Briareus.VCS_API import BranchRef
-from Briareus.VCS.InternalMessages import (RepoDesc, SubModuleInfo)
+from Briareus.VCS_API import BranchRef, SubModuleInfo
+from Briareus.VCS.InternalMessages import RepoDesc
 import Briareus.hh as hh
 import test_example2 as tex2
 import json

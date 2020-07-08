@@ -90,13 +90,13 @@ def get_input_facts(PNAME: str,
         DeclareFact('branch_ref/3'),
 
         # Specifies the existence of a submodule specification; this
-        # corresponds to the SubModuleInfo as defined in
-        # Briareus/VCS/InternalMessages.py.  The format is:
-        # submodule(ProjectRepo, PullReqID, BranchName, SubmoduleRepo,
-        # SubmoduleRef).  The SubmoduleRef is the explicit VCS
-        # reference that the submodule refers to.  The PullReqID is
-        # project_primary (an atom as opposed to a PR ID string) if this
-        # reference is for the project repo and not a pull request.
+        # corresponds to the Briareus.VCS_API.SubModuleInfo.  The
+        # format is: submodule(ProjectRepo, PullReqID, BranchName,
+        # SubmoduleRepo, SubmoduleRef).  The SubmoduleRef is the
+        # explicit VCS reference that the submodule refers to.  The
+        # PullReqID is project_primary (an atom as opposed to a PR ID
+        # string) if this reference is for the project repo and not a
+        # pull request.
         DeclareFact('submodule/5'),
 
         # Specifies a variable that the user has declared to be of
@@ -183,7 +183,7 @@ def get_input_facts(PNAME: str,
     ])
 
     submodules_facts: FactList = []
-    # n.b. repo_info['submodules'] are of type SubModuleInfo from InternalOps;
+    # n.b. repo_info['submodules'] are of type VCS_API.SubModuleInfo;
     # the actual definition is not imported here because Python is
     # duck-typed.
     submods_data = lambda bname, pr_id: [ (e.sm_sub_name, e.sm_sub_vers)

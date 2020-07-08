@@ -1,8 +1,8 @@
 from Briareus.Types import (BldConfig, BldRepoRev, BldVariable,
                             PR_Grouped, PR_Solo, BranchReq, MainBranch,
                             ProjectSummary, StatusReport, VarFailure)
-from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged
-from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc, SubModuleInfo)
+from Briareus.VCS_API import BranchRef, PRSts_Active, PRSts_Merged, SubModuleInfo
+from Briareus.VCS.InternalMessages import (PRInfo, RepoDesc)
 import json
 import pytest
 from datetime import timedelta

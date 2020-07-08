@@ -1,4 +1,5 @@
 import attr
+from typing import Optional
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
@@ -34,3 +35,33 @@ class PullReqStatus__Base(object):
 class PRSts_Active(PullReqStatus__Base): pass
 class PRSts_Closed(PullReqStatus__Base): pass
 class PRSts_Merged(PullReqStatus__Base): pass
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class SubModuleInfo(object):
+    """Describes a known submodule for a repository.  Only a project
+       repository is checked for submodules.
+
+       Note that a Submodule specifies a subrepo name and version, and
+       that since a VCS repository may contain several modules, that a
+       single VCS submodule reference might create multiple
+       SubModuleInfo objects---one for each module---which differ only
+       in sm_sub_name.
+
+       The repo to which this submodule reference belongs is
+       identified by the tuple of: repo_name, branch, and pullreq_id.
+       Note that any branch or pullreq might change the submodule
+       specification.  The pullreq_id may be None, indicating that
+       this is a branch in the main project repo; if the pullreq_id is
+       not None, it is the ID of the pullreq (one or more pullreq
+       source repos might use the same branch name, so the pullreq_id
+       is used to uniquely differentiante between these).
+
+    """
+    sm_repo_name: str  # Primary repo name (the one that contains the submodule)
+    sm_branch: str     # Submodule branch name (in source repo)
+    sm_pullreq_id: Optional[str] # None if main repo branch, string if
+                                 # submodule for a PR to the project
+                                 # repo, this identifies the PR
+    sm_sub_name: str   # Submodule repo name
+    sm_sub_vers: str   # Submodule repo specified version
