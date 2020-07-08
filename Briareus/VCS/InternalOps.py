@@ -89,11 +89,11 @@ class GatherRepoInfo(ActorTypeDispatcher):
         if self.responses_pending == 0:
             self.respond_to_requestor(
                 self.prepareReply(
-                    GatheredInfo({ "pullreqs" : self.pullreqs,
-                                   "submodules": self.submodules,
-                                   "subrepos" : self.subrepos,
-                                   "branches" : self.branches  # [ Types.BranchRef ]
-                    })))
+                    GatheredInfo(pullreqs=self.pullreqs,
+                                 submodules=self.submodules,
+                                 subrepos=self.subrepos,
+                                 branches=self.branches  # [ Types.BranchRef ]
+                    )))
 
     def receiveMsg_ChildActorExited(self, msg, sender):
         if msg.childAddress == self._get_git_info:

@@ -18,7 +18,11 @@ def gather_repo_info(RL: List[RepoDesc],
     rspobj = _run_actors(GatherInfo(RL, RX, BL), GatheredInfo, actor_system)
     if rspobj.error:
         raise RuntimeError('VCS request error: ' + str(rspobj.error))
-    return rspobj.info
+    return { "pullreqs" : rspobj.pullreqs,
+             "submodules": rspobj.submodules,
+             "subrepos" : rspobj.subrepos,
+             "branches" : rspobj.branches  # [ Types.BranchRef ]
+    }
 
 
 def get_updated_file(repourl: str,

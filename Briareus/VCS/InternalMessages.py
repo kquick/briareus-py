@@ -195,8 +195,8 @@ class SubModuleInfo(object):
 
 InfoReturnTy = Union[List[BranchRef],
                      List[SubModuleInfo],
-                     List[SubRepoVers],
-                     List[PullReqInfo]]
+                     List[RepoDesc],
+                     List[PRInfo]]
 
 @attr.s(auto_attribs=True)
 class GatherInfo(object):             #            --> GatheredInfo
@@ -205,5 +205,8 @@ class GatherInfo(object):             #            --> GatheredInfo
     branchlist: List[BranchDesc] = attr.ib(factory=list)
 @attr.s(auto_attribs=True)
 class GatheredInfo(object):           # GatherInfo -->
-    info: Dict[str, InfoReturnTy] = attr.ib(factory=dict)   # Any is
+    branches: List[BranchRef]
+    submodules: List[SubModuleInfo]
+    subrepos: List[RepoDesc]
+    pullreqs: List[PRInfo]
     error: Optional[str] = attr.ib(default=None)

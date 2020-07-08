@@ -27,7 +27,12 @@ def generated_repo_info(actor_system, request):
         def receiveMsg_str(self, message, sender):
             objmsg = fromJSON(message)
             if isinstance(objmsg, GatherInfo):
-                self.send(sender, toJSON(GatheredInfo(request.module.expected_repo_info)))
+                self.send(sender, toJSON(GatheredInfo(
+                    branches=request.module.expected_repo_info['branches'],
+                    subrepos=request.module.expected_repo_info['subrepos'],
+                    submodules=request.module.expected_repo_info['submodules'],
+                    pullreqs=request.module.expected_repo_info['pullreqs'],
+                )))
     gitinfo = actor_system.createActor(Mock_GatherRepoInfo, globalName="GatherRepoInfo")
     return BInput.input_desc_and_VCS_info(request.module.input_spec,
                                           verbose=True,
@@ -56,7 +61,12 @@ def generated_inp_config_facts(actor_system, testing_dir, inp_configs):
             def receiveMsg_str(self, message, sender):
                 objmsg = fromJSON(message)
                 if isinstance(objmsg, GatherInfo):
-                    self.send(sender, toJSON(GatheredInfo(repoinfo)))
+                    self.send(sender, toJSON(GatheredInfo(
+                        branches=repoinfo['branches'],
+                        subrepos=repoinfo['subrepos'],
+                        submodules=repoinfo['submodules'],
+                        pullreqs=repoinfo['pullreqs'],
+                    )))
         gitActor = actor_system.createActor(Mock_GatherRepoInfo, globalName='GatherRepoInfo')
         with open(inpcfg.hhd, 'r') as inpf:
             result.extend(hh.run_hh_gen(params, inpcfg, inpf.read(), None, prev_result))
@@ -85,7 +95,12 @@ def generated_inp_config_bldconfigs(actor_system, testing_dir, inp_configs, requ
             def receiveMsg_str(self, message, sender):
                 objmsg = fromJSON(message)
                 if isinstance(objmsg, GatherInfo):
-                    self.send(sender, toJSON(GatheredInfo(repoinfo)))
+                    self.send(sender, toJSON(GatheredInfo(
+                        branches=repoinfo['branches'],
+                        subrepos=repoinfo['subrepos'],
+                        submodules=repoinfo['submodules'],
+                        pullreqs=repoinfo['pullreqs'],
+                    )))
         gitActor = actor_system.createActor(Mock_GatherRepoInfo, globalName='GatherRepoInfo')
         with open(inpcfg.hhd, 'r') as inpf:
             result = hh.run_hh_gen(params, inpcfg, inpf.read(), None, result)
