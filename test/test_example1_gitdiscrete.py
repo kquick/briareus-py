@@ -31,6 +31,20 @@ def test_gitinfo(get_hub_api_url, actor_system, fake_forge):
     assert repo_info == expected_repo_info
 
 
+# The blah is a pullreq in R1, with pullreqs in R2, R3, and R6:
+#
+#   * R2 is a submodule and does not have the branch, so the
+#     submodules build should honor the submodule ref, but the HEADs
+#     build should build from the R2 PR.
+#
+#   * R3 is similar to R2 except that there is also a blah branch in
+#     the R3 primary repo.  This branch will be ignored because the
+#     submodule takes precedence.
+#
+#   * R6 is not a submodule but a top level repo, so the submodules
+#     build should build from the R6 PR as well as the HEADs build.
+
+
 r1_gitmodules_master = b'''[submodule "r2_submod"]
 	path = sub/r2
 	url = https://github.com/r2_url

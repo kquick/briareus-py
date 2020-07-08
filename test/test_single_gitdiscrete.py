@@ -23,6 +23,11 @@ def test_gitinfo(get_api_url, actor_system, fake_forge):
 
 
 forge_responses = {
+
+    # Note that toad and frog are not in the branch list because
+    # those exist on the remote toad_repo_url and frog_repo_url,
+    # not on TheRepo.
+
     '/repos/the_repo_url/branches': b'''
 [
   {
