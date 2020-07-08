@@ -1,6 +1,6 @@
 # Internal functionality for managing VCS Repo interactions.
 
-from thespian.actors import *
+from thespian.actors import ActorTypeDispatcher
 from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
 from Briareus.VCS.InternalMessages import *

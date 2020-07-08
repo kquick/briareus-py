@@ -40,7 +40,7 @@ import hashlib
 import subprocess
 import requests
 import json
-from thespian.actors import *
+from thespian.actors import (ActorTypeDispatcher, ActorSystemMessage, WakeupMessage)
 from thespian.initmsgs import initializing_messages
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitForge import RepoAPI_Location, GitLabInfo, GitHubInfo

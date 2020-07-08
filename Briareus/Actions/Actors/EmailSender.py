@@ -1,4 +1,4 @@
-from thespian.actors import *
+from thespian.actors import ActorTypeDispatcher
 from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Actors.RateLimiter import RateLimiter
 import platform

@@ -1,4 +1,4 @@
-from thespian.actors import *
+from thespian.actors import ActorTypeDispatcher
 from thespian.troupe import troupe
 from Briareus.Actions.Actors.Msgs import *
 import logging
