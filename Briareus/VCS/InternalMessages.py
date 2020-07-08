@@ -3,6 +3,7 @@
 import attr
 import json
 from Briareus.Input.Description import *
+from Briareus.VCS_API import SSHHostName
 from .ForgeAccess import (RepoAPI_Location, UserURL, API_URL, SSH_URL,
                           SAME_URL, DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
@@ -46,7 +47,7 @@ class Repo__RspMsg(object):
 @attr.s(auto_attribs=True)
 class ReadFileFromVCS(Repo__ReqMsg):        # --> FileReadData
     repourl: UserURL
-    repolocs: List[RepoLoc]
+    repolocs: List[SSHHostName]
     file_path: str
     branch: str = attr.ib(factory=str)     # defaults to "master"
 @attr.s(auto_attribs=True)
@@ -69,7 +70,7 @@ class Repo_AltLoc_ReqMsg(object):
 @attr.s(auto_attribs=True)
 class DeclareRepo(Repo__ReqMsg):        #             --> RepoDeclared
     repo_url: UserURL
-    repolocs: List[RepoLoc] = attr.ib(factory=list)
+    repolocs: List[SSHHostName] = attr.ib(factory=list)
 @attr.s
 class RepoDeclared(Repo__RspMsg):       # DeclareRepo -->
     pass
@@ -206,7 +207,7 @@ InfoReturnTy = Union[List[BranchRef],
 @attr.s(auto_attribs=True)
 class GatherInfo(object):             #            --> GatheredInfo
     repolist: List[RepoDesc] = attr.ib(factory=list)
-    repolocs: List[RepoLoc]  = attr.ib(factory=list)
+    repolocs: List[SSHHostName]  = attr.ib(factory=list)
     branchlist: List[BranchDesc] = attr.ib(factory=list)
 @attr.s(auto_attribs=True)
 class GatheredInfo(object):           # GatherInfo -->

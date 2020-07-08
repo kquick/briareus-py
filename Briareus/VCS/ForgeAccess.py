@@ -1,6 +1,7 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
+from Briareus.VCS_API import SSHHostName
 from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 
@@ -44,37 +45,22 @@ class RepoAPI_Location(object):
     apitoken: Optional[str]  # Token used to access the API URL (or None if no token)
 
 
-@attr.s(auto_attribs=True, frozen=True)
-class RepoLoc(object):
-    """These entries are used to translate the SSH repo access patterns
-       (needed by Hydra) into the corresponding API host for the
-       repository.  This is commonly needed for private repositories
-       that Hydra must use an SSH Hostname config override to access
-       (e.g. "git@projFoo-github:team/repo") but for which Briareus
-       needs to access the forge API
-       (e.g. "https://github.com/team/repo"), often using the
-       BRIAREUS_PAT token.
-    """
-    repo_loc: str  # string specified in netloc position for RL
-    api_host: str  # API forge access hostname
-
-
 def _remove_trailer(path: str, trailer: str) -> str:
     trailer_len = len(trailer)
     return path[:-trailer_len] if path[-trailer_len:] == trailer else path
 
 
 def _changeloc(url: str,
-               repolocs: List[RepoLoc]) -> Tuple[API_URL, str, str]: # unchanged
+               repolocs: List[SSHHostName]) -> Tuple[API_URL, str, str]: # unchanged
     parsed = urlparse(url)
     for each in repolocs:
-        if parsed.netloc == each.repo_loc:
-            return API_URL(urlunparse(parsed._replace(netloc=each.api_host))), each.api_host, parsed.netloc
+        if parsed.netloc == each.ssh_hostname:
+            return API_URL(urlunparse(parsed._replace(netloc=each.https_hostname))), each.https_hostname, parsed.netloc
     return API_URL(url), parsed.netloc, parsed.netloc
 
 
 def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
-                repolocs: List[RepoLoc]) -> RepoAPI_Location:
+                repolocs: List[SSHHostName]) -> RepoAPI_Location:
     """Converts git clone access specification
     (e.g. "git@foo.com:group/proj") to the corresponding HTTP forge
     reference RepoAPI_URL (e.g. "https://foo.com/group/proj").  Also
@@ -82,7 +68,7 @@ def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
 
     Performs any network location translations specified in the xlate
     list (which has (from, to) pairs in it as commonly specified by
-    the RepoLoc input specification.
+    the SSHHostName input specification.
 
     Returns the translated URL along with any access token for that
     URL (as extracted from the BRIAREUS_PAT environment variable).
@@ -123,7 +109,7 @@ def to_http_url(url: Union[UserURL, HTTPS_URL, SSH_URL],
 
 def to_access_url(url: str,
                   for_repo: Optional[Any], # actually a RepoDesc (circular imports)
-                  repolocs: List[RepoLoc]) -> Union[UserURL, SSH_URL]:
+                  repolocs: List[SSHHostName]) -> Union[UserURL, SSH_URL]:
     """The Repo specification in the input may use a git ssh reference to
        a repo (e.g. "git@myproj-github:foo/bar") which indicates that
        an SSH deploy key is being used by the Builder (e.g. Hydra) to

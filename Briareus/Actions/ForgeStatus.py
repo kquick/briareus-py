@@ -18,6 +18,7 @@ from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Content import gen_content
 from Briareus.Input.Description import RepoDesc
 from Briareus.Types import SetForgeStatus, PRCfg, PRData, RunContext, ResultSet
+from Briareus.VCS_API import SSHHostName
 from Briareus.VCS.ForgeAccess import to_http_url
 from typing import Any, Dict, Optional, Set, Tuple
 
@@ -145,7 +146,10 @@ def get_repo_loc_and_PR_rev(r: RepoDesc,
                                                                      str]]:
     if proj_results.inp_desc is None:
         return None
-    tgtloc = to_http_url(r.repo_url, proj_results.inp_desc.RX)
+    tgtloc = to_http_url(r.repo_url,
+                         [SSHHostName(ssh_hostname=x.repo_loc,
+                                                 https_hostname=x.api_host)
+                                     for x in proj_results.inp_desc.RX])
     for p in notify_params.prcfg:  # p is Types.PRCfg
         if isinstance(p, PRCfg) and p.reponame == r.repo_name:
             return r.repo_name, tgtloc, p.revision

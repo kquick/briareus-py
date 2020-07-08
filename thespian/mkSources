@@ -10,6 +10,7 @@ python -m thespian.director gensrc \
     version:date deps:$(pwd)/../deps \
     tli:$(pwd)/../Briareus_VCS.tli \
     ../../Briareus/__init__.py \
+    ../../Briareus/VCS_API.py \
     '../../Briareus/VCS/**/*.p[yl]' \
     ../../Briareus/Input/__init__.py \
     ../../Briareus/Input/Description.py
@@ -26,6 +27,7 @@ python -m thespian.director gensrc \
     version:date deps:$(pwd)/../deps \
     tli:$(pwd)/../Briareus_Actions.tli \
     ../../Briareus/__init__.py \
+    ../../Briareus/VCS_API.py \
     ../../Briareus/Actions/__init__.py \
     ../../Briareus/VCS/__init__.py \
     ../../Briareus/VCS/ForgeAccess.py \

@@ -2,6 +2,7 @@
 
 from thespian.actors import ActorSystem
 from Briareus.VCS.InternalOps import *
+from Briareus.VCS_API import SSHHostName
 from datetime import timedelta
 from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 
@@ -15,7 +16,11 @@ def gather_repo_info(RL: List[RepoDesc],
     """Gets the full set of information for the listed repositories, with
        location translations and branches of interest.
     """
-    rspobj = _run_actors(GatherInfo(RL, RX, BL), GatheredInfo, actor_system)
+    rspobj = _run_actors(GatherInfo(RL,
+                                    [SSHHostName(ssh_hostname=x.repo_loc,
+                                                 https_hostname=x.api_host)
+                                     for x in RX],
+                                    BL), GatheredInfo, actor_system)
     if rspobj.error:
         raise RuntimeError('VCS request error: ' + str(rspobj.error))
     return { "pullreqs" : rspobj.pullreqs,
@@ -31,7 +36,11 @@ def get_updated_file(repourl: UserURL,
                      branch: str,
                      actor_system: Any = None) -> FileReadData:
     "Reads a specific file from the repository at the specified url"
-    return _run_actors(ReadFileFromVCS("reponame", repourl, repolocs, filepath, branch),
+    return _run_actors(ReadFileFromVCS("reponame", repourl,
+                                       [SSHHostName(ssh_hostname=x.repo_loc,
+                                                    https_hostname=x.api_host)
+                                        for x in repolocs],
+                                       filepath, branch),
                        FileReadData, actor_system)
 
 

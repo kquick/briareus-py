@@ -1,7 +1,7 @@
 # Static Data Description of the Briareus Input Specifications
 
 import attr
-from Briareus.VCS.ForgeAccess import UserURL, RepoLoc
+from Briareus.VCS.ForgeAccess import UserURL
 from typing import (Dict, List)
 
 
@@ -11,6 +11,22 @@ class RepoDesc(object):
     repo_url: UserURL
     main_branch: str = attr.ib(default="master") # input optional
     project_repo: bool = attr.ib(default=False)  # internally generated, not part of the input spec
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class RepoLoc(object):
+    """These entries are used to translate the SSH repo access patterns
+       (needed by Hydra) into the corresponding API host for the
+       repository.  This is commonly needed for private repositories
+       that Hydra must use an SSH Hostname config override to access
+       (e.g. "git@projFoo-github:team/repo") but for which Briareus
+       needs to access the forge API
+       (e.g. "https://github.com/team/repo"), often using the
+       BRIAREUS_PAT token.
+    """
+    repo_loc: str  # string specified in netloc position for RL
+    api_host: str  # API forge access hostname
+
 
 @attr.s(auto_attribs=True, frozen=True)
 class BranchDesc(object):
