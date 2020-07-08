@@ -4,6 +4,8 @@ import threading
 import requests
 import pytest
 import json
+import random
+import hashlib
 
 
 server_done = False
@@ -65,3 +67,68 @@ def get_gitlab_api_url_local(fakeforge_port):
             scheme='http',
             path = 'api/v4/projects/' + parsed.path[1:].replace('/', '%2F')))
     return g
+
+
+gh_api_url = lambda url: url.replace('github.com/', 'api.github.com/repos/')
+github_sha = lambda c: hashlib.sha1(c.encode('utf-8')).hexdigest()
+github_nid = lambda v: base64.b64encode(v.encode('utf-8'))
+github_id  = random.randint(1,100000)
+
+# def github_repo(url, name, owner='me'):
+#     r_node_id = github_nid(url)
+#     r_id = github_id()
+#     o_node_id = github_id(owner)
+#     o_id = github_id()
+#     return json.dumps(
+#         {
+#             'id': r_id,
+#             'node_id': r_node_id,
+#             'name': name,
+#             'full_name': 'project/' + name,
+#             'private': False,
+#             'owner' : {
+#                 'login': owner,
+#                 '
+#         }
+#     ).encode('utf-8')
+
+def github_gitmodules_contents(primary_repo_url, branch, contents):
+    sha = github_sha(contents)
+    return json.dumps(
+        {
+            "name": ".gitmodules",
+            "path": ".gitmodules",
+            "sha": sha,
+            "size": len(contents),
+            "url": (gh_api_url(primary_repo_url) +
+                    '/contents/.gitmodules?ref=' + branch),
+            "html_url": primary_repo_url + "/blob/master/.gitmodules",
+            "git_url": (gh_api_url(primary_repo_url) +
+                        "/git/blobs/" + sha),
+            "download_url": (primary_repo_url.replace('github.com',
+                                                      'raw.githubusercontent.com') +
+                             "/master/.gitmodules"),
+            "type": "file",
+            "encoding": "base64",
+            "content": contents,
+        }
+    ).encode('utf-8')
+
+
+def github_submodule_contents(primary_repo_url, branch,
+                              reponame, path, ref, subrepo_url):
+    return json.dumps(
+        {
+            'name': reponame,
+            'path': path,
+            'sha': ref,
+            'size': 0,
+            'url': (gh_api_url(primary_repo_url)
+                    + '/contents/' + path + '?ref=' + branch),
+            'html_url': subrepo_url + '/tree/' + ref,
+            'git_url': (gh_api_url(subrepo_url) + '/git/trees/' + ref),
+            'download_url': None,
+            'type': 'submodule',
+            'submodule_git_url': subrepo_url,
+        }
+    ).encode('utf-8')
