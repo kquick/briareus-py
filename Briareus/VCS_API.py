@@ -21,6 +21,13 @@ class SSHHostName(object):
 
 
 @attr.s(auto_attribs=True, frozen=True)
+class BranchRef(object):
+    reponame: str
+    branchname: str
+    branchref: str   # reference (e.g. SHA)
+
+
+@attr.s(auto_attribs=True, frozen=True)
 class PullReqStatus__Base(object):
     def as_fact(self) -> str:
         return self.__class__.__name__.lower()

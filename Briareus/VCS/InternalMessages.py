@@ -112,13 +112,6 @@ class BranchPresent(Repo__RspMsg):      # HasBranch -->
     known_branches: List[Tuple[str,str]] = attr.ib(factory=list)  # list of tuples: (name,head_ref)
 
 
-@attr.s(auto_attribs=True, frozen=True)
-class BranchRef(object):
-    reponame: str
-    branchname: str
-    branchref: str   # reference (e.g. SHA)
-
-
 @attr.s(auto_attribs=True)
 class SubRepoVers(object):
     subrepo_name: str

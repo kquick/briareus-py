@@ -164,7 +164,7 @@ def get_input_facts(PNAME: str,
         r.repo_name for r in repo_info['subrepos']
         if isinstance(r, RepoSite)  # KWQ: can remove when structured
     ]
-    for rb in repo_info['branches']:  # VCS.InternalMessages.BranchRef
+    for rb in repo_info['branches']:  # VCS_API.BranchRef
         if isinstance(rb, BranchRef):  # KWQ: can remove when structured
             while rb.reponame in repos_without_branches:
                 repos_without_branches.remove(rb.reponame)
