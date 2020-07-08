@@ -1,11 +1,10 @@
 import attr
 import os
 from urllib.parse import urlparse, urlunparse
-from Briareus.VCS_API import SSHHostName, UserURL
+from Briareus.VCS_API import SSHHostName, UserURL, SSH_URL
 from typing import (Any, List, Optional, Tuple, Type, TypeVar, Union)
 
 
-class SSH_URL(str): 'Form: git@github.com:project/repo'
 class HTTPS_URL(str): 'Form: https://github.com/project/repo'
 class API_URL(str): 'URL for accessing the API interface'
 class SAME_URL(object):

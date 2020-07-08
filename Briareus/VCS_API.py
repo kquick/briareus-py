@@ -3,6 +3,7 @@ from typing import Optional
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
+class SSH_URL(str): 'Form: git@github.com:project/repo'
 
 
 @attr.s(auto_attribs=True)
