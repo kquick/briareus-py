@@ -8,7 +8,7 @@ import requests
 import logging
 from urllib.parse import urlparse, urlunparse
 from .ForgeAccess import *
-from Briareus.VCS_API import UserURL
+from Briareus.VCS_API import UserURL, PRSts_Closed, PRSts_Merged, PRSts_Active
 from Briareus.VCS.InternalMessages import *
 from typing import (Any, Dict, List, NoReturn, Optional, Tuple, Type, TypeVar, Union)
 

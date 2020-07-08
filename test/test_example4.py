@@ -1,6 +1,6 @@
 from Briareus.Types import BldConfig, BldRepoRev, BldVariable, PR_Grouped, BranchReq, MainBranch
+from Briareus.VCS_API import PRSts_Active, PRSts_Merged, PRSts_Closed
 from Briareus.VCS.InternalMessages import (BranchRef, PRInfo,
-                                           PRSts_Active, PRSts_Merged, PRSts_Closed,
                                            RepoDesc, SubModuleInfo)
 import Briareus.Input.Operations as BInput
 import Briareus.BCGen.Generator as Generator

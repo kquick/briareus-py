@@ -21,7 +21,7 @@ import functools
 from Briareus import print_each, print_titled
 from Briareus.Types import BuildResult, logic_result_expr, ProjectSummary, ResultSet
 from Briareus.Logic.InpFacts import get_input_facts
-from Briareus.VCS.InternalMessages import PRSts_Active
+from Briareus.VCS_API import PRSts_Active
 from Briareus.Logic.Evaluation import DeclareFact, Fact, run_logic_analysis
 
 

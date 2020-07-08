@@ -1,4 +1,5 @@
-from Briareus.VCS.InternalMessages import PullReqInfo, PRSts_Active
+from Briareus.VCS_API import PRSts_Active
+from Briareus.VCS.InternalMessages import PullReqInfo
 from Briareus.Input.Operations import input_desc_and_VCS_info
 import Briareus.VCS.GitForge
 import copy

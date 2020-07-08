@@ -18,3 +18,12 @@ class SSHHostName(object):
     # api token.
     ssh_hostname: str
     https_hostname: str
+
+
+@attr.s(auto_attribs=True, frozen=True)
+class PullReqStatus__Base(object):
+    def as_fact(self) -> str:
+        return self.__class__.__name__.lower()
+class PRSts_Active(PullReqStatus__Base): pass
+class PRSts_Closed(PullReqStatus__Base): pass
+class PRSts_Merged(PullReqStatus__Base): pass

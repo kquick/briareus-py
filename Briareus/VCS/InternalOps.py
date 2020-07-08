@@ -3,6 +3,7 @@
 from thespian.actors import (ActorTypeDispatcher, ActorExitRequest, ChildActorExited)
 from thespian.initmsgs import initializing_messages
 from Briareus.Input.Description import RepoDesc
+from Briareus.VCS_API import PRSts_Closed, PRSts_Merged, PRSts_Active
 from Briareus.VCS.InternalMessages import *
 from Briareus.VCS.GitRepo import GitRepoInfo
 from Briareus.VCS.ForgeAccess import to_http_url, to_access_url

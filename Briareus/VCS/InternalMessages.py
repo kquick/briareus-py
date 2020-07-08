@@ -3,7 +3,7 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from Briareus.VCS_API import SSHHostName, UserURL
+from Briareus.VCS_API import *
 from .ForgeAccess import (RepoAPI_Location, API_URL, SSH_URL,
                           SAME_URL, DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
@@ -83,14 +83,6 @@ class InvalidRepo(Repo__RspMsg):        # {ANY} -->
     repo_api_url: str
     errorstr: str
 
-
-@attr.s(auto_attribs=True, frozen=True)
-class PullReqStatus__Base(object):
-    def as_fact(self) -> str:
-        return self.__class__.__name__.lower()
-class PRSts_Active(PullReqStatus__Base): pass
-class PRSts_Closed(PullReqStatus__Base): pass
-class PRSts_Merged(PullReqStatus__Base): pass
 
 @attr.s(auto_attribs=True)
 class PullReqInfo(object):

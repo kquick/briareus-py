@@ -4,6 +4,7 @@ import json
 import pytest
 from thespian.actors import *
 from Briareus.Types import BldConfig, BldRepoRev, BranchReq, MainBranch, PR_Grouped
+from Briareus.VCS_API import *
 from Briareus.VCS.InternalMessages import *
 
 
