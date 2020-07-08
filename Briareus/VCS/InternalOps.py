@@ -174,6 +174,14 @@ class GatherRepoInfo(ActorTypeDispatcher):
 
     def _all_repos(self): return set(self.RL).union(set(self.subrepos))
 
+    def _repo_by_name(self, name: str) -> Optional[RepoDesc]:
+        psrc = [ r for r in self.RL if r.repo_name == name ]
+        return psrc[0] if psrc else  None
+
+    def _repoURL_by_name(self, name: str, reason: str) -> Union[UserURL, BOGUS_URL]:
+        psrc = [ UserURL(r.repo_url) for r in self.RL if r.repo_name == name ]
+        return psrc[0] if psrc else BOGUS_URL(reason)
+
     def receiveMsg_RepoDeclared(self, msg: RepoDeclared, sender):
         "Response message from the GetGitInfo actor to a DeclareRepo message"
         repo = self._pending_info.get(msg.reponame, None)
@@ -229,16 +237,14 @@ class GatherRepoInfo(ActorTypeDispatcher):
             elif isinstance(p.pullreq_srcurl, DIFFERENT_URL):
                 # This is likely a GitLab repo, where the merge
                 # request has a source_project_id instead of a
-                # source_rpoject_url and the source_project_id is
+                # source_project_url and the source_project_id is
                 # different than the target_project_id.  The
                 # GitLabInfo information collection didn't have the
                 # URL, so it couldn't generate an actual URL.
                 src_reponame = p.pullreq_srcurl.reponame
-                p.pullreq_srcurl = UserURL(([ r.repo_url
-                                              for r in self.RL
-                                              if r.repo_name == src_reponame ]
-                                            + [None])[0])
-
+                p.pullreq_srcurl = self._repoURL_by_name(
+                    src_reponame,
+                    'pullreq src reponame not in known RL')
             # If this is a new pull request branch, and that branch
             # has not already been probed for the target repo, check
             # to see if the branch exists (and if it is confirmed to
@@ -302,11 +308,11 @@ class GatherRepoInfo(ActorTypeDispatcher):
             if p.pullreq_srcurl is not None:
                 self.pullreqs.add(
                     PRInfo(pr_target_repo=msg.reponame,
-                           pr_srcrepo_url=(to_access_url(p.pullreq_srcurl,
-                                                         ([r for r in self.RL
-                                                           if r.repo_name == msg.reponame] + [None])[0],
-                                                         self.RX) or
-                                           self._url_for_repo(msg.reponame)),
+                           pr_srcrepo_url=(
+                               to_access_url(p.pullreq_srcurl,
+                                             self._repo_by_name(msg.reponame),
+                                             self.RX) or
+                               self._url_for_repo(msg.reponame)),
                            pr_branch=p.pullreq_branch,
                            pr_revision=p.pullreq_ref,
                            pr_ident=str(p.pullreq_number),  # PR idents must be strings

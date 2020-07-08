@@ -3,8 +3,8 @@
 import attr
 import json
 from Briareus.Input.Description import *
-from .ForgeAccess import (RepoAPI_Location, UserURL, SSH_URL, SAME_URL,
-                          DIFFERENT_URL, BOGUS_URL)
+from .ForgeAccess import (RepoAPI_Location, UserURL, API_URL, SSH_URL,
+                          SAME_URL, DIFFERENT_URL, BOGUS_URL)
 from typing import (Any, Dict, List, Optional, Tuple, Union)
 
 
@@ -96,7 +96,7 @@ class PullReqInfo(object):
     pullreq_number: str
     pullreq_status: PullReqStatus__Base # derivation
     pullreq_title: str
-    pullreq_srcurl: Union[UserURL, SSH_URL, SAME_URL, DIFFERENT_URL]
+    pullreq_srcurl: Union[UserURL, SSH_URL, SAME_URL, DIFFERENT_URL, BOGUS_URL]
     pullreq_branch: str
     pullreq_ref: str
     pullreq_user: str   # name of user on forge
