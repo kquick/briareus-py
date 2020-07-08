@@ -68,19 +68,19 @@ expected_repo_proj1_info = {
         BranchRef(reponame='repo1', branchname='master', branchref='r1_master_ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='RepoA_prfoo_loc', pr_branch='foo',
-               pr_revision='rAprFooref', pr_ident='pr-foo', pr_status=PRSts_Merged(),
+        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='foo',
+               pr_revision='rAprFooref', pr_ident='2222', pr_status=PRSts_Merged(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
         PRInfo(pr_target_repo='repo1', pr_srcrepo_url='Repo1_prfoo_loc', pr_branch='foo',
-               pr_revision='r1prFooref', pr_ident='pr-foo', pr_status=PRSts_Active(),
+               pr_revision='r1prFooref', pr_ident='2222', pr_status=PRSts_Active(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='repoA_loc', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo1', sm_branch='foo', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_foo_head'),
-        SubModuleInfo(sm_repo_name='repo1', sm_branch='foo', sm_pullreq_id='pr-foo', sm_sub_name='RepoA', sm_sub_vers='repoA_foo_head'),
+        SubModuleInfo(sm_repo_name='repo1', sm_branch='foo', sm_pullreq_id='2222', sm_sub_name='RepoA', sm_sub_vers='repoA_foo_head'),
         SubModuleInfo(sm_repo_name='repo1', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
 
     ]),
@@ -93,12 +93,12 @@ expected_repo_proj2_info = {
         BranchRef(reponame='repo2', branchname='master', branchref='r2_master_ref'),
     ]),
     'pullreqs': set([
-        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='RepoA_prfoo_loc', pr_branch='foo',
-               pr_revision='rAprFooref', pr_ident='pr-foo', pr_status=PRSts_Merged(),
+        PRInfo(pr_target_repo='RepoA', pr_srcrepo_url='https://github.com/RepoA_prfoo_loc', pr_branch='foo',
+               pr_revision='rAprFooref', pr_ident='2222', pr_status=PRSts_Merged(),
                pr_title='Foo Do', pr_user='bar', pr_email='bar@brown.cow'),
     ]),
     'subrepos': set([
-        RepoDesc(repo_name='RepoA', repo_url='repoA_loc', main_branch='master', project_repo=False),
+        RepoDesc(repo_name='RepoA', repo_url='https://github.com/repoA_loc', main_branch='master', project_repo=False),
     ]),
     'submodules': set([
         SubModuleInfo(sm_repo_name='repo2', sm_branch='master', sm_pullreq_id=None, sm_sub_name='RepoA', sm_sub_vers='repoA_master_head'),
@@ -131,9 +131,9 @@ repo("proj1", "repo1").
 subrepo("repo1", "RepoA").
 branch("RepoA", "master").
 submodule("repo1", project_primary, "master", "RepoA", "repoA_master_head").
-submodule("repo1", "pr-foo", "foo", "RepoA", "repoA_foo_head").
-pullreq("repo1", "pr-foo", "foo", "r1prFooref", prsts_active, "bar", "bar@brown.cow").
-pullreq("RepoA", "pr-foo", "foo", "rAprFooref", prsts_merged, "bar", "bar@brown.cow").
+submodule("repo1", "2222", "foo", "RepoA", "repoA_foo_head").
+pullreq("repo1", "2222", "foo", "r1prFooref", prsts_active, "bar", "bar@brown.cow").
+pullreq("RepoA", "2222", "foo", "rAprFooref", prsts_merged, "bar", "bar@brown.cow").
 '''.split('\n')
 
 
@@ -163,7 +163,7 @@ repo("proj2", "repo2").
 subrepo("repo2", "RepoA").
 branch("RepoA", "master").
 submodule("repo2", project_primary, "master", "RepoA", "repoA_master_head").
-pullreq("RepoA", "pr-foo", "foo", "rAprFooref", prsts_merged, "bar", "bar@brown.cow").
+pullreq("RepoA", "2222", "foo", "rAprFooref", prsts_merged, "bar", "bar@brown.cow").
 '''.split('\n')
 
 
@@ -254,7 +254,7 @@ def test_issue1_proj1_pr_master_repoA(generated_inp_config_bldconfigs):
                                             pullreq_id='project_primary'),
                                  BldRepoRev(reponame='repo1',
                                             repover='foo',
-                                            pullreq_id='pr-foo'),
+                                            pullreq_id='2222'),
                                  ],
                              bldvars=[]) in bldcfgs
             # The submodules build should respect the gitmodules
@@ -270,7 +270,7 @@ def test_issue1_proj1_pr_master_repoA(generated_inp_config_bldconfigs):
                                             pullreq_id='project_primary'),
                                  BldRepoRev(reponame='repo1',
                                             repover='foo',
-                                            pullreq_id='pr-foo'),
+                                            pullreq_id='2222'),
                                  ],
                              bldvars=[]) in bldcfgs
 
@@ -369,7 +369,7 @@ def test_report_prstatus_count(builder_report):
             print('')
 
     # Should be a PR_Status showing passing for proj1 (for each
-    # strategy: HEADs, submodules), since there's still a pr-foo in
+    # strategy: HEADs, submodules), since there's still a 2222 in
     # that repo.  Should NOT be a PR_Status for proj2.
     assert 2 == len([r for r in reps if isinstance(r, PR_Status)])
 
@@ -381,7 +381,7 @@ def test_report_prstatus_proj1_present(builder_report):
                          project='proj1',
                          strategy=strategy,
                          prcfg=[PRCfg(reponame='repo1',
-                                      pr_id='pr-foo',
+                                      pr_id='2222',
                                       branch='foo',
                                       revision='r1prFooref',
                                       user='bar',
@@ -404,7 +404,7 @@ def test_issue2_report_prstatus_proj2_not_present(builder_report):
                          project='proj2',
                          strategy=strategy,
                          prcfg=[PRCfg(reponame='repo2',
-                                      pr_id='pr-foo',
+                                      pr_id='2222',
                                       branch='foo',
                                       revision='somehash',
                                       user='bar',
@@ -425,7 +425,7 @@ def test_report_pendingstatus_count(builder_report):
     print('****')
 
     # Should be a PR_Status showing passing for proj1, since there's
-    # still a pr-foo in that repo.  Should NOT be a PR_Status for proj2.
+    # still a 2222 in that repo.  Should NOT be a PR_Status for proj2.
     assert (len(proj1_top_level) +
             len(proj2_top_level)) == len([r for r in reps
                                           if isinstance(r, PendingStatus)])
