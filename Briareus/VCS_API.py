@@ -1,5 +1,5 @@
 import attr
-from typing import Optional, Union
+from typing import NewType, Optional, Union
 
 
 class UserURL(str): 'URL specified by a user, can be any form'
@@ -28,6 +28,9 @@ class SSHHostName(object):
     # api token.
     ssh_hostname: str
     https_hostname: str
+
+
+BranchName = NewType('BranchName', str)
 
 
 @attr.s(auto_attribs=True, frozen=True)

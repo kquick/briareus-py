@@ -5,7 +5,7 @@ from Briareus.VCS.InternalMessages import (GatherInfo, GatheredInfo, ReadFileFro
                                            InfoReturnTy,
                                            toJSON, fromJSON)
 from Briareus.Input.Description import RepoDesc, RepoLoc, BranchDesc
-from Briareus.VCS_API import RepoSite, SSHHostName, UserURL
+from Briareus.VCS_API import BranchName, RepoSite, SSHHostName, UserURL
 from datetime import timedelta
 from typing import (Any, Dict, List, Sequence, Type, TypeVar)
 
@@ -27,7 +27,7 @@ def gather_repo_info(RL: List[RepoDesc],
                                     [SSHHostName(ssh_hostname=x.repo_loc,
                                                  https_hostname=x.api_host)
                                      for x in RX],
-                                    BL), GatheredInfo, actor_system)
+                                    [BranchName(b.branch_name) for b in BL]), GatheredInfo, actor_system)
     if rspobj.error:
         raise RuntimeError('VCS request error: ' + str(rspobj.error))
     return { "pullreqs" : rspobj.pullreqs,

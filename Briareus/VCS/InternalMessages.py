@@ -149,7 +149,7 @@ InfoReturnTy = Union[List[BranchRef],
 class GatherInfo(object):             #            --> GatheredInfo
     repolist: List[RepoSite] = attr.ib(factory=list)
     repolocs: List[SSHHostName]  = attr.ib(factory=list)
-    branchlist: List[BranchDesc] = attr.ib(factory=list)
+    branchlist: List[BranchName] = attr.ib(factory=list)
 @attr.s(auto_attribs=True)
 class GatheredInfo(object):           # GatherInfo -->
     branches: List[BranchRef]
