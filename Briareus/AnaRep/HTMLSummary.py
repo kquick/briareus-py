@@ -20,7 +20,7 @@ class TCell_Bld(object):
     def __init__(self, project, bldname):
         self._project = project
         self._bldname = bldname
-    def render(self, make_builder_url: Callable[[str, TCell_Bld], str] = None) -> str:
+    def render(self, make_builder_url: Callable[[str, "TCell_Bld"], str] = None) -> str:
         if make_builder_url:
             url = make_builder_url(self._project, self._bldname)
             return ('<a href="%(url)s" class="bldsts %(ststype)s">%(cell)s</a>'
@@ -30,7 +30,7 @@ class TCell_Bld(object):
                       'cell': str(self),
                     })
         return str(self)
-    def __call__(self, orig: Optional[TCell_Bld]) -> Optional[TCell_Bld]:
+    def __call__(self, orig: Optional["TCell_Bld"]) -> Optional["TCell_Bld"]:
         # Callable for combining with previous entry at this location in the table
         if orig is None:
             return self
