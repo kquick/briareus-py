@@ -19,7 +19,7 @@ import os.path
 import sys
 from thespian.actors import ActorSystem
 import attr
-from typing import Any, Callable, Dict, IO, Optional
+from typing import Any, Callable, Dict, IO, Optional, Tuple
 
 
 @attr.s(auto_attribs=True)
@@ -112,6 +112,9 @@ def run_hh_gen(params: Params,
                                     bldcfg_fname=bldcfg_fname)
     if params.up_to and not params.up_to.enough('builder_configs'):
         return config_results
+    assert isinstance(config_results, tuple)
+    # assert isinstance(config_results[0], BCGen.BuilderConfigsTy)
+    # assert isinstance(config_results[1], BCGen.GeneratedConfigs)
 
     builder_cfgs, build_cfgs = config_results
     # builder_cfgs : dictionary of builder configuration file(s),

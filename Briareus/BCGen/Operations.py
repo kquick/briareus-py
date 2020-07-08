@@ -7,8 +7,8 @@ from Briareus.VCS_API import RepoInfoTy
 from Briareus.Input.Description import InputDesc
 from Briareus.BuildSys.BuilderBase import BuilderConfigsTy, Builder
 import Briareus.Input.Parser as Parser
-import Briareus.BCGen.Generator as Generator
-from typing import Tuple
+from Briareus.BCGen.Generator import BuildConfigGenTy, GeneratedConfigs, Generator
+from typing import Tuple, Union
 
 
 class BCGen(object):
@@ -19,19 +19,19 @@ class BCGen(object):
         self._bldsys = bldsys
         self._actor_system = actor_system
         self.verbose = verbose
-        self._up_to = up_to  # None or UpTo
+        self._up_to = up_to
 
     def generate(self, input_desc: InputDesc,
                  repo_info: RepoInfoTy,
-                 bldcfg_fname: str = None) -> Tuple[BuilderConfigsTy,
-                                                    Generator.GeneratedConfigs]:
-        gen = Generator.Generator(actor_system=self._actor_system,
-                                  verbose=self.verbose)
+                 bldcfg_fname: str = None) -> Union[BuildConfigGenTy,
+                                                    Tuple[BuilderConfigsTy,
+                                                          GeneratedConfigs]]:
+        gen = Generator(actor_system=self._actor_system, verbose=self.verbose)
         (rtype, cfgs) = gen.generate_build_configs(input_desc, repo_info,
                                                    up_to=self._up_to)
-        # cfgs : Generator.GeneratedConfigs
         if rtype != "build_configs":   # early up_to abort
             return cfgs
+        assert isinstance(cfgs, GeneratedConfigs)
         if self.verbose or self._up_to == "build_configs":
             print_each('BUILD CONFIGS', cfgs.cfg_build_configs)
             print_each('SUBREPOS', cfgs.cfg_subrepos)
