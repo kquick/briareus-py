@@ -45,7 +45,7 @@ class Repo__RspMsg(object):
 
 @attr.s(auto_attribs=True)
 class ReadFileFromVCS(Repo__ReqMsg):        # --> FileReadData
-    repourl: str
+    repourl: UserURL
     repolocs: List[RepoLoc]
     file_path: str
     branch: str = attr.ib(factory=str)     # defaults to "master"

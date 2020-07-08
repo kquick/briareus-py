@@ -25,7 +25,7 @@ def gather_repo_info(RL: List[RepoDesc],
     }
 
 
-def get_updated_file(repourl: str,
+def get_updated_file(repourl: UserURL,
                      filepath: str,
                      repolocs: List[RepoLoc],
                      branch: str,
