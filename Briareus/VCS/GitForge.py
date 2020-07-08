@@ -9,7 +9,7 @@ import logging
 from urllib.parse import urlparse, urlunparse
 from .ForgeAccess import *
 from Briareus.VCS.InternalMessages import *
-from typing import (Any, Dict, NoReturn, Optional, Tuple, Type, TypeVar, Union)
+from typing import (Any, Dict, List, NoReturn, Optional, Tuple, Type, TypeVar, Union)
 
 LocalCachePeriod = datetime.timedelta(minutes=1, seconds=35)
 
