@@ -3,7 +3,8 @@
 from collections import defaultdict
 from Briareus.KVITable import KVITable
 from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify,
-                            PR_Status, PRCfg, BranchCfg, ReportType, BldDescTy)
+                            PR_Status, PRCfg, BranchCfg, BldDescTy)
+from Briareus.State import ReportType
 from Briareus.BuildSys import buildcfg_name
 from Briareus.BuildSys.BuilderBase import BuilderURL
 from Briareus.AnaRep.TextSummary import tbl_branch, tbl_branch_

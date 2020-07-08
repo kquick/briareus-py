@@ -13,7 +13,8 @@ import Briareus.Actions.Ops as Actions
 from Briareus.Logic.Evaluation import FactList
 from Briareus.VCS.ManagedRepo import get_updated_file
 from Briareus.VCS_API import UserURL
-from Briareus.Types import SendEmail, RunContext, ReportType, UpTo, ResultSet
+from Briareus.Types import SendEmail, UpTo
+from Briareus.State import RunContext, ReportType, ResultSet
 from Briareus.AtomicUpdWriter import FileWriterSession
 import argparse
 import datetime

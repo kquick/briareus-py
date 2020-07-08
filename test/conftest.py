@@ -4,6 +4,7 @@ import pytest
 from datetime import datetime, timedelta
 from thespian.actors import *
 from Briareus.Types import *
+from Briareus.State import RunContext
 from Briareus.VCS.InternalMessages import *
 import Briareus.AnaRep.Operations as AnaRep
 import Briareus.Input.Operations as BInput
@@ -139,7 +140,7 @@ def generate_hydra_results(actor_system, generated_repo_info, generated_hydra_bu
             print(buildcfg_name(each))
         builder._build_results = "projname", build_results
         rcontext = RunContext(actor_system,
-                              [AnaRep.ResultSet(builder, inp_desc, repo_info, build_cfgs)])
+                              [AnaRep.ResultSet(inp_desc, builder, repo_info, build_cfgs)])
         report = anarep.report_on(rcontext,
                                   prior,
                                   reporting_logic_defs=reporting_logic_defs)

@@ -3,7 +3,8 @@
 import sys
 import os.path
 import Briareus.Actions
-from Briareus.Types import (RunContext, Notify, PRFailedSubBlds, PRFailedStdBlds)
+from Briareus.Types import Notify, PRFailedSubBlds, PRFailedStdBlds
+from Briareus.State import RunContext
 from typing import Optional, Tuple
 
 

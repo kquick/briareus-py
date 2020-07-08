@@ -20,9 +20,9 @@ import attr
 import functools
 from Briareus import print_each, print_titled
 from Briareus.Types import (BuildResult, logic_result_expr,
-                            ProjectSummary, StatusReport, ResultSet,
-                            VarFailure, SendEmail, SetForgeStatus,
-                            UpTo, RunContext)
+                            ProjectSummary, StatusReport,
+                            VarFailure, SendEmail, SetForgeStatus, UpTo)
+from Briareus.State import ResultSet, RunContext
 from Briareus.Logic.InpFacts import get_input_facts
 from Briareus.Logic.Evaluation import FactList
 from Briareus.VCS_API import PRSts_Active

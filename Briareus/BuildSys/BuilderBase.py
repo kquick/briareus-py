@@ -1,10 +1,6 @@
 from typing import Dict, Optional, Union
-from Briareus.Types import BuilderResult, PR_Solo, BldConfig
-
-
-class BuilderURL(str): "URL to fetch build results from Builder"
-
-BuilderConfigsTy = Dict[Optional[str],str]
+from Briareus.Types import BuilderResult, BldConfig
+from Briareus.BuildSys_API import BuilderConfigsTy, BuilderURL
 
 
 # Base definitions for a Builder

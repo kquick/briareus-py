@@ -6,7 +6,7 @@ and the statement is possibly updated to reflect the action.
 from Briareus.Actions import ActionType
 from Briareus.Actions.SendEmail import do_send_email_action
 from Briareus.Actions.ForgeStatus import do_set_forge_status
-from Briareus.Types import RunContext, ReportType
+from Briareus.State import RunContext, ReportType
 from typing import Any, Dict, TypeVar
 
 actions = {

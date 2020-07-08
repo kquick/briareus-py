@@ -5,6 +5,7 @@ import time
 import sys
 import errno
 from Briareus.Types import *
+from Briareus.State import ReportType
 from typing import Optional, TextIO, Tuple
 
 

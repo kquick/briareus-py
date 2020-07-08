@@ -1,7 +1,7 @@
 # Definitions for a Nix Hydra builder
 
 import Briareus.BuildSys.BuilderBase as BuilderBase
-from Briareus.Types import BuilderResult, PR_Solo, BldConfig
+from Briareus.Types import BuilderResult, BldConfig
 from Briareus.BuildSys import buildcfg_name
 import requests
 import json

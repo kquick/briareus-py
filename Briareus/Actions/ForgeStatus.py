@@ -17,7 +17,8 @@ from thespian.actors import ActorSystem
 from Briareus.Actions.Actors.Msgs import *
 from Briareus.Actions.Content import gen_content
 from Briareus.Input.Description import RepoDesc
-from Briareus.Types import SetForgeStatus, PRCfg, PRData, RunContext, ResultSet
+from Briareus.Types import SetForgeStatus, PRCfg, PRData
+from Briareus.State import RunContext, ResultSet
 from Briareus.VCS_API import SSHHostName
 from Briareus.VCS.ForgeAccess import to_http_url
 from typing import Any, Dict, Optional, Set, Tuple

@@ -18,7 +18,8 @@ from datetime import timedelta
 from thespian.actors import ActorSystem
 from Briareus.Actions.Content import gen_content
 from Briareus.Actions.Actors.Msgs import *
-from Briareus.Types import SendEmail, RunContext
+from Briareus.Types import SendEmail
+from Briareus.State import RunContext
 from typing import Any, Dict
 
 SEND_EMAIL_TIMEOUT = timedelta(seconds=20)

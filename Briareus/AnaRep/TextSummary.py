@@ -2,7 +2,8 @@
 
 from collections import defaultdict
 from Briareus.KVITable import KVITable
-from Briareus.Types import (StatusReport, PendingStatus, NewPending, Notify, ReportType)
+from Briareus.Types import StatusReport, PendingStatus, NewPending, Notify
+from Briareus.State import ReportType
 from Briareus.BuildSys import buildcfg_name
 from typing import DefaultDict, Union
 

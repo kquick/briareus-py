@@ -1,6 +1,6 @@
 # Support for various backend builders
 
-from Briareus.Types import PR_Solo, PR_Repogroup, BldConfig
+from Briareus.Types import BldConfig
 
 
 def fix_jobname(branchname: str) -> str:
