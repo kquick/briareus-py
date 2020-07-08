@@ -42,27 +42,26 @@ class InpConfig(object):
 
 
 class TimeReporter(object):
-    def __init__(self, report=True, phase='startup'):
+    def __init__(self, report: bool = True, phase: str = 'startup') -> None:
         self.report = report
         self.phase = phase
         self.first_start = datetime.datetime.now()
         self.start = self.first_start
-    def _report(self):
+    def _report(self) -> None:
         if self.report:
             print('#T:', str(datetime.datetime.now()-self.start), '::',
                   self.phase,
                   file=sys.stderr, flush=True)
-    def __call__(self, next_phase):
+    def __call__(self, next_phase: str) -> None:
         self._report()
         self.phase = next_phase
         self.start = datetime.datetime.now()
-    def finished(self):
+    def finished(self) -> None:
         self._report()
         self.start = self.first_start
         self.phase = 'Total runtime'
         self._report()
-        self.start = None
-        self.phase = None
+        self.phase = "finished"
 
 
 @attr.s
@@ -393,7 +392,7 @@ class UpTo(object):
         return UpTo.valid_up_to.index(self._up_to) >= pt
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description='Run the Briareus (the Hundred Hander) tool to generate build configurations.',
         epilog=('The BRIAREUS_PAT environment variable can be used to supply "repo=token;..." '
